@@ -204,7 +204,7 @@ function paintHeader() {
 
 	writeText('-LIFE-', xOff+(10*TILESIZE), yOff); 
 	data = ctx.getImageData(xOff+(10*TILESIZE), yOff, HALFTILE*6, HALFTILE);
-	console.log(data);
+	//console.log(data);
 	
 }
 

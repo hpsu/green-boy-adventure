@@ -241,7 +241,7 @@ function writeText(string, x, y, color) {
 						b = color[2];
 					}
 				}
-				ctx.putImageData(x+(xOff*HALFTILE)+HALFTILE, y);
+				ctx.putImageData(map, x+(xOff*HALFTILE)+HALFTILE, y);
 				
 			}
 		}

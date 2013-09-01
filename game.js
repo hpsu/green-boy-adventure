@@ -236,9 +236,9 @@ function writeText(string, x, y, color) {
 					b = imdata[p+2];
 
 					if(r==255 & g==255 && b == 255) {
-						r = color[0];
-						g = color[1];
-						b = color[2];
+						imdata[p] = color[0];
+						imdata[p+1] = color[1];
+						imdata[p+2] = color[2];
 					}
 				}
 				ctx.putImageData(map, x+(xOff*HALFTILE)+HALFTILE, y);

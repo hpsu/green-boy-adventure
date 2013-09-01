@@ -263,6 +263,3 @@ function animate() {
 	window.requestAnimationFrame(animate);
 }
 
-			ctx.drawImage(img, (23*TILESIZE)+(char[0]*HALFTILE),  font['m'][1]*HALFTILE,  HALFTILE,  HALFTILE,  0, 0, HALFTILE, 	HALFTILE);
-			map = ctx.getImageData(0, 0, HALFTILE, HALFTILE);
-

@@ -229,7 +229,7 @@ function writeText(string, x, y, color) {
 				HALFTILE);
 			if(color) {
 				map = ctx.getImageData(x+(xOff*HALFTILE)+HALFTILE, y, HALFTILE, HALFTILE);
-				imdata = map,data;
+				imdata = map.data;
 				for(var p = 0, len = imdata.length; p < len; p+=4) {
 					r = imdata[p]
 					g = imdata[p+1];

@@ -205,6 +205,21 @@ function paintHeader() {
 	writeText('-LIFE-', xOff+(10*TILESIZE), yOff); 
 	data = ctx.getImageData(xOff+(10*TILESIZE), yOff, HALFTILE*6, HALFTILE);
 	//console.log(data);
+
+	var imdata = data.data;
+
+	// convert image to grayscale
+	var r,g,b,avg;
+	for(var p = 0, len = imdata.length; p < len; p+=4) {
+		r = imdata[p]
+		g = imdata[p+1];
+		b = imdata[p+2];
+
+		if(r==255 & g==255 && b == 255)
+			imdata[p+1] = imdata[p+2] = 0;
+	}
+
+	ctx.putImageData(data,0,0);
 	
 }
 

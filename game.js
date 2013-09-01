@@ -235,7 +235,8 @@ function writeText(string, x, y, color) {
 					g = imdata[p+1];
 					b = imdata[p+2];
 
-					if(r==252 && g==252 && b == 252) {
+					if(r == 252 && g == 252 && b == 252) {
+						console.log('found white pixel');
 						imdata[p] = color[0];
 						imdata[p+1] = color[1];
 						imdata[p+2] = color[2];

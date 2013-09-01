@@ -202,25 +202,8 @@ function paintHeader() {
 	writeText('B', xOff+(6*TILESIZE)+HALFTILE, yOff); 
 	writeText('A', xOff+(8*TILESIZE), yOff); 
 
-	writeText('-LIFE-', xOff+(10*TILESIZE), yOff); 
-	data = ctx.getImageData(xOff+(10*TILESIZE), yOff, HALFTILE*6, HALFTILE);
-	//console.log(data);
-
-	var imdata = data.data;
-
-	// convert image to grayscale
-	var r,g,b,avg;
-	for(var p = 0, len = imdata.length; p < len; p+=4) {
-		r = imdata[p]
-		g = imdata[p+1];
-		b = imdata[p+2];
-
-		if(r==255 & g==255 && b == 255)
-			imdata[p+1] = imdata[p+2] = 0;
-	}
-
-	ctx.putImageData(data,0,0);
-	
+	writeText('-LIFE-', xOff+(10*TILESIZE), yOff, [216, 40, 0]); 
+	data = ctx.getImageData((TILESIZE*1.5)+(10*TILESIZE), (TILESIZE), HALFTILE*6, HALFTILE);
 }
 
 
@@ -229,20 +212,38 @@ var font = {
 	,c: [ 0, 1],d: [ 1, 1],g: [ 2, 1],h: [ 3, 1],k: [ 4, 1],l: [ 5, 1],o: [ 6, 1],p: [ 7, 1],s: [ 8, 1],t: [ 9, 1],w: [10, 1],x: [11, 1],'-': [12, 1],'.': [13, 1],"'": [14, 1],'&': [15, 1],  1: [16, 1],2: [17, 1],5: [18, 1],6: [19, 1],9: [20, 1]
 };
 
-function writeText(string, x, y) {
+function writeText(string, x, y, color) {
 	var xOff = 0;
 	Array.each(string.toLowerCase(), function(c){
 		char = font[c];
-		if(char) ctx.drawImage(
-			img, 
-			(23*TILESIZE)+(char[0]*HALFTILE), 
-			char[1]*HALFTILE, 
-			HALFTILE, 
-			HALFTILE, 
-			x+(xOff*HALFTILE)+HALFTILE, 
-			y, 
-			HALFTILE, 
-			HALFTILE);
+		if(char) {
+			ctx.drawImage(
+				img, 
+				(23*TILESIZE)+(char[0]*HALFTILE), 
+				char[1]*HALFTILE, 
+				HALFTILE, 
+				HALFTILE, 
+				x+(xOff*HALFTILE)+HALFTILE, 
+				y, 
+				HALFTILE, 
+				HALFTILE);
+			if(color) {
+				map = ctx.getImageData(x+(xOff*HALFTILE)+HALFTILE, y, HALFTILE, HALFTILE);
+				for(var p = 0, len = map.data.length; p < len; p+=4) {
+					r = imdata[p]
+					g = imdata[p+1];
+					b = imdata[p+2];
+
+					if(r==255 & g==255 && b == 255) {
+						r = color[0];
+						g = color[1];
+						b = color[2];
+					}
+				}
+				ctx.putImageData(x+(xOff*HALFTILE)+HALFTILE, y);
+				
+			}
+		}
 		xOff++;
 	});
 }

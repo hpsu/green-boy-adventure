@@ -1,4 +1,4 @@
-//@TODO: Separate canvas contexts for background + header
+//@TODO: Separate canvas contexts for background + header with lower update rate
 
 
 
@@ -21,8 +21,8 @@ var canvas = null
 		bombs: 0,
 		life: 3,
 		hearts: 3,
-		room: 8,
-		level: 6
+		room: 7,
+		level: 7
 	};
 
 

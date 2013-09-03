@@ -1,33 +1,46 @@
+//@TODO: Separate canvas contexts for background + header
+
+
+
+
 // Global vars
 var canvas = null
 	,ctx = null
-	,WIDTH
-	,HEIGHT
+	,WIDTH=256
+	,HEIGHT=240
 	,TILESIZE = 16
 	,HALFTILE = 8
+	,XTILES = 16
+	,YTILES = 10
 	,solidObjects = []
 	,img = new Image()
-	,keyStates = {};
+	,keyStates = {},
+	env = {
+		rupees: 0,
+		keys: 0,
+		bombs: 0,
+		life: 3,
+		hearts: 3,
+		room: 8,
+		level: 6
+	};
 
 
 img.src='sprites.png';
 
 window.addEvent('load', function () {
-    canvas = document.getElementById("screen");
+    canvas = $("screen");
     ctx = canvas.getContext("2d");
-    ctx.webkitImageSmoothingEnabled = false;
-    ctx.scale(2,2);
+    //ctx.webkitImageSmoothingEnabled = false;
+    //ctx.scale(2, 2); // Won't work with getImageDate which we need to tint images
    
-	WIDTH = 256;
-	HEIGHT = 240;
-	
 	new Link(WIDTH/2, HEIGHT/2);
 	
 	window.requestAnimationFrame(animate);
 });
 
 // Record keypresses
-window.addEvent('keydown', function(e) { keyStates[e.key] = true; });
+window.addEvent('keydown', function(e) { if(keyStates[e.key] !== null) keyStates[e.key] = true; });
 window.addEvent('keyup', function(e) { keyStates[e.key] = false; });
 
 
@@ -45,7 +58,6 @@ var Mob = new Class({
 	},draw: function() {}
 });
 
-
 var Link = new Class({
 	Extends: Mob,
 	initialize: function(x,y) {
@@ -56,6 +68,7 @@ var Link = new Class({
 		this.acDelta = 0;
 		this.moving = false
 		this.direction = 'up';
+		this.moveDelta = 1.3;
 		this.frames = {
 			left: [0, 1]
 			,right: [2, 3]
@@ -69,32 +82,81 @@ var Link = new Class({
 		this.usingItem = false;
 	}
 	,move: function() {
+		xTile = Math.round(this.x/TILESIZE);
+		yTile = Math.round(this.y/TILESIZE)-4; // -4 is accounting for the header
+		if(window.spriteDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, "#f0f") // debug tile
 		switch(true) {
 			case this.usingItem != false:
 				break;
 			case keyStates['space'] && this.usingItem == false:
 				this.usingItem = new Sword(this);
+				keyStates['space']=null;
 				break;
 			case keyStates['down']: case keyStates['s']:
-				this.y = this.y+1.3;
 				this.moving = true;
 				this.direction = 'down';
+
+				var tmpYTile = Math.floor((this.y+this.moveDelta+TILESIZE)/TILESIZE)-4;
+				if(tmpYTile > YTILES) {
+					if(!rooms[env.level+1] || !rooms[env.level+1][env.room]) break;
+					env.level++;
+					this.y = 4*TILESIZE;
+					break;
+				}
+				if(tmpYTile != yTile && rooms[env.level][env.room][tmpYTile][xTile] && rooms[env.level][env.room][tmpYTile][xTile] > -1) {
+					break;
+				}
+
+				this.y = this.y+this.moveDelta;
 				break;
 			case keyStates['up']: case keyStates['w']:
-				this.y = this.y-1.3;
 				this.moving = true;
 				this.direction = 'up';
+
+				var tmpYTile = Math.floor((this.y-this.moveDelta)/TILESIZE)-4;
+				if(tmpYTile < 0) {
+					if(!rooms[env.level-1] || !rooms[env.level-1][env.room]) break;
+					env.level--;
+					this.y = HEIGHT-TILESIZE;
+					break;
+				}
+				if(tmpYTile != yTile && rooms[env.level][env.room] && rooms[env.level][env.room][tmpYTile][xTile] && rooms[env.level][env.room][tmpYTile][xTile] > -1) {
+					break;
+				}
+
+				this.y = this.y-this.moveDelta;
 				break;
 
 			case keyStates['right']: case keyStates['d']:
-				this.x = this.x+1.3;
 				this.moving = true;
 				this.direction = 'right';
+				var tmpXTile = Math.floor((this.x+this.moveDelta+TILESIZE)/TILESIZE);
+				if(tmpXTile > XTILES) {
+					if(!rooms[env.level][env.room+1]) break;
+					env.room++;
+					this.x = 0;
+					break;
+				}
+				if(tmpXTile != xTile && rooms[env.level][env.room][yTile][tmpXTile] && rooms[env.level][env.room][yTile][tmpXTile] > -1) {
+					break;
+				}
+			
+				this.x = this.x+this.moveDelta;
 				break;
 			case keyStates['left']: case keyStates['a']:
-				this.x = this.x-1.3;
 				this.moving = true;
 				this.direction = 'left';
+				var tmpXTile = Math.floor((this.x-this.moveDelta)/TILESIZE);
+				if(tmpXTile < 0) {
+					if(!rooms[env.level][env.room-1]) break;
+					env.room--;
+					this.x = WIDTH-TILESIZE;
+					break;
+				}
+				if(tmpXTile != xTile && rooms[env.level][env.room][yTile][tmpXTile] && rooms[env.level][env.room][yTile][tmpXTile] > -1) {
+					break;
+				}
+				this.x = this.x-this.moveDelta;
 				break;
 				
 
@@ -123,26 +185,30 @@ var Link = new Class({
 	
 });
 
-var room = [
-	 [16,16,16,16,16,16,16,-1,-1,16,16,16,16,16,16,16]
-	,[16,16,16,16,-1,16,18,-1,-1,16,16,16,16,16,16,16]
-	,[16,16,16,18,-1,-1,-1,-1,-1,16,16,16,16,16,16,16]
-	,[16,16,18,-1,-1,-1,-1,-1,-1,16,16,16,16,16,16,16]
-	,[16,18,-1,-1,-1,-1,-1,-1,-1,17,16,16,16,16,16,16]
-	,[]
-	,[19,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,19,19]
-	,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-	,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-	,[16,16,19,19,19,19,19,19,19,19,19,19,19,19,16,16]
-	,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-];
+function placeTile(frame, x, y) {
+	// @ TODO: Finish this and implement
+		ctx.drawImage(
+			img, 
+			(frame*TILESIZE), 
+			0, 
+			TILESIZE, TILESIZE, this.x, this.y, TILESIZE, TILESIZE);
+}
 
+
+// 8 x 16
 
 function paintRoom(){
+	var room = rooms[env.level][env.room];
 	y = 4, x = 0;
 	Array.each(room, function(row) {
 		x = 0;
 		Array.each(row, function(column) {
+			if(window.spriteDebug) {
+				ctx.beginPath();
+				ctx.strokeStyle="#f0f";;
+				ctx.rect(x*TILESIZE, y*TILESIZE, TILESIZE, TILESIZE);
+				ctx.stroke();
+			}
 			if(column > -1) {
 				ctx.drawImage(img, (column*TILESIZE), 0,TILESIZE, TILESIZE, x*TILESIZE, y*TILESIZE, TILESIZE, TILESIZE);
 			}
@@ -171,46 +237,63 @@ function paintHeader() {
 	// Background
 	filledRectangle(0, 0, 16*TILESIZE, 4*TILESIZE, "#000");
 
-	for(var io=0; io<2; io++) {
-	for(var i=0; i<16; i++) {
-		ctx.beginPath();
-		ctx.strokeStyle='#f00';
-		ctx.rect((i*TILESIZE), yOff+(io*TILESIZE), TILESIZE, TILESIZE);
-		ctx.stroke();
-	}
+	if(window.spriteDebug) {
+		for(var io=0; io<2; io++) {
+			for(var i=0; i<16; i++) {
+				ctx.beginPath();
+				ctx.strokeStyle='#090';
+				ctx.rect((i*TILESIZE), yOff+(io*TILESIZE), TILESIZE, TILESIZE);
+				ctx.stroke();
+			}
+		}
 	}
 
 	
 	// Map
+	
 	filledRectangle(xOff, yOff, 4*TILESIZE, 2*TILESIZE, "#747474");
+	
+	sizeX = (4*TILESIZE)/16; // Total levels 8
+	sizeY = (2*TILESIZE)/8; // Total rooms 16
+	filledRectangle(xOff+(sizeX*env.room), yOff+(sizeY*env.level), sizeX, sizeY, "#80d010");
+	
 	
 	// Rupees
 	ctx.drawImage(img, (21*TILESIZE), 0,HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff, HALFTILE, HALFTILE); // Rupee
-	writeText('X0', xOff+(4*TILESIZE)+HALFTILE, yOff); 
+	writeText('X'+env.rupees, xOff+(4*TILESIZE)+HALFTILE, yOff); 
 
 	// Keys
 	ctx.drawImage(img, (21*TILESIZE)+HALFTILE, 0,HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff+(TILESIZE), HALFTILE, HALFTILE); // Key
-	writeText('X0', xOff+(4*TILESIZE)+HALFTILE, yOff+TILESIZE); 
+	writeText('X'+env.keys, xOff+(4*TILESIZE)+HALFTILE, yOff+TILESIZE); 
 
 	// Bombs
 	ctx.drawImage(img, (21*TILESIZE)+HALFTILE, HALFTILE, HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff+(TILESIZE*1.5), HALFTILE, HALFTILE); // Bomb
-	writeText('X0', xOff+(4*TILESIZE)+HALFTILE, yOff+(HALFTILE*3)); 
+	writeText('X'+env.bombs, xOff+(4*TILESIZE)+HALFTILE, yOff+(HALFTILE*3)); 
 
-
-
-
+	drawBorder(xOff+(6*TILESIZE)+HALFTILE, yOff, 3, 4);
 	writeText('B', xOff+(6*TILESIZE)+HALFTILE, yOff); 
+	drawBorder(xOff+(8*TILESIZE), yOff, 3, 4);
 	writeText('A', xOff+(8*TILESIZE), yOff); 
 
 	writeText('-LIFE-', xOff+(10*TILESIZE), yOff, [216, 40, 0]); 
-	data = ctx.getImageData((TILESIZE*1.5)+(10*TILESIZE), (TILESIZE), HALFTILE*6, HALFTILE);
+	
+	tmpLife = env.life;
+	for(var i=0; i < env.hearts; i++) {
+		if(tmpLife >= 1) {
+			xAdd = 0;
+			yAdd = 0;
+		} else if(tmpLife >= 0.5) {
+			xAdd = 1;
+			yAdd = 0;
+		}
+		else {
+			xAdd = 0;
+			yAdd = 1;
+		}
+		ctx.drawImage(img, (22*TILESIZE)+(xAdd*HALFTILE), yAdd*HALFTILE, HALFTILE, HALFTILE, xOff+(10*TILESIZE)+(i*HALFTILE), yOff+(TILESIZE*1.5), HALFTILE, HALFTILE); // Heart
+		tmpLife--;
+	}
 }
-
-
-var font = {
-	 a: [ 0, 0],b: [ 1, 0],e: [ 2, 0],f: [ 3, 0],i: [ 4, 0],j: [ 5, 0],m: [ 6, 0],n: [ 7, 0],q: [ 8, 0],r: [ 9, 0],u: [10, 0],v: [11, 0],  y: [12, 0],  z: [13, 0],',': [14, 0],'!': [15, 0],'.': [16, 0],0: [17, 0],3: [18, 0],4: [19, 0],7: [20, 0],8: [21, 0]
-	,c: [ 0, 1],d: [ 1, 1],g: [ 2, 1],h: [ 3, 1],k: [ 4, 1],l: [ 5, 1],o: [ 6, 1],p: [ 7, 1],s: [ 8, 1],t: [ 9, 1],w: [10, 1],x: [11, 1],'-': [12, 1],'.': [13, 1],"'": [14, 1],'&': [15, 1],  1: [16, 1],2: [17, 1],5: [18, 1],6: [19, 1],9: [20, 1]
-};
 
 function writeText(string, x, y, color) {
 	var xOff = 0;
@@ -234,13 +317,13 @@ function writeText(string, x, y, color) {
 					r = imdata[p]
 					g = imdata[p+1];
 					b = imdata[p+2];
-
+					
 					if(r == 252 && g == 252 && b == 252) {
-						console.log('found white pixel');
 						imdata[p] = color[0];
 						imdata[p+1] = color[1];
 						imdata[p+2] = color[2];
 					}
+					
 				}
 				ctx.putImageData(map, x+(xOff*HALFTILE)+HALFTILE, y);
 				
@@ -248,6 +331,88 @@ function writeText(string, x, y, color) {
 		}
 		xOff++;
 	});
+}
+
+function drawBorder(x, y, w, h) {
+	if(w < 2 || h < 2) { console.error('Too small border size specified'); return false;}
+	
+	var totalRows = h-2,
+		totalCols = w-2
+		currentCol = 0,
+		currentRow = 0;
+
+	// Top 
+	ctx.drawImage(img
+		,(50*TILESIZE)
+		,0
+		,HALFTILE, HALFTILE
+		,x+(currentCol++*HALFTILE)
+		,y
+		,HALFTILE, HALFTILE);
+		
+	for(var i=0; i<totalCols; i++) {
+		ctx.drawImage(img
+			,(51*TILESIZE)+0
+			,0
+			,HALFTILE, HALFTILE
+			,x+(currentCol++*HALFTILE) 
+			,y
+			,HALFTILE, HALFTILE);
+	}
+	ctx.drawImage(img
+		,(50*TILESIZE)+HALFTILE
+		,0
+		,HALFTILE, HALFTILE
+		,x+(currentCol++*HALFTILE) 
+		,y
+		,HALFTILE, HALFTILE);
+
+	currentRow++;
+
+	//Sides  
+	for(var i=0; i<totalRows; i++) {
+		ctx.drawImage(img
+			,(51*TILESIZE)+HALFTILE
+			,0
+			,HALFTILE, HALFTILE
+			,x
+			,y+(currentRow*HALFTILE)
+			,HALFTILE, HALFTILE);
+		ctx.drawImage(img
+			,(51*TILESIZE)+HALFTILE
+			,0
+			,HALFTILE, HALFTILE
+			,x+HALFTILE+(HALFTILE*totalCols)
+			,y+(currentRow++*HALFTILE)
+			,HALFTILE, HALFTILE);
+	}
+
+	// Bottom
+	currentCol=0;
+	ctx.drawImage(img
+		,(50*TILESIZE)+0
+		,HALFTILE
+		,HALFTILE, HALFTILE
+		,x+(currentCol++*HALFTILE)
+		,y+(currentRow*HALFTILE)
+		,HALFTILE, HALFTILE);
+	for(var i=0; i<totalCols; i++) {
+		ctx.drawImage(img
+			,(51*TILESIZE)+0
+			,0
+			,HALFTILE, HALFTILE
+			,x+(currentCol++*HALFTILE) 
+			,y+(currentRow*HALFTILE)
+			,HALFTILE, HALFTILE);
+	}
+	ctx.drawImage(img
+		,(50*TILESIZE)+HALFTILE
+		,HALFTILE
+		,HALFTILE, HALFTILE
+		,x+(currentCol++*HALFTILE)
+		,y+(currentRow*HALFTILE)
+		,HALFTILE, HALFTILE);
+
 }
 
 /*

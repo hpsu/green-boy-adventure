@@ -1,8 +1,5 @@
 //@TODO: Separate canvas contexts for background + header with lower update rate
 
-
-
-
 // Global vars
 var canvas = null
 	,ctx = null
@@ -10,12 +7,10 @@ var canvas = null
 	,HEIGHT=240
 	,TILESIZE = 16
 	,HALFTILE = 8
-	,XTILES = 16
-	,YTILES = 10
 	,solidObjects = []
 	,img = new Image()
-	,keyStates = {},
-	env = {
+	,keyStates = {}
+	,env = {
 		rupees: 0,
 		keys: 0,
 		bombs: 0,
@@ -25,14 +20,26 @@ var canvas = null
 		level: 7
 	};
 
+var TintCache = {
+	cache: {}
+	,get: function(color, tile) {
+		if(Array.isArray(color)) color = color.rgbToHex();
+		if(this.cache[color] && this.cache[color][tile])
+			return this.cache[color][tile];
+		return false;
+	}
+	,set: function(color, tile, data) {
+		if(Array.isArray(color)) color = color.rgbToHex();
+		if(!this.cache[color]) this.cache[color] = {};
+		this.cache[color][tile] = data;
+	}
+};
 
 img.src='sprites.png';
 
 window.addEvent('load', function () {
     canvas = $("screen");
     ctx = canvas.getContext("2d");
-    //ctx.webkitImageSmoothingEnabled = false;
-    //ctx.scale(2, 2); // Won't work with getImageDate which we need to tint images
    
 	new Link(WIDTH/2, HEIGHT/2);
 	
@@ -84,6 +91,7 @@ var Link = new Class({
 	,move: function() {
 		xTile = Math.round(this.x/TILESIZE);
 		yTile = Math.round(this.y/TILESIZE)-4; // -4 is accounting for the header
+		var currentRoom = rooms.getRoom(env.level, env.room);
 		if(window.spriteDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, "#f0f") // debug tile
 		switch(true) {
 			case this.usingItem != false:
@@ -97,13 +105,13 @@ var Link = new Class({
 				this.direction = 'down';
 
 				var tmpYTile = Math.floor((this.y+this.moveDelta+TILESIZE)/TILESIZE)-4;
-				if(tmpYTile > YTILES) {
-					if(!rooms[env.level+1] || !rooms[env.level+1][env.room]) break;
+				if(tmpYTile >= currentRoom.roomHeight) {
+					if(!rooms.exists(env.level+1, env.room)) break;
 					env.level++;
 					this.y = 4*TILESIZE;
 					break;
 				}
-				if(tmpYTile != yTile && rooms[env.level][env.room][tmpYTile][xTile] && rooms[env.level][env.room][tmpYTile][xTile] > -1) {
+				if(tmpYTile != yTile && currentRoom.getTile(tmpYTile,xTile).isSolid) {
 					break;
 				}
 
@@ -115,12 +123,13 @@ var Link = new Class({
 
 				var tmpYTile = Math.floor((this.y-this.moveDelta)/TILESIZE)-4;
 				if(tmpYTile < 0) {
-					if(!rooms[env.level-1] || !rooms[env.level-1][env.room]) break;
+					if(!rooms.exists(env.level-1, env.room)) break;
+
 					env.level--;
 					this.y = HEIGHT-TILESIZE;
 					break;
 				}
-				if(tmpYTile != yTile && rooms[env.level][env.room] && rooms[env.level][env.room][tmpYTile][xTile] && rooms[env.level][env.room][tmpYTile][xTile] > -1) {
+				if(tmpYTile != yTile && currentRoom.getTile(tmpYTile,xTile).isSolid) {
 					break;
 				}
 
@@ -131,13 +140,13 @@ var Link = new Class({
 				this.moving = true;
 				this.direction = 'right';
 				var tmpXTile = Math.floor((this.x+this.moveDelta+TILESIZE)/TILESIZE);
-				if(tmpXTile > XTILES) {
-					if(!rooms[env.level][env.room+1]) break;
+				if(tmpXTile >= currentRoom.roomWidth) {
+					if(!rooms.exists(env.level, env.room+1)) break;
 					env.room++;
 					this.x = 0;
 					break;
 				}
-				if(tmpXTile != xTile && rooms[env.level][env.room][yTile][tmpXTile] && rooms[env.level][env.room][yTile][tmpXTile] > -1) {
+				if(tmpXTile != xTile && currentRoom.getTile(yTile, tmpXTile).isSolid) {
 					break;
 				}
 			
@@ -148,12 +157,12 @@ var Link = new Class({
 				this.direction = 'left';
 				var tmpXTile = Math.floor((this.x-this.moveDelta)/TILESIZE);
 				if(tmpXTile < 0) {
-					if(!rooms[env.level][env.room-1]) break;
+					if(!rooms.exists(env.level, env.room-1)) break;
 					env.room--;
 					this.x = WIDTH-TILESIZE;
 					break;
 				}
-				if(tmpXTile != xTile && rooms[env.level][env.room][yTile][tmpXTile] && rooms[env.level][env.room][yTile][tmpXTile] > -1) {
+				if(tmpXTile != xTile && currentRoom.getTile(yTile, tmpXTile).isSolid) {
 					break;
 				}
 				this.x = this.x-this.moveDelta;
@@ -177,7 +186,7 @@ var Link = new Class({
 			if(typeof this.frames[this.direction][++this.animFrame] == 'undefined') this.animFrame=0;
 		}
 		frame = this.frames[this.direction+(this.usingItem?'Item':'')][this.animFrame];
-		ctx.drawImage(img, (frame*TILESIZE), 0,TILESIZE, TILESIZE, this.x, this.y, TILESIZE, TILESIZE);
+		placeTile(frame, this.x, this.y);
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
 		this.moving = false;
@@ -185,32 +194,55 @@ var Link = new Class({
 	
 });
 
-function placeTile(frame, x, y) {
-	// @ TODO: Finish this and implement
-		ctx.drawImage(
-			img, 
-			(frame*TILESIZE), 
-			0, 
-			TILESIZE, TILESIZE, this.x, this.y, TILESIZE, TILESIZE);
+function placeTile(frame, x, y, tintFrom, tintTo) {
+	if(tintTo && TintCache.get(tintTo, frame)) {
+		return ctx.putImageData(TintCache.get(tintTo, frame), x, y);
+	}
+
+	ctx.drawImage(img
+		,(frame*TILESIZE)
+		,0
+		,TILESIZE, TILESIZE, x, y, TILESIZE, TILESIZE);
+
+	if(tintTo) {
+		if(window.spriteDebug || true) console.log('tinting tile '+frame);
+		
+		map = ctx.getImageData(x, y, TILESIZE, TILESIZE);
+		imdata = map.data;
+		for(var p = 0, len = imdata.length; p < len; p+=4) {
+			r = imdata[p]
+			g = imdata[p+1];
+			b = imdata[p+2];
+			
+			if(r == tintFrom[0] && g == tintFrom[1] && b == tintFrom[2]) {
+				imdata[p] = tintTo[0];
+				imdata[p+1] = tintTo[1];
+				imdata[p+2] = tintTo[2];
+			}
+		}
+		TintCache.set(tintTo, frame, map);
+		return ctx.putImageData(map, x, y);
+	}
 }
 
 
 // 8 x 16
 
 function paintRoom(){
-	var room = rooms[env.level][env.room];
+	var room = rooms.getRoom(env.level, env.room);
 	y = 4, x = 0;
-	Array.each(room, function(row) {
+	Array.each(room.getTiles(), function(row) {
 		x = 0;
-		Array.each(row, function(column) {
+		Array.each(row, function(tile) {
 			if(window.spriteDebug) {
 				ctx.beginPath();
 				ctx.strokeStyle="#f0f";;
 				ctx.rect(x*TILESIZE, y*TILESIZE, TILESIZE, TILESIZE);
 				ctx.stroke();
 			}
-			if(column > -1) {
-				ctx.drawImage(img, (column*TILESIZE), 0,TILESIZE, TILESIZE, x*TILESIZE, y*TILESIZE, TILESIZE, TILESIZE);
+			if(tile.sprite) {
+				placeTile(tile.sprite, x*TILESIZE, y*TILESIZE, tile.tintFrom, tile.tintTo); // , [0, 168, 0], [200, 76, 12]
+
 			}
 			x++;
 		});

@@ -76,51 +76,40 @@ var Rupee = new Class({
 	,height: 16
 	,msPerFrame: 120
 	,isFriendly: true
+	,paletteFrames: [2,3]
+	,palettePosition: 0
 	,lastUpdateTime: 0
+	,worth: 1
 	,initialize: function(x,y) {
 		this.parent(x,y);
 		this.isFriendly = true;
 		(function(){this.destroy();}).delay(10000, this);
 	}
 	,pickup: function(that) {
-		that.rupees += 1;
+		that.rupees += this.worth;
 		this.destroy();
-	}
-	,rotatePalette: function() {
-		if(this.palette != 2) {
-			map = ctx.getImageData(this.x, this.y, TILESIZE, TILESIZE);
-			imdata = map.data;
-			for(var p = 0, len = imdata.length; p < len; p+=4) {
-				r = imdata[p]
-				g = imdata[p+1];
-				b = imdata[p+2];
-				Array.each([1,2], function(i){
-					j = i;
-					if(r == env.palettes[2][i][0] && g == env.palettes[2][i][1] && b == env.palettes[2][i][2]) {
-						imdata[p] = env.palettes[this.palette][j][0];
-						imdata[p+1] = env.palettes[this.palette][j][1];
-						imdata[p+2] = env.palettes[this.palette][j][2];
-					}
-				},this);
-			}
-			ctx.putImageData(map, this.x, this.y);
-		}
 	}
 	,draw: function() {
 		var delta = Date.now() - this.lastUpdateTime;
 	
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
-			this.palette = this.palette == 2 ? 3 : 2;
+			if(this.palettePosition >= this.paletteFrames.length) this.palettePosition=0;
+			this.palette = this.paletteFrames[this.palettePosition++];
 		}
 
 		placeTile(70, this.x, this.y);
-		this.rotatePalette();
+		this.changePalette();
 		
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
-	
+});
+
+var MidRupee = new Class({
+	Extends: Rupee
+	,paletteFrames: [3]
+	,worth: 5
 });
 
 var Heart = new Class({
@@ -144,26 +133,6 @@ var Heart = new Class({
 		}
 		this.destroy();
 	}
-	,rotatePalette: function() {
-		if(this.palette != 2) {
-			map = ctx.getImageData(this.x, this.y, TILESIZE, TILESIZE);
-			imdata = map.data;
-			for(var p = 0, len = imdata.length; p < len; p+=4) {
-				r = imdata[p]
-				g = imdata[p+1];
-				b = imdata[p+2];
-				Array.each([0], function(i){
-					j = i;
-					if(r == env.palettes[2][i][0] && g == env.palettes[2][i][1] && b == env.palettes[2][i][2]) {
-						imdata[p] = env.palettes[this.palette][j][0];
-						imdata[p+1] = env.palettes[this.palette][j][1];
-						imdata[p+2] = env.palettes[this.palette][j][2];
-					}
-				},this);
-			}
-			ctx.putImageData(map, this.x, this.y);
-		}
-	}
 	,draw: function() {
 		var delta = Date.now() - this.lastUpdateTime;
 	
@@ -174,7 +143,7 @@ var Heart = new Class({
 
 		ctx.drawImage(env.spriteSheet, (22*TILESIZE), 0, HALFTILE, HALFTILE, this.x, this.y, HALFTILE, HALFTILE); // Heart
 
-		this.rotatePalette();
+		this.changePalette(2);
 		
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();

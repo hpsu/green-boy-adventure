@@ -431,7 +431,7 @@ var rooms = new RoomStorage(7,7,[
 		,[16,16,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,16,19,19,19,19,19,19,19,19,19,19,19,19,19]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-	]})
+	],enemies:[BlueOctorock, BlueOctorock, Octorock, Octorock]})
 	,new Room({row: 6, col: 5, tiles: [
 		 [16,16,-1,-1,-1,41,41,-1,-1,-1,16,-1,16,-1,16,16]
 		,[16,18,-1,-1,-1,41,41,-1,-1,-1,16,-1,16,-1,17,16]
@@ -678,7 +678,8 @@ var rooms = new RoomStorage(7,7,[
 		,[16,20,-1,-1,-1,41,41,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,19,19,20,41,41,15,19,19,19,19,19,19,19,19]
 		,[16,16,16,16,16,41,41,16,16,16,16,16,16,16,16,16]
-	]})
+	], enemies: [Zola]
+	})
 	,new Room({row: 7, col: 6, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,-1,-1,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,18,-1,-1,16,16]
@@ -762,6 +763,7 @@ var rooms = new RoomStorage(7,7,[
 		,[16,16,16,16,16,16,16,40,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		,enemies: [Zola]
 	})
 	,new Room({row: 7, col: 12, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
@@ -777,6 +779,7 @@ var rooms = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		,enemies: [Zola]
 	})
 	,new Room({row: 7, col: 13, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
@@ -792,6 +795,7 @@ var rooms = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		,enemies: [BlueOctorock, BlueOctorock, BlueOctorock, BlueOctorock, Zola]
 	})
 	,new Room({row: 7, col: 14, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
@@ -807,7 +811,7 @@ var rooms = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,enemies: [Octorock, Octorock, Octorock]
+		,enemies: [Octorock, Octorock, Octorock, Zola]
 	})
 	,new Room({row: 7, col: 15, tiles: [
 		 [16,16,16,16,16,-1,-1,-1,-1,40,41,41,41,41,41,41]
@@ -822,7 +826,8 @@ var rooms = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
 		,[41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
 		]
-		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}],hollowTiles: [[5,8]]
+		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}],hollowTiles: [[5,8]],
+		enemies: [Zola, BlueOctorock]
 	})
 
 ]);

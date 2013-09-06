@@ -10,9 +10,11 @@ var ctx = null
 	,solidObjects = []
 	,env = {
 		keyStates: {}
+		,paused: false
 		,spriteSheet: new Image()
 		,palettes: [
-			 [[128, 208,  16], [252, 152,  56], [200,  76,  12]] // green, orange, brown (link)
+			 //[[128, 208,  16], [252, 152,  56], [200,  76,  12]] // green, orange, brown (link)
+			 [[128, 208,  16], [200,  76,  12], [252, 152,  56]] // green, orange, brown (link)
 			,[[  0,   0,   0], [216,  40,   0], [  0, 128, 136]] // black, red, blue
 			,[[216,  40,   0], [252, 252, 252], [252, 152,  56]] // red, white, orange
 			,[[  0,   0, 168], [252, 252, 252], [ 92, 148, 252]] // dark blue, white, light blue
@@ -49,10 +51,6 @@ window.addEvent('keydown', function(e) { if(env.keyStates[e.key] !== null) env.k
 window.addEvent('keyup', function(e) { env.keyStates[e.key] = false; });
 
 
-/*
- * Zola 
- * Lång, smal, lång, smal
- * 
 
 /*
  * Base skeleton class for all Mobile OBjects
@@ -65,15 +63,51 @@ var Mob = new Class({
 		else
 			this.currentRoom = rooms.getCurrentRoom();
 		this.currentRoom.MOBs.unshift(this);
-		do{
-			xTile = Number.random(0, this.currentRoom.roomWidth-1);
-			yTile = Number.random(0, this.currentRoom.roomHeight-1);
-		} while(this.currentRoom.getTile(yTile, xTile).sprite !== null);
 		
-		this.x = x ? x : xTile*TILESIZE;
-		this.y = y ? y : (yTile+4)*TILESIZE;
+		if(x || y) {
+			if(x) this.x = x;
+			if(y) this.y = y;
+		}
+		else {
+			//@TODO: Before x OR y is truly possible we need to get the missing parts current tile location here
+			do{
+				if(!x) xTile = Number.random(1, this.currentRoom.roomWidth-2);
+				if(!y) yTile = Number.random(1, this.currentRoom.roomHeight-2);
+			} while(this.currentRoom.getTile(yTile, xTile).sprite !== null);
+			if(!x) this.x = xTile*TILESIZE;
+			if(!y) this.y = (yTile+4)*TILESIZE;
+		}
 	}
 	,msPerFrame: 100
+	,isImmune: false
+	,width: TILESIZE
+	,height: TILESIZE
+	,health: 0.5
+	,palette: 0
+	,frames: []
+	,acDelta: 0
+	,lastUpdatedTime: 0
+	,changePalette: function(fromPalette) {
+		if(!fromPalette) fromPalette = 0;
+		if(this.palette != fromPalette) {
+			map = ctx.getImageData(this.x, this.y, TILESIZE, TILESIZE);
+			imdata = map.data;
+			for(var p = 0, len = imdata.length; p < len; p+=4) {
+				r = imdata[p]
+				g = imdata[p+1];
+				b = imdata[p+2];
+				Array.each([0,1,2], function(i){
+					j = i;
+					if(r == env.palettes[fromPalette][i][0] && g == env.palettes[fromPalette][i][1] && b == env.palettes[fromPalette][i][2]) {
+						imdata[p] = env.palettes[this.palette][j][0];
+						imdata[p+1] = env.palettes[this.palette][j][1];
+						imdata[p+2] = env.palettes[this.palette][j][2];
+					}
+				},this);
+			}
+			ctx.putImageData(map, this.x, this.y);
+		}
+	}
 	,collidesWith: function(that) {
 		var  ax1 = this.x
 			,ax2 = this.x+this.width
@@ -86,11 +120,17 @@ var Mob = new Class({
 		return (ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1);
 
 	}
-	,impact: function(damage) {
+	,impact: function(damage, direction) {
+		if(this.isImmune)
+			return;
+		this.impactDirection = direction;
 		this.health -= damage;
-		if(this.health == 0) {
-			this.destroy();
-		}
+		if(this.health <= 0)
+			this.die();
+		this.isImmune = true;
+		(function(){this.isImmune=false}).delay(1000, this);
+	}
+	,die: function() {
 	}
 	,destroy: function() {
 		this.isActive = false;
@@ -100,7 +140,9 @@ var Mob = new Class({
 	,move: function() {
 		if(rooms.getCurrentRoom() == this.currentRoom)
 			this.draw();
-	},draw: function() {}
+	},draw: function() {
+		
+	}
 });
 
 var EnemyDeath = new Class({
@@ -111,7 +153,7 @@ var EnemyDeath = new Class({
 	,msPerFrame: 30
 	,frames: [64, 64, 64, 65, 65, 65, 64, 64, 64, 64]
 	,palette: 0
-	,rotatePalette: function() {
+	,changePalette: function() {
 		if(this.palette > 0) {
 			map = ctx.getImageData(this.x, this.y, TILESIZE, TILESIZE);
 			imdata = map.data;
@@ -143,6 +185,8 @@ var EnemyDeath = new Class({
 				if(Number.random(1,5) == 5) {
 					if(Number.random(1,5) == 5)
 						new Bomb(this.x, this.y);
+					else if(Number.random(1,5) == 5)
+						new MidRupee(this.x, this.y);
 					else if(env.player.health < env.player.hearts && Number.random(1,2) == 2)
 						new Heart(this.x, this.y);
 					else 
@@ -154,7 +198,7 @@ var EnemyDeath = new Class({
 		}
 
 		placeTile(this.frames[this.animFrame-1], this.x, this.y, null, null);
-		this.rotatePalette();
+		this.changePalette();
 
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
@@ -166,12 +210,6 @@ var Enemy = new Class({
 	,initialize: function(x,y) {
 		this.parent(x,y);
 	}
-	,impact: function(damage) {
-		this.health -= damage;
-		if(this.health == 0) {
-			this.die();
-		}
-	}
 	,die: function() {
 		new EnemyDeath(this.x, this.y);
 		this.destroy();
@@ -179,11 +217,78 @@ var Enemy = new Class({
 	,draw: function() {}
 });
 
+var FireBall = new Class({
+	Extends: Mob
+	,damage: 0.5
+	,moveRate: 1.5
+	,acDelta: 0
+	,palette: 0
+	,msPerFrame:20
+	,lastUpdateTime: 0
+	,initialize: function(ancestor) {
+		this.ancestor = ancestor;
+		this.x = ancestor.x;
+		this.y = ancestor.y;
+		this.parent(this.x,this.y,ancestor.currentRoom);
+		this.direction = Math.atan2(env.player.y - this.y, env.player.x - this.x) * 180 / Math.PI;
+		this.target = {
+			x: env.player.x
+			,y: env.player.y
+		};
+		
+		switch(this.direction) {
+			case 'left':
+				this.x -= 11;
+				break;
+			case 'right':
+				this.x += 11;
+				break;
+			case 'up':
+				this.y -= 11;
+				break;
+			case 'down':
+				this.y += 11;
+				break;
+		}
+	}
+	,move: function() {
+		//this.x += Math.cos(this.direction * Math.PI/180) * this.moveRate;
+		//this.y += Math.sin(this.direction * Math.PI/180) * this.moveRate;
+
+		var xTile = Math.round(this.x/TILESIZE)
+			yTile = Math.round(this.y/TILESIZE)-4; // -4 is accounting for the header
+
+		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 || yTile < 1 || yTile > this.currentRoom.roomHeight - 2) {
+			this.destroy();
+		}
+
+		Array.each(solidObjects, function(that){
+			if(that != this && that.isFriendly && this.collidesWith(that)) {
+				that.impact(this.damage, this.direction);
+				this.destroy();
+			}
+		},this);
+
+		this.draw();
+	}
+	,draw: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			if(++this.palette > env.palettes.length-1)
+				this.palette=0;
+		}
+		placeTile(80, this.x, this.y, null, null);
+		this.changePalette();
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}	
+});
+
 var RockProjectile = new Class({
 	Extends: Mob
 	,damage: 0.5
-	,height: 16
-	,width: 16
 	,initialize: function(ancestor) {
 		this.ancestor = ancestor;
 		this.x = ancestor.x;
@@ -288,18 +393,16 @@ var RockProjectile = new Class({
 
 var Octorock = new Class({
 	Extends: Enemy
-	,width: 16
-	,height: 16
 	,animFrame: 0
 	,lastUpdateTime: 0
 	,msPerFrame: 110
 	,acDelta: 0
 	,damage: 0.5
 	,health: 0.5
-	,healthPoints: 0.5
 	,moveDelta: 0.5
 	,dirDelta: 0
 	,rockDelta: 0
+	,defaultPalette: 0
 	,direction: 'down'
 	,frames: {
 		left: [61,62]
@@ -386,6 +489,12 @@ var Octorock = new Class({
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
 			if(typeof this.frames[this.direction][++this.animFrame] == 'undefined') this.animFrame=0;
+			if(this.isImmune) {
+				if(++this.palette > 3) this.palette = 0;
+			}
+			else 
+				this.palette = this.defaultPalette;
+
 		}
 
 		frame = this.frames[this.direction][this.animFrame];
@@ -402,18 +511,93 @@ var Octorock = new Class({
 				break;
 		}
 		placeTile(frame, this.x, this.y, null, null, rotation);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+		
 		this.acDelta+=delta;
+	}
+});
 
+var BlueOctorock = new Class({
+	Extends: Octorock
+	,health: 1
+	,defaultPalette: 3
+});
+
+/*
+ * Zola 
+ * Lång, smal, lång, smal
+ */ 
+var Zola = new Class({
+	Extends: Enemy
+	,animFrame: 0
+	,lastUpdateTime: 0
+	,msPerFrame: 110
+	,acDelta: 0
+	,damage: 0.5
+	,health: 2
+	,direction: 'upDive'
+	,frames: {
+		upDive: [76,77]
+		,downDive: [76,77]
+		,down: [79]
+		,up: [78]
+	}
+	,frameCount: 0
+	,initialize: function() {
+		this.parent(0,0);
+		this.moveToRandomWaterTile();
+	}
+	,moveToRandomWaterTile: function() {
+		do{
+			xTile = Number.random(1, this.currentRoom.roomWidth-2);
+			yTile = Number.random(1, this.currentRoom.roomHeight-2);
+		} while(![34, 35, 36, 37, 38, 39, 40, 41, 42].contains(this.currentRoom.getTile(yTile, xTile).sprite));
+		this.x = xTile*TILESIZE;
+		this.y = (yTile+4)*TILESIZE;
+
+	}
+	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			if(typeof this.frames[this.direction][++this.animFrame] == 'undefined') {
+				this.animFrame=0;
+			}
+			
+			if(this.direction == 'upDive' && this.frameCount >= 4) {
+				this.direction = (env.player.y >= this.y ? 'down' : 'up');
+				this.frameCount = -1;
+				new FireBall(this);
+			}
+			else if(this.direction == 'downDive' && this.frameCount >= 8) {
+				this.moveToRandomWaterTile();
+				this.direction = 'upDive';
+				this.frameCount = -1;
+			}
+			else if((this.direction == 'down' || this.direction == 'up') && this.frameCount >= 16) {
+				this.direction = 'downDive';
+				this.frameCount = -1;
+			}
+			this.frameCount++;
+			if(++this.palette > 3) this.palette = 0;
+		}
+		this.draw();
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		frame = this.frames[this.direction][this.animFrame];
+		placeTile(frame, this.x, this.y);
+		if(this.isImmune)
+			this.changePalette(1);
+	
 	}
 });
 
 var Link = new Class({
 	Extends: Mob,
-	height: 16,
-	width: 16,
 	isFriendly: true,
-	isImmune: false,
-	plDelta: 0,
 	paletteFrame: 0,
 	rupees: 0,
 	keys: 0,
@@ -444,16 +628,6 @@ var Link = new Class({
 			,downItem: [11]
 		};
 		this.usingItem = false;
-	}
-	,impact: function(damage, direction) {
-		if(this.isImmune)
-			return;
-		this.impactDirection = direction;
-		this.health -= damage;
-		if(this.health <= 0)
-			this.die();
-		this.isImmune = true;
-		(function(){this.isImmune=false}).delay(1000, this);
 	}
 	,die: function() {
 		new EnemyDeath(this.x, this.y);
@@ -546,8 +720,8 @@ var Link = new Class({
 	}
 	,move: function() {
 		switch(true) {
-			case this.isImmune:
-				this.flytta(this.impactDirection);
+//			case this.isImmune:
+	//			this.flytta(this.impactDirection);
 
 			case this.usingItem != false:
 				break;
@@ -571,47 +745,6 @@ var Link = new Class({
 		
 		this.draw();		
 	}
-	,rotateImmunePalette: function() {
-		//@TODO: Use env.palettes instead
-		var paletteData = [
-			[]
-			,[
-				{tintFrom: [128, 208,  16], tintTo: [  0,   0,   0]}
-				,{tintFrom: [252, 152,  56], tintTo: [216,  40,   0]}
-				,{tintFrom: [200,  76,  12], tintTo: [  0, 128, 136]}
-			]
-			,[
-				{tintFrom: [128, 208,  16], tintTo: [216,  40,   0]}
-				,{tintFrom: [252, 152,  56], tintTo: [252, 252, 252]}
-				,{tintFrom: [200,  76,  12], tintTo: [252, 152,  56]}
-			]
-			,[
-				{tintFrom: [128, 208,  16], tintTo: [  0,   0, 168]}
-				,{tintFrom: [252, 152,  56], tintTo: [252, 252, 252]}
-				,{tintFrom: [200,  76,  12], tintTo: [ 92, 148, 252]}
-			]
-		];
-
-		if(paletteData[this.paletteFrame].length) {
-			map = ctx.getImageData(this.x, this.y, TILESIZE, TILESIZE);
-			imdata = map.data;
-			for(var p = 0, len = imdata.length; p < len; p+=4) {
-				r = imdata[p]
-				g = imdata[p+1];
-				b = imdata[p+2];
-			
-				Array.each(paletteData[this.paletteFrame], function(d) {
-					if(r == d.tintFrom[0] && g == d.tintFrom[1] && b == d.tintFrom[2]) {
-						imdata[p] = d.tintTo[0];
-						imdata[p+1] = d.tintTo[1];
-						imdata[p+2] = d.tintTo[2];
-					}
-				});
-			}
-			ctx.putImageData(map, this.x, this.y);
-		}
-
-	}
 	,draw: function() {
 		var delta = Date.now() - this.lastUpdateTime;
 
@@ -621,21 +754,20 @@ var Link = new Class({
 			this.usingItem.draw();
 			this.animFrame = 0;
 		}		
-		else if(this.moving && this.acDelta > this.msPerFrame) {
+		else if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
-			if(typeof this.frames[this.direction][++this.animFrame] == 'undefined') this.animFrame=0;
+			if(this.isImmune) {
+				if(++this.palette > 3) this.palette = 0;
+			}
+			if(this.moving)
+				if(typeof this.frames[this.direction][++this.animFrame] == 'undefined') this.animFrame=0;
 		}
 		frame = this.frames[this.direction+(this.usingItem?'Item':'')][this.animFrame];
 		placeTile(frame, this.x, this.y);
 	 	if(this.isImmune) {
-			if(this.plDelta > this.msPerFrame) {
-				this.plDelta = 0;
-				if(++this.paletteFrame > 3) this.paletteFrame = 0;
-			}
-			this.rotateImmunePalette();
+			this.changePalette();
 		}
-		this.acDelta+=delta;
-		this.plDelta+=delta;
+		this.acDelta += delta;
 		this.lastUpdateTime = Date.now();
 		this.moving = false;
 	}
@@ -948,17 +1080,19 @@ function drawNumberedTiles() {
  * Main animation loop *
  ***********************/
 function animate() {
-	ctx.clearRect(0,0,WIDTH*SCALE,HEIGHT*SCALE);
-	paintRoom();
-	paintHeader();
-	Array.each(solidObjects, function(o){
-		if(o.isActive)
-			o.move();
-	});
-	Array.each(rooms.getCurrentRoom().MOBs, function(o){
-		if(o.isActive)
-			o.move();
-	});
+	if(!env.paused) {
+		ctx.clearRect(0,0,WIDTH*SCALE,HEIGHT*SCALE);
+		paintRoom();
+		paintHeader();
+		Array.each(solidObjects, function(o){
+			if(o.isActive)
+				o.move();
+		});
+		Array.each(rooms.getCurrentRoom().MOBs, function(o){
+			if(o.isActive)
+				o.move();
+		});
+	}
 
 	window.requestAnimationFrame(animate);
 }

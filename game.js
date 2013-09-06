@@ -252,8 +252,8 @@ var FireBall = new Class({
 		}
 	}
 	,move: function() {
-		//this.x += Math.cos(this.direction * Math.PI/180) * this.moveRate;
-		//this.y += Math.sin(this.direction * Math.PI/180) * this.moveRate;
+		this.x += Math.cos(this.direction * Math.PI/180) * this.moveRate;
+		this.y += Math.sin(this.direction * Math.PI/180) * this.moveRate;
 
 		var xTile = Math.round(this.x/TILESIZE)
 			yTile = Math.round(this.y/TILESIZE)-4; // -4 is accounting for the header

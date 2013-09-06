@@ -8,9 +8,15 @@ var ctx = null
 	,TILESIZE = 16
 	,HALFTILE = 8
 	,solidObjects = []
-	,img = new Image()
-	,keyStates = {}
 	,env = {
+		keyStates: {}
+		,spriteSheet: new Image()
+		,palettes: [
+			 [[128, 208,  16], [252, 152,  56], [200,  76,  12]] // green, orange, brown (link)
+			,[[  0,   0,   0], [216,  40,   0], [  0, 128, 136]] // black, red, blue
+			,[[216,  40,   0], [252, 252, 252], [252, 152,  56]] // red, white, orange
+			,[[  0,   0, 168], [252, 252, 252], [ 92, 148, 252]] // dark blue, white, light blue
+		]
 	};
 
 var TintCache = {
@@ -28,7 +34,7 @@ var TintCache = {
 	}
 };
 
-img.src='sprites.png';
+env.spriteSheet.src='sprites.png';
 
 window.addEvent('load', function () {
     ctx = $('screen').getContext('2d');
@@ -39,8 +45,8 @@ window.addEvent('load', function () {
 });
 
 // Record keypresses
-window.addEvent('keydown', function(e) { if(keyStates[e.key] !== null) keyStates[e.key] = true; });
-window.addEvent('keyup', function(e) { keyStates[e.key] = false; });
+window.addEvent('keydown', function(e) { if(env.keyStates[e.key] !== null) env.keyStates[e.key] = true; });
+window.addEvent('keyup', function(e) { env.keyStates[e.key] = false; });
 
 
 /*
@@ -92,168 +98,6 @@ var Mob = new Class({
 	},draw: function() {}
 });
 
-var palettes = [
-	 [[128, 208,  16], [252, 152,  56], [200,  76,  12]] // green, orange, brown
-	,[[  0,   0,   0], [216,  40,   0], [  0, 128, 136]] // black, red, blue
-	,[[216,  40,   0], [252, 252, 252], [252, 152,  56]] // red, white, orange
-	,[[  0,   0, 168], [252, 252, 252], [ 92, 148, 252]] // dark blue, white, light blue
-];
-
-
-var Rupee = new Class({
-	Extends: Mob
-	,acDelta: 0
-	,palette: 2
-	,width: 16
-	,height: 16
-	,msPerFrame: 120
-	,isFriendly: true
-	,lastUpdateTime: 0
-	,initialize: function(x,y) {
-		this.parent(x,y);
-		this.isFriendly = true;
-		(function(){this.destroy();}).delay(10000, this);
-	}
-	,pickup: function(that) {
-		that.rupees += 1;
-		this.destroy();
-	}
-	,rotatePalette: function() {
-		if(this.palette != 2) {
-			map = ctx.getImageData(this.x, this.y, TILESIZE, TILESIZE);
-			imdata = map.data;
-			for(var p = 0, len = imdata.length; p < len; p+=4) {
-				r = imdata[p]
-				g = imdata[p+1];
-				b = imdata[p+2];
-				Array.each([1,2], function(i){
-					j = i;
-					if(r == palettes[2][i][0] && g == palettes[2][i][1] && b == palettes[2][i][2]) {
-						imdata[p] = palettes[this.palette][j][0];
-						imdata[p+1] = palettes[this.palette][j][1];
-						imdata[p+2] = palettes[this.palette][j][2];
-					}
-				},this);
-			}
-			ctx.putImageData(map, this.x, this.y);
-		}
-	}
-	,draw: function() {
-		var delta = Date.now() - this.lastUpdateTime;
-	
-		if(this.acDelta > this.msPerFrame) {
-			this.acDelta = 0;
-			this.palette = this.palette == 2 ? 3 : 2;
-		}
-
-		placeTile(70, this.x, this.y);
-		this.rotatePalette();
-		
-		this.acDelta+=delta;
-		this.lastUpdateTime = Date.now();
-	}
-	
-});
-
-var Heart = new Class({
-	Extends: Mob
-	,acDelta: 0
-	,palette: 2
-	,width: HALFTILE
-	,height: HALFTILE
-	,msPerFrame: 150
-	,isFriendly: true
-	,lastUpdateTime: 0
-	,initialize: function(x,y) {
-		this.parent(x,y);
-		this.isFriendly = true;
-		(function(){this.destroy();}).delay(10000, this);
-	}
-	,pickup: function(that) {
-		that.health += 1;
-		if(that.health > that.hearts) {
-			that.health = that.hearts;
-		}
-		this.destroy();
-	}
-	,rotatePalette: function() {
-		if(this.palette != 2) {
-			map = ctx.getImageData(this.x, this.y, TILESIZE, TILESIZE);
-			imdata = map.data;
-			for(var p = 0, len = imdata.length; p < len; p+=4) {
-				r = imdata[p]
-				g = imdata[p+1];
-				b = imdata[p+2];
-				Array.each([0], function(i){
-					j = i;
-					if(r == palettes[2][i][0] && g == palettes[2][i][1] && b == palettes[2][i][2]) {
-						imdata[p] = palettes[this.palette][j][0];
-						imdata[p+1] = palettes[this.palette][j][1];
-						imdata[p+2] = palettes[this.palette][j][2];
-					}
-				},this);
-			}
-			ctx.putImageData(map, this.x, this.y);
-		}
-	}
-	,draw: function() {
-		var delta = Date.now() - this.lastUpdateTime;
-	
-		if(this.acDelta > this.msPerFrame) {
-			this.acDelta = 0;
-			this.palette = this.palette == 2 ? 3 : 2;
-		}
-
-		ctx.drawImage(img, (22*TILESIZE), 0, HALFTILE, HALFTILE, this.x, this.y, HALFTILE, HALFTILE); // Heart
-
-		this.rotatePalette();
-		
-		this.acDelta+=delta;
-		this.lastUpdateTime = Date.now();
-	}
-	
-});
-
-function drawPalettes() {
-	Array.each(palettes, function(palette) {
-		new Element('div', {
-			styles:{
-				 height:'16px'
-				,float:'left'
-			}}).set('text', 'Palette').inject(document.body);
-		Array.each(palette, function(color) {
-			new Element('div', {
-				styles:{
-					 height:'16px'
-					,width:'16px'
-					,float:'left'
-					,background:color.rgbToHex()
-				}}).inject(document.body);
-		});
-	});
-}
-
-var Bomb = new Class({
-	Extends: Mob
-	,palette: 2
-	,width: 16
-	,height: 16
-	,isFriendly: true
-	,initialize: function(x,y) {
-		this.parent(x,y);
-		this.isFriendly = true;
-		(function(){this.destroy();}).delay(10000, this);
-	}
-	,pickup: function(that) {
-		that.bombs += 1;
-		this.destroy();
-	}
-	,draw: function() {
-		placeTile(69, this.x, this.y);
-	}
-});
-
-
 var EnemyDeath = new Class({
 	Extends: Mob
 	,acDelta: 0
@@ -272,12 +116,12 @@ var EnemyDeath = new Class({
 				b = imdata[p+2];
 				Array.each([1,2], function(i){
 					j = i;
-					if(r == palettes[0][i][0] && g == palettes[0][i][1] && b == palettes[0][i][2]) {
+					if(r == env.palettes[0][i][0] && g == env.palettes[0][i][1] && b == env.palettes[0][i][2]) {
 						if(i == 1) j = 2;
 						if(i == 2) j = 1;
-						imdata[p] = palettes[this.palette][j][0];
-						imdata[p+1] = palettes[this.palette][j][1];
-						imdata[p+2] = palettes[this.palette][j][2];
+						imdata[p] = env.palettes[this.palette][j][0];
+						imdata[p+1] = env.palettes[this.palette][j][1];
+						imdata[p+2] = env.palettes[this.palette][j][2];
 					}
 				},this);
 			}
@@ -300,7 +144,7 @@ var EnemyDeath = new Class({
 						new Rupee(this.x, this.y);
 				}
 			}
-			if(++this.palette > palettes.length-1)
+			if(++this.palette > env.palettes.length-1)
 				this.palette=0;
 		}
 
@@ -702,32 +546,28 @@ var Link = new Class({
 
 			case this.usingItem != false:
 				break;
-			case keyStates['space'] && this.usingItem == false:
+			case env.keyStates['space'] && this.usingItem == false:
 				this.usingItem = new Sword(this);
-				keyStates['space']=null;
+				env.keyStates['space']=null;
 				break;
-			case keyStates['down']: case keyStates['s']:
+			case env.keyStates['down']: case env.keyStates['s']:
 				this.flytta('down');
 				break;
-			case keyStates['up']: case keyStates['w']:
+			case env.keyStates['up']: case env.keyStates['w']:
 				this.flytta('up');
 				break;
-			case keyStates['right']: case keyStates['d']:
+			case env.keyStates['right']: case env.keyStates['d']:
 				this.flytta('right');
 				break;
-			case keyStates['left']: case keyStates['a']:
+			case env.keyStates['left']: case env.keyStates['a']:
 				this.flytta('left');
 				break;
-				
-
 		}
 		
 		this.draw();		
 	}
 	,rotateImmunePalette: function() {
-		// From [128, 208,  16] Kläder		[  0,   0,   0]	[216,  40,   0] [  0,   0, 168]
-		// From [252, 152,  56] Hudfärg		[216,  40,   0] [252, 252, 252] [252, 252, 252]
-		// From [200,  76,  12] Hår/skor	[  0, 128, 136] [252, 152,  56] [ 92, 148, 252]
+		//@TODO: Use env.palettes instead
 		var paletteData = [
 			[]
 			,[
@@ -797,6 +637,100 @@ var Link = new Class({
 	
 });
 
+/* 
+ * Header related code
+ * 
+ * */
+
+function paintHeader() {
+	var yOff = TILESIZE*1.5,
+		xOff = TILESIZE;
+
+	// Background
+	filledRectangle(0, 0, 16*TILESIZE, 4*TILESIZE, "#000");
+
+	if(window.spriteDebug) {
+		for(var io=0; io<2; io++) {
+			for(var i=0; i<16; i++) {
+				ctx.beginPath();
+				ctx.strokeStyle='#090';
+				ctx.rect((i*TILESIZE), yOff+(io*TILESIZE), TILESIZE, TILESIZE);
+				ctx.stroke();
+			}
+		}
+	}
+	
+	// Map
+	filledRectangle(xOff, yOff, 4*TILESIZE, 2*TILESIZE, "#747474");
+	
+	sizeX = (4*TILESIZE)/16; // Total levels 8
+	sizeY = (2*TILESIZE)/8; // Total rooms 16
+	currentRoom = rooms.getCurrentRoom();
+	filledRectangle(xOff+(sizeX*currentRoom.col), yOff+(sizeY*currentRoom.row), sizeX, sizeY, "#80d010");
+	
+	
+	// Rupees
+	ctx.drawImage(env.spriteSheet, (21*TILESIZE), 0,HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff, HALFTILE, HALFTILE); // Rupee
+	writeText('X'+env.player.rupees, xOff+(4*TILESIZE)+TILESIZE, yOff); 
+
+	// Keys
+	ctx.drawImage(env.spriteSheet, (21*TILESIZE)+HALFTILE, 0,HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff+(TILESIZE), HALFTILE, HALFTILE); // Key
+	writeText('X'+env.player.keys, xOff+(4*TILESIZE)+TILESIZE, yOff+TILESIZE); 
+
+	// Bombs
+	ctx.drawImage(env.spriteSheet, (21*TILESIZE)+HALFTILE, HALFTILE, HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff+(TILESIZE*1.5), HALFTILE, HALFTILE); // Bomb
+	writeText('X'+env.player.bombs, xOff+(4*TILESIZE)+TILESIZE, yOff+(HALFTILE*3)); 
+
+	drawBorder(xOff+(6*TILESIZE)+HALFTILE, yOff, 3, 4);
+	writeText('B', xOff+(6*TILESIZE)+TILESIZE, yOff); 
+	drawBorder(xOff+(8*TILESIZE), yOff, 3, 4);
+	writeText('A', xOff+(8*TILESIZE)+HALFTILE, yOff); 
+
+	writeText('-LIFE-', xOff+(10*TILESIZE)+HALFTILE, yOff, [216, 40, 0]); 
+	
+	tmpLife = env.player.health;
+	for(var i=0; i < env.player.hearts; i++) {
+		if(tmpLife >= 1) {
+			xAdd = 0;
+			yAdd = 0;
+		} else if(tmpLife >= 0.5) {
+			xAdd = 1;
+			yAdd = 0;
+		}
+		else {
+			xAdd = 0;
+			yAdd = 1;
+		}
+		ctx.drawImage(env.spriteSheet, (22*TILESIZE)+(xAdd*HALFTILE), yAdd*HALFTILE, HALFTILE, HALFTILE, xOff+(10*TILESIZE)+(i*HALFTILE), yOff+(TILESIZE*1.5), HALFTILE, HALFTILE); // Heart
+		tmpLife--;
+	}
+}
+
+/**************************
+ * Paint helper functions *
+ **************************/
+
+function paintRoom(){
+	var room = rooms.getCurrentRoom();
+	y = 4, x = 0;
+	Array.each(room.getTiles(), function(row) {
+		x = 0;
+		Array.each(row, function(tile) {
+			if(window.spriteDebug) {
+				ctx.beginPath();
+				ctx.strokeStyle="#f0f";;
+				ctx.rect(x*TILESIZE, y*TILESIZE, TILESIZE, TILESIZE);
+				ctx.stroke();
+			}
+			if(tile.sprite) {
+				placeTile(tile.sprite, x*TILESIZE, y*TILESIZE, tile.tintFrom, tile.tintTo);
+			}
+			x++;
+		});
+		y++;
+	});
+}
+
 function placeTile(frame, x, y, tintFrom, tintTo, rotate) {
 	tmpX = x; tmpY = y;
 	if(tintTo && TintCache.get(tintTo, frame)) {
@@ -810,7 +744,7 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate) {
 		ctx.translate(x+8, y+8);
 		ctx.rotate(rotate);
 	}
-	ctx.drawImage(img
+	ctx.drawImage(env.spriteSheet
 		,(frame*TILESIZE)
 		,0
 		,TILESIZE, TILESIZE, tmpX*SCALE, tmpY*SCALE, TILESIZE*SCALE, TILESIZE*SCALE);
@@ -839,36 +773,6 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate) {
 	}
 }
 
-
-// 8 x 16
-
-function paintRoom(){
-	var room = rooms.getCurrentRoom();
-	y = 4, x = 0;
-	Array.each(room.getTiles(), function(row) {
-		x = 0;
-		Array.each(row, function(tile) {
-			if(window.spriteDebug) {
-				ctx.beginPath();
-				ctx.strokeStyle="#f0f";;
-				ctx.rect(x*TILESIZE, y*TILESIZE, TILESIZE, TILESIZE);
-				ctx.stroke();
-			}
-			if(tile.sprite) {
-				placeTile(tile.sprite, x*TILESIZE, y*TILESIZE, tile.tintFrom, tile.tintTo); // , [0, 168, 0], [200, 76, 12]
-
-			}
-			x++;
-		});
-		y++;
-	});
-}
-
-/* 
- * Header related code
- * 
- * */
-
 function filledRectangle(x, y, w, h, c) {
 	ctx.beginPath();
 	ctx.fillStyle=c;
@@ -876,89 +780,24 @@ function filledRectangle(x, y, w, h, c) {
 	ctx.fill();
 }
 
-function paintHeader() {
-	var yOff = TILESIZE*1.5,
-		xOff = TILESIZE;
-
-	// Background
-	filledRectangle(0, 0, 16*TILESIZE, 4*TILESIZE, "#000");
-
-	if(window.spriteDebug) {
-		for(var io=0; io<2; io++) {
-			for(var i=0; i<16; i++) {
-				ctx.beginPath();
-				ctx.strokeStyle='#090';
-				ctx.rect((i*TILESIZE), yOff+(io*TILESIZE), TILESIZE, TILESIZE);
-				ctx.stroke();
-			}
-		}
-	}
-
-	
-	// Map
-	
-	filledRectangle(xOff, yOff, 4*TILESIZE, 2*TILESIZE, "#747474");
-	
-	sizeX = (4*TILESIZE)/16; // Total levels 8
-	sizeY = (2*TILESIZE)/8; // Total rooms 16
-	currentRoom = rooms.getCurrentRoom();
-	filledRectangle(xOff+(sizeX*currentRoom.col), yOff+(sizeY*currentRoom.row), sizeX, sizeY, "#80d010");
-	
-	
-	// Rupees
-	ctx.drawImage(img, (21*TILESIZE), 0,HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff, HALFTILE, HALFTILE); // Rupee
-	writeText('X'+env.player.rupees, xOff+(4*TILESIZE)+HALFTILE, yOff); 
-
-	// Keys
-	ctx.drawImage(img, (21*TILESIZE)+HALFTILE, 0,HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff+(TILESIZE), HALFTILE, HALFTILE); // Key
-	writeText('X'+env.player.keys, xOff+(4*TILESIZE)+HALFTILE, yOff+TILESIZE); 
-
-	// Bombs
-	ctx.drawImage(img, (21*TILESIZE)+HALFTILE, HALFTILE, HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff+(TILESIZE*1.5), HALFTILE, HALFTILE); // Bomb
-	writeText('X'+env.player.bombs, xOff+(4*TILESIZE)+HALFTILE, yOff+(HALFTILE*3)); 
-
-	drawBorder(xOff+(6*TILESIZE)+HALFTILE, yOff, 3, 4);
-	writeText('B', xOff+(6*TILESIZE)+HALFTILE, yOff); 
-	drawBorder(xOff+(8*TILESIZE), yOff, 3, 4);
-	writeText('A', xOff+(8*TILESIZE), yOff); 
-
-	writeText('-LIFE-', xOff+(10*TILESIZE), yOff, [216, 40, 0]); 
-	
-	tmpLife = env.player.health;
-	for(var i=0; i < env.player.hearts; i++) {
-		if(tmpLife >= 1) {
-			xAdd = 0;
-			yAdd = 0;
-		} else if(tmpLife >= 0.5) {
-			xAdd = 1;
-			yAdd = 0;
-		}
-		else {
-			xAdd = 0;
-			yAdd = 1;
-		}
-		ctx.drawImage(img, (22*TILESIZE)+(xAdd*HALFTILE), yAdd*HALFTILE, HALFTILE, HALFTILE, xOff+(10*TILESIZE)+(i*HALFTILE), yOff+(TILESIZE*1.5), HALFTILE, HALFTILE); // Heart
-		tmpLife--;
-	}
-}
-
-function writeText(string, x, y, color) {
+function writeText(string, x, y, color, tCtx) {
+	if(!tCtx) tCtx = ctx;
 	var xOff = 0;
 	Array.each(string.toLowerCase(), function(c){
 		char = font[c];
 		if(char) {
-			ctx.drawImage(
-				img, 
+			tCtx.drawImage(
+				env.spriteSheet, 
 				(23*TILESIZE)+(char[0]*HALFTILE), 
 				char[1]*HALFTILE, 
 				HALFTILE, 
 				HALFTILE, 
-				x+(xOff*HALFTILE)+HALFTILE, 
+				x+(xOff*HALFTILE), 
 				y, 
 				HALFTILE, 
 				HALFTILE);
 			if(color) {
-				map = ctx.getImageData(x+(xOff*HALFTILE)+HALFTILE, y, HALFTILE, HALFTILE);
+				map = tCtx.getImageData(x+(xOff*HALFTILE), y, HALFTILE, HALFTILE);
 				imdata = map.data;
 				for(var p = 0, len = imdata.length; p < len; p+=4) {
 					r = imdata[p]
@@ -972,7 +811,7 @@ function writeText(string, x, y, color) {
 					}
 					
 				}
-				ctx.putImageData(map, x+(xOff*HALFTILE)+HALFTILE, y);
+				tCtx.putImageData(map, x+(xOff*HALFTILE), y);
 				
 			}
 		}
@@ -989,7 +828,7 @@ function drawBorder(x, y, w, h) {
 		currentRow = 0;
 
 	// Top 
-	ctx.drawImage(img
+	ctx.drawImage(env.spriteSheet
 		,(50*TILESIZE)
 		,0
 		,HALFTILE, HALFTILE
@@ -998,7 +837,7 @@ function drawBorder(x, y, w, h) {
 		,HALFTILE, HALFTILE);
 		
 	for(var i=0; i<totalCols; i++) {
-		ctx.drawImage(img
+		ctx.drawImage(env.spriteSheet
 			,(51*TILESIZE)+0
 			,0
 			,HALFTILE, HALFTILE
@@ -1006,7 +845,7 @@ function drawBorder(x, y, w, h) {
 			,y
 			,HALFTILE, HALFTILE);
 	}
-	ctx.drawImage(img
+	ctx.drawImage(env.spriteSheet
 		,(50*TILESIZE)+HALFTILE
 		,0
 		,HALFTILE, HALFTILE
@@ -1018,14 +857,14 @@ function drawBorder(x, y, w, h) {
 
 	//Sides  
 	for(var i=0; i<totalRows; i++) {
-		ctx.drawImage(img
+		ctx.drawImage(env.spriteSheet
 			,(51*TILESIZE)+HALFTILE
 			,0
 			,HALFTILE, HALFTILE
 			,x
 			,y+(currentRow*HALFTILE)
 			,HALFTILE, HALFTILE);
-		ctx.drawImage(img
+		ctx.drawImage(env.spriteSheet
 			,(51*TILESIZE)+HALFTILE
 			,0
 			,HALFTILE, HALFTILE
@@ -1036,7 +875,7 @@ function drawBorder(x, y, w, h) {
 
 	// Bottom
 	currentCol=0;
-	ctx.drawImage(img
+	ctx.drawImage(env.spriteSheet
 		,(50*TILESIZE)+0
 		,HALFTILE
 		,HALFTILE, HALFTILE
@@ -1044,7 +883,7 @@ function drawBorder(x, y, w, h) {
 		,y+(currentRow*HALFTILE)
 		,HALFTILE, HALFTILE);
 	for(var i=0; i<totalCols; i++) {
-		ctx.drawImage(img
+		ctx.drawImage(env.spriteSheet
 			,(51*TILESIZE)+0
 			,0
 			,HALFTILE, HALFTILE
@@ -1052,7 +891,7 @@ function drawBorder(x, y, w, h) {
 			,y+(currentRow*HALFTILE)
 			,HALFTILE, HALFTILE);
 	}
-	ctx.drawImage(img
+	ctx.drawImage(env.spriteSheet
 		,(50*TILESIZE)+HALFTILE
 		,HALFTILE
 		,HALFTILE, HALFTILE
@@ -1062,11 +901,49 @@ function drawBorder(x, y, w, h) {
 
 }
 
-/*
- * Main animation loop
- */
+/*********************
+ * Utility functions *
+ *********************/
+function drawPalettes() {
+	Array.each(env.palettes, function(palette) {
+		new Element('div', {
+			styles:{
+				 height:'16px'
+				,float:'left'
+			}}).set('text', 'Palette').inject(document.body);
+		Array.each(palette, function(color) {
+			new Element('div', {
+				styles:{
+					 height:'16px'
+					,width:'16px'
+					,float:'left'
+					,background:color.rgbToHex()
+				}}).inject(document.body);
+		});
+	});
+}
+
+function drawNumberedTiles() {
+	for(var i = 0; i < Math.ceil(env.spriteSheet.width/TILESIZE); i++) {
+		var x = new Element('canvas', {width: 16, height: 24, styles: {border:'1px dotted magenta',margin:'1px'}}).inject(document.body);
+		tCtx = x.getContext('2d');
+		tCtx.drawImage(env.spriteSheet
+			,(i*TILESIZE)
+			,0
+			,TILESIZE, TILESIZE
+			,0
+			,0
+			,TILESIZE, TILESIZE);
+		t = i.toString();
+		writeText(i.toString(), (t.length == 1 ? HALFTILE/2 : 0), TILESIZE, null, tCtx);
+	}
+}
+
+/***********************
+ * Main animation loop *
+ ***********************/
 function animate() {
-	ctx.clearRect(0,0,WIDTH,HEIGHT);
+	ctx.clearRect(0,0,WIDTH*SCALE,HEIGHT*SCALE);
 	paintRoom();
 	paintHeader();
 	Array.each(solidObjects, function(o){
@@ -1080,4 +957,3 @@ function animate() {
 
 	window.requestAnimationFrame(animate);
 }
-

@@ -50,6 +50,11 @@ window.addEvent('keyup', function(e) { env.keyStates[e.key] = false; });
 
 
 /*
+ * Zola 
+ * Lång, smal, lång, smal
+ * 
+
+/*
  * Base skeleton class for all Mobile OBjects
  */
 var Mob = new Class({

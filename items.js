@@ -9,12 +9,7 @@ var Sword = new Class({
 	,acDelta: 0
 	,width: 16
 	,height: 16
-	,frames:{
-		left: [12]
-		,right: [13]
-		,up: [14]
-		,down: [15]
-	}
+	,sprite: 12
 	,initialize: function(ancestor) {
 		this.ancestor = ancestor;
 		//this.parent(ancestor.x, ancestor.y);
@@ -26,6 +21,7 @@ var Sword = new Class({
 				break;
 			case 'right':
 				this.x += 11;
+				this.y += 1;
 				break;
 			case 'up':
 				this.y -= 11;
@@ -50,8 +46,19 @@ var Sword = new Class({
 		} else if (this.acDelta > this.msShown/2) {
 			//@TODO: Link should animate when subtracting the sword (walking frames from right to left)
 		}
-		frame = this.frames[this.ancestor.direction];
-		placeTile(frame, this.x+xAdd, this.y);
+		rotation = null;
+		switch(this.ancestor.direction) {
+			case 'right':
+				rotation = 0.5;
+				break;
+			case 'left':
+				rotation = 1.5;
+				break;
+			case 'down':
+				rotation = 1.0;
+				break;
+		}
+		placeTile(this.sprite, this.x+xAdd, this.y, false, null, rotation);
 		
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();

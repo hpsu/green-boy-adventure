@@ -13,7 +13,6 @@ var ctx = null
 		,paused: false
 		,spriteSheet: new Image()
 		,palettes: [
-			 //[[128, 208,  16], [252, 152,  56], [200,  76,  12]] // green, orange, brown (link)
 			 [[128, 208,  16], [200,  76,  12], [252, 152,  56]] // green, orange, brown (link)
 			,[[  0,   0,   0], [216,  40,   0], [  0, 128, 136]] // black, red, blue
 			,[[216,  40,   0], [252, 252, 252], [252, 152,  56]] // red, white, orange
@@ -64,21 +63,35 @@ var Mob = new Class({
 			this.currentRoom = rooms.getCurrentRoom();
 		this.currentRoom.MOBs.unshift(this);
 		
-		if(x || y) {
+		this.moveToRandomNonSolidTile(x,y);
+	}
+	,moveToRandomNonSolidTile: function(x, y) {
+		if(x && y) {
 			if(x) this.x = x;
 			if(y) this.y = y;
 		}
 		else {
-			//@TODO: Before x OR y is truly possible we need to get the missing parts current tile location here
 			do{
-				if(!x) xTile = Number.random(1, this.currentRoom.roomWidth-2);
-				if(!y) yTile = Number.random(1, this.currentRoom.roomHeight-2);
-			} while(this.currentRoom.getTile(yTile, xTile).sprite !== null);
-			if(!x) this.x = xTile*TILESIZE;
-			if(!y) this.y = (yTile+4)*TILESIZE;
+				if(x)  {
+					xTile = Math.round(x/TILESIZE)
+					this.x = x;
+				}
+				else
+					xTile = Number.random(1, this.currentRoom.roomWidth-2);
+				if(y) {
+					yTile = Math.round(y/TILESIZE)-4; // -4 is accounting for the header
+					this.y = y;
+				}
+				else
+					yTile = Number.random(1, this.currentRoom.roomHeight-2);
+
+				if(!x) this.x = xTile*TILESIZE;
+				if(!y) this.y = (yTile+4)*TILESIZE;
+			} while(this.currentRoom.getTile(yTile, xTile).sprite !== null || this.collidesWith(env.player));
 		}
 	}
 	,msPerFrame: 100
+	,lastUpdateTime: 0
 	,isImmune: false
 	,width: TILESIZE
 	,height: TILESIZE
@@ -523,16 +536,128 @@ var BlueOctorock = new Class({
 	,defaultPalette: 3
 });
 
-/*
- * Zola 
- * Lång, smal, lång, smal
- */ 
+
+var Leever = new Class({
+	Extends: Enemy
+	,animFrame: 0
+	,damage: 0.5
+	,health: 2
+	,msPerFrame: 50
+	,movementRate: .5
+	,direction: 'upDive'
+	,frames: {
+		upDive: [76,77,76,77,81,81]
+		,downDive: [81,81,81,81,76,77,76,77]
+		,normal: [82,83]
+	}
+	,frameCount: 0
+	,initialize: function(x,y) {
+		if(!x) x = (Number.random(0,1) == 1 ? env.player.x : null);
+		if(!y) y = x ? null : env.player.y;
+		this.parent(x,y);
+		this.dir = Math.atan2(env.player.y - this.y, env.player.x - this.x) * 180 / Math.PI;
+	}
+	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+		if(this.direction == 'normal') {
+			this.x += Math.cos(this.dir * Math.PI/180) * this.movementRate;
+			this.y += Math.sin(this.dir * Math.PI/180) * this.movementRate;
+
+			xTile = this.x/TILESIZE;
+			yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
+			
+			switch(this.dir) {
+				case 0: // right
+					xTile = Math.ceil(xTile);
+					yTile = Math.round(yTile)
+					break;
+				case 180: // left
+					xTile = Math.floor(xTile);
+					yTile = Math.round(yTile);
+					break;
+				case 90: // down
+					xTile = Math.round(xTile);
+					yTile = Math.ceil(yTile);
+					break;
+				case 270:
+				case -90: // up
+					xTile = Math.round(xTile);
+					yTile = Math.floor(yTile);
+					break;
+			}
+
+			if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
+			if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
+			
+			Array.each(solidObjects, function(that){
+				if(that != this && that.isFriendly && this.collidesWith(that)) {
+					that.impact(this.damage, this.direction);
+					this.dir = (180 + this.dir) % 360;
+				}
+			},this);
+			
+			
+			this.bounds = {
+				//x1: this.x/TILESIZE)*TILESIZE
+			};
+			
+			//xTile = Math.round((this.x+(this.dir == 90 ? TILESIZE : 0))/TILESIZE)
+			//yTile = Math.round((this.y+(this.dir == 0 ? TILESIZE : 0))/TILESIZE)
+			
+			//+([90].contains(this.dir);
+
+			if(xTile < 1 || xTile > this.currentRoom.roomWidth-2
+				|| yTile < 1 || yTile > this.currentRoom.roomHeight || this.currentRoom.getTile(yTile,xTile).isSolid) {
+				this.animFrame=-1;
+				this.direction='downDive';
+				this.frameCount = -1;
+			}
+		}
+
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			if(typeof this.frames[this.direction][++this.animFrame] == 'undefined') {
+				this.animFrame=0;
+			}
+			
+			if(this.direction == 'upDive' && this.frameCount >= 4) {
+				this.direction='normal';
+				this.animFrame=-1;
+				this.frameCount = -1;
+			}
+			else if(this.direction == 'downDive' && this.frameCount >= 7) {
+					var x = (Number.random(0,1) == 1 ? env.player.x : null);
+					var y = x ? null : env.player.y;
+					this.moveToRandomNonSolidTile(x,y);
+					this.dir = Math.atan2(env.player.y - this.y, env.player.x - this.x) * 180 / Math.PI;
+					this.direction = 'upDive';
+					this.frameCount = -1;
+					this.animFrame=-1;
+			}
+
+			this.frameCount++;
+
+			if(this.isImmune)
+				if(++this.palette > 3) this.palette = 0;
+		}
+		this.draw();
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		if(!this.direction) return;
+		frame = this.frames[this.direction][this.animFrame];
+		placeTile(frame, this.x, this.y);
+		if(this.isImmune || this.direction != 'normal') 
+			this.changePalette(this.direction == 'normal' ? 2 : 1);
+	
+	}
+});
+
 var Zola = new Class({
 	Extends: Enemy
 	,animFrame: 0
-	,lastUpdateTime: 0
 	,msPerFrame: 110
-	,acDelta: 0
 	,damage: 0.5
 	,health: 2
 	,direction: 'upDive'
@@ -763,6 +888,7 @@ var Link = new Class({
 				if(typeof this.frames[this.direction][++this.animFrame] == 'undefined') this.animFrame=0;
 		}
 		frame = this.frames[this.direction+(this.usingItem?'Item':'')][this.animFrame];
+		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, "#0f0");
 		placeTile(frame, this.x, this.y);
 	 	if(this.isImmune) {
 			this.changePalette();

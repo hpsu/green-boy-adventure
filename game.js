@@ -226,36 +226,30 @@ var EnemyDeath = new Class({
 });
 
 var Link = new Class({
-	Extends: Mob,
-	isFriendly: true,
-	paletteFrame: 0,
-	rupees: 0,
-	keys: 0,
-	bombs: 0,
-	hearts: 3,
-	impactDirection: null,
-	initialize: function(x,y) {
+	Extends: Mob
+	,isFriendly: true
+	,paletteFrame: 0
+	,rupees: 0
+	,keys: 0
+	,bombs: 0
+	,hearts: 3
+	,animFrame: 0
+	,health: 3
+	,direction: 270
+	,moving: false
+	,movementRate: 1.3
+	,impactDirection: null
+	,initialize: function(x,y) {
 		this.currentRoom = rooms.getCurrentRoom();
 		this.x=x;
 		this.y=y;
 		solidObjects.unshift(this);
-		this.isFriendly = true;
-		this.animFrame = 0;
-		this.health = 3;
-		this.lastUpdateTime = 0;
-		this.acDelta = 0;
-		this.moving = false
-		this.direction = 'up';
 		this.moveDelta = 1.3;
 		this.frames = {
-			left: [0, 1]
-			,right: [2, 3]
-			,up: [4, 5]
-			,down: [6, 7]		
-			,leftItem: [8]
-			,rightItem: [9]
-			,upItem: [10]
-			,downItem: [11]
+			 0:		{normal: [2, 3], item: [9]}		// Right
+			,90:	{normal: [6, 7], item: [11]}	// Down
+			,180:	{normal: [0, 1], item: [8]}		// Left
+			,270:	{normal: [4, 5], item: [10]}	// Up
 		};
 		this.usingItem = false;
 	}
@@ -272,71 +266,40 @@ var Link = new Class({
 		yTile = Math.round(this.y/TILESIZE)-4; // -4 is accounting for the header
 		var currentRoom = rooms.getCurrentRoom();
 		if(window.spriteDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, "#f0f") // debug tile
-		if(!direction) direction = this.direction;
-		switch(direction) {
-			case 'down':
-				this.moving = true;
-				this.direction = 'down';
+		if(direction == null) direction = this.direction;
+		else this.direction = direction;
 
-				var tmpYTile = Math.floor((this.y+this.moveDelta+TILESIZE)/TILESIZE)-4;
-				if(tmpYTile >= currentRoom.roomHeight) {
-					if(!rooms.switchRoom(currentRoom.row+1, currentRoom.col)) break;
-					this.y = 4*TILESIZE;
-					break;
-				}
-				if(tmpYTile != yTile && currentRoom.getTile(tmpYTile,xTile).isSolid) {
-					break;
-				}
+		this.moving = true;
 
-				this.y = this.y+this.moveDelta;
+		var xTile = this.x/TILESIZE;
+		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
+		switch(this.direction) {
+			case 0: // right
+				xTile = Math.ceil(xTile);
+				yTile = Math.round(yTile)
 				break;
-			case 'up':
-				this.moving = true;
-				this.direction = 'up';
-
-				var tmpYTile = Math.floor((this.y-this.moveDelta)/TILESIZE)-4;
-				if(tmpYTile < 0) {
-					if(!rooms.switchRoom(currentRoom.row-1, currentRoom.col)) break;
-
-					this.y = HEIGHT-TILESIZE;
-					break;
-				}
-				if(tmpYTile != yTile && currentRoom.getTile(tmpYTile,xTile).isSolid) {
-					break;
-				}
-
-				this.y = this.y-this.moveDelta;
+			case 180: // left
+				xTile = Math.floor(xTile);
+				yTile = Math.round(yTile);
 				break;
-			case 'right':
-				this.moving = true;
-				this.direction = 'right';
-				var tmpXTile = Math.floor((this.x+this.moveDelta+TILESIZE)/TILESIZE);
-				if(tmpXTile >= currentRoom.roomWidth) {
-					if(!rooms.switchRoom(currentRoom.row, currentRoom.col+1)) break;
-					this.x = 0;
-					break;
-				}
-				if(tmpXTile != xTile && currentRoom.getTile(yTile, tmpXTile).isSolid) {
-					break;
-				}
-			
-				this.x = this.x+this.moveDelta;
+			case 90: // down
+				xTile = Math.round(xTile);
+				yTile = Math.ceil(yTile);
 				break;
-			case 'left':
-				this.moving = true;
-				this.direction = 'left';
-				var tmpXTile = Math.floor((this.x-this.moveDelta)/TILESIZE);
-				if(tmpXTile < 0) {
-					if(!rooms.switchRoom(currentRoom.row, currentRoom.col-1)) break;
-					this.x = WIDTH-TILESIZE;
-					break;
-				}
-				if(tmpXTile != xTile && currentRoom.getTile(yTile, tmpXTile).isSolid) {
-					break;
-				}
-				this.x = this.x-this.moveDelta;
+			case 270:
+			case -90: // up
+				xTile = Math.round(xTile);
+				yTile = Math.floor(yTile);
 				break;
-			
+		}
+
+		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
+		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
+
+		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
+		|| yTile < 1 || yTile > this.currentRoom.roomHeight 
+		|| this.currentRoom.getTile(yTile,xTile).isSolid) {
+			return;
 		}
 
 		Array.each(rooms.getCurrentRoom().MOBs, function(that){
@@ -345,8 +308,10 @@ var Link = new Class({
 					that.pickup(this);
 			}
 		},this);
-		
-		
+
+
+		this.x += Math.cos(direction * Math.PI/180) * this.movementRate;
+		this.y += Math.sin(direction * Math.PI/180) * this.movementRate;
 	}
 	,move: function() {
 		switch(true) {
@@ -360,16 +325,16 @@ var Link = new Class({
 				env.keyStates['space']=null;
 				break;
 			case env.keyStates['down']: case env.keyStates['s']:
-				this.flytta('down');
+				this.flytta(90);
 				break;
 			case env.keyStates['up']: case env.keyStates['w']:
-				this.flytta('up');
+				this.flytta(270);
 				break;
 			case env.keyStates['right']: case env.keyStates['d']:
-				this.flytta('right');
+				this.flytta(0);
 				break;
 			case env.keyStates['left']: case env.keyStates['a']:
-				this.flytta('left');
+				this.flytta(180);
 				break;
 		}
 		
@@ -390,9 +355,9 @@ var Link = new Class({
 				if(++this.palette > 3) this.palette = 0;
 			}
 			if(this.moving)
-				if(typeof this.frames[this.direction][++this.animFrame] == 'undefined') this.animFrame=0;
+				if(typeof this.frames[this.direction]['normal'][++this.animFrame] == 'undefined') this.animFrame=0;
 		}
-		frame = this.frames[this.direction+(this.usingItem?'Item':'')][this.animFrame];
+		frame = this.frames[this.direction][(this.usingItem?'item':'normal')][this.animFrame];
 		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, "#0f0");
 		placeTile(frame, this.x, this.y);
 	 	if(this.isImmune) {

@@ -12,21 +12,20 @@ var Sword = new Class({
 	,sprite: 12
 	,initialize: function(ancestor) {
 		this.ancestor = ancestor;
-		//this.parent(ancestor.x, ancestor.y);
 		this.x = ancestor.x;
 		this.y = ancestor.y;
 		switch(this.ancestor.direction) {
-			case 'left':
-				this.x -= 11;
-				break;
-			case 'right':
+			case 0:
 				this.x += 11;
 				this.y += 1;
 				break;
-			case 'up':
+			case 180:
+				this.x -= 11;
+				break;
+			case 270:
 				this.y -= 11;
 				break;
-			case 'down':
+			case 90:
 				this.y += 11;
 				break;
 		}
@@ -34,8 +33,7 @@ var Sword = new Class({
 	,draw: function() {
 		Array.each(rooms.getCurrentRoom().MOBs, function(that){
 			if(that != this && !that.isFriendly && this.collidesWith(that)) {
-				
-				that.impact(this.damage, this.direction);
+				that.impact(this.damage, this.ancestor.direction);
 			}
 		},this);
 
@@ -48,13 +46,13 @@ var Sword = new Class({
 		}
 		rotation = null;
 		switch(this.ancestor.direction) {
-			case 'right':
+			case 0:
 				rotation = 0.5;
 				break;
-			case 'left':
+			case 180:
 				rotation = 1.5;
 				break;
-			case 'down':
+			case 90:
 				rotation = 1.0;
 				break;
 		}

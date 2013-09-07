@@ -209,6 +209,10 @@ var Octorock = new Class({
 		yTile = Math.round(this.y/TILESIZE)-4; // -4 is accounting for the header
 		var delta = Date.now() - this.lastUpdateTime;
 
+			if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
+			if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
+
+
 		Array.each(solidObjects, function(that){
 			if(that != this && that.isFriendly && this.collidesWith(that)) {
 				that.impact(this.damage, this.direction);
@@ -321,7 +325,7 @@ var Leever = new Class({
 	Extends: Enemy
 	,animFrame: 0
 	,damage: 0.5
-	,health: 2
+	,health: 1
 	,msPerFrame: 50
 	,movementRate: .5
 	,direction: 'upDive'
@@ -400,7 +404,7 @@ var Leever = new Class({
 			else if(this.direction == 'downDive' && this.frameCount >= 7) {
 					var x = (Number.random(0,1) == 1 ? env.player.x : null);
 					var y = x ? null : env.player.y;
-					this.moveToRandomNonSolidTile(x,y);
+					if(!this.moveToRandomNonSolidTile(x,y)) return;
 					this.dir = Math.atan2(env.player.y - this.y, env.player.x - this.x) * 180 / Math.PI;
 					this.direction = 'upDive';
 					this.frameCount = -1;
@@ -445,13 +449,16 @@ var Zola = new Class({
 		this.moveToRandomWaterTile();
 	}
 	,moveToRandomWaterTile: function() {
+		var infCnt = 0;
 		do{
 			xTile = Number.random(1, this.currentRoom.roomWidth-2);
 			yTile = Number.random(1, this.currentRoom.roomHeight-2);
+			if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, this.width, this.height, "#f0f");
+			if(++infCnt >10)
+				return false;
 		} while(![34, 35, 36, 37, 38, 39, 40, 41, 42].contains(this.currentRoom.getTile(yTile, xTile).sprite));
 		this.x = xTile*TILESIZE;
 		this.y = (yTile+4)*TILESIZE;
-
 	}
 	,move: function() {
 		var delta = Date.now() - this.lastUpdateTime;

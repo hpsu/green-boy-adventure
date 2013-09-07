@@ -763,7 +763,7 @@ var rooms = new RoomStorage(7,7,[
 		,[16,16,16,16,16,16,16,40,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,enemies: [Zola]
+		,enemies: [Leever, Leever, Zola]
 	})
 	,new Room({row: 7, col: 12, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
@@ -779,7 +779,7 @@ var rooms = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,enemies: [Zola]
+		,enemies: [Leever, Leever, Zola]
 	})
 	,new Room({row: 7, col: 13, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
@@ -811,7 +811,7 @@ var rooms = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,enemies: [Octorock, Octorock, Octorock, Zola]
+		,enemies: [Octorock, Octorock, Octorock, Octorock, Zola]
 	})
 	,new Room({row: 7, col: 15, tiles: [
 		 [16,16,16,16,16,-1,-1,-1,-1,40,41,41,41,41,41,41]

@@ -71,6 +71,7 @@ var Mob = new Class({
 			if(y) this.y = y;
 		}
 		else {
+			var infCnt = 0;
 			do{
 				if(x)  {
 					xTile = Math.round(x/TILESIZE)
@@ -87,7 +88,13 @@ var Mob = new Class({
 
 				if(!x) this.x = xTile*TILESIZE;
 				if(!y) this.y = (yTile+4)*TILESIZE;
+
+				if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, this.width, this.height, "#f0f");
+				if(++infCnt >100)
+					return false;
+
 			} while(this.currentRoom.getTile(yTile, xTile).sprite !== null || this.collidesWith(env.player));
+			return true;
 		}
 	}
 	,msPerFrame: 100

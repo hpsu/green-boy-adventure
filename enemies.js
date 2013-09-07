@@ -82,38 +82,50 @@ var FireBall = new Class({
 var RockProjectile = new Class({
 	Extends: Mob
 	,damage: 0.5
+	,movementRate: 3.5
 	,initialize: function(ancestor) {
 		this.ancestor = ancestor;
 		this.x = ancestor.x;
 		this.y = ancestor.y;
 		this.parent(this.x,this.y,ancestor.currentRoom);
 		this.direction = ancestor.direction;
-		this.moveRate = 3.5;
-		switch(this.direction) {
-			case 'left':
-				this.x -= 11;
-				break;
-			case 'right':
-				this.x += 11;
-				break;
-			case 'up':
-				this.y -= 11;
-				break;
-			case 'down':
-				this.y += 11;
-				break;
-		}
 	}
 	,move: function() {
 		if(rooms.getCurrentRoom() != this.currentRoom) return;
 
-		var xTile = Math.round(this.x/TILESIZE)
-			yTile = Math.round(this.y/TILESIZE)-4; // -4 is accounting for the header
+		this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
+		this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
+		
+		var xTile = this.x/TILESIZE;
+		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
+		switch(this.direction) {
+			case 0: // right
+				xTile = Math.ceil(xTile);
+				yTile = Math.round(yTile)
+				break;
+			case 180: // left
+				xTile = Math.floor(xTile);
+				yTile = Math.round(yTile);
+				break;
+			case 90: // down
+				xTile = Math.round(xTile);
+				yTile = Math.ceil(yTile);
+				break;
+			case 270:
+			case -90: // up
+				xTile = Math.round(xTile);
+				yTile = Math.floor(yTile);
+				break;
+		}
 
-		var txTile = Math.round(this.x/HALFTILE)
-			tyTile = Math.round(this.y/HALFTILE)-8; // -4 is accounting for the header
+		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
+		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
 
-		var tmpX=this.x, tmpY=this.y;
+		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
+		|| yTile < 1 || yTile > this.currentRoom.roomHeight 
+		|| this.currentRoom.getTile(yTile,xTile).isSolid) {
+			this.destroy();
+		}
 
 		Array.each(solidObjects, function(that){
 			if(that != this && that.isFriendly && this.collidesWith(that)) {
@@ -121,66 +133,11 @@ var RockProjectile = new Class({
 				this.destroy();
 			}
 		},this);
-
-		switch(this.direction) {
-			case 'left':
-				var tmpX = this.x-this.moveRate-(HALFTILE/2);
-				var tmpXTile = Math.round(tmpX/TILESIZE);
-				if(tmpXTile < 0 || this.currentRoom.getTile(yTile, tmpXTile).isSolid) {
-					this.destroy();
-					break;
-				}
-
-				this.x -= this.moveRate;
-				break;
-			case 'right':
-				var tmpX = this.x+this.moveRate+(HALFTILE/2);
-				var tmpXTile = Math.round(tmpX/TILESIZE);
-				if(tmpXTile >= this.currentRoom.roomWidth || this.currentRoom.getTile(yTile, tmpXTile).isSolid) {
-					this.destroy();
-					break;
-				}
-
-				this.x += this.moveRate;
-				break;
-			case 'up':
-				var tmpY = this.y-this.moveRate-(HALFTILE/2);
-				var tmpYTile = Math.round(tmpY/TILESIZE)-4;
-				if(tmpYTile < 0 || this.currentRoom.getTile(tmpYTile, xTile).isSolid) {
-					this.destroy(); 
-					break;
-				}
-
-				this.y -= this.moveRate;
-				break;
-			case 'down':
-				var tmpY = this.y+this.moveRate+(HALFTILE/2);
-				var tmpYTile = Math.round(tmpY/TILESIZE)-4;
-				if(tmpYTile >= this.currentRoom.roomHeight || this.currentRoom.getTile(tmpYTile, xTile).isSolid) {
-					this.destroy();
-					break;
-				}
-
-				this.y += this.moveRate;
-				break;
-		}
+		
 		this.draw();
 	}
 	,draw: function() {
-		rotation = null;
-		switch(this.direction) {
-			case 'left':
-				rotation = 0.5;
-				break;
-			case 'right':
-				rotation = 1.5;
-				break;
-			case 'up':
-				rotation = 1.0;
-				break;
-		}
-		placeTile(63, this.x, this.y, null, null, rotation);
-		
+		placeTile(63, this.x, this.y);
 	}	
 });
 
@@ -192,33 +149,15 @@ var Octorock = new Class({
 	,acDelta: 0
 	,damage: 0.5
 	,health: 0.5
-	,moveDelta: 0.5
+	,movementRate: 0.5
 	,dirDelta: 0
 	,rockDelta: 0
 	,defaultPalette: 0
-	,direction: 'down'
-	,frames: {
-		left: [61,62]
-		,right: [61,62]
-		,down: [61,62]
-		,up: [61,62]
-	}
+	,direction: 90
+	,frames: [61,62]
 	,move: function() {
 		if(rooms.getCurrentRoom() != this.currentRoom) return;
-		xTile = Math.round(this.x/TILESIZE);
-		yTile = Math.round(this.y/TILESIZE)-4; // -4 is accounting for the header
 		var delta = Date.now() - this.lastUpdateTime;
-
-			if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-			if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
-
-
-		Array.each(solidObjects, function(that){
-			if(that != this && that.isFriendly && this.collidesWith(that)) {
-				that.impact(this.damage, this.direction);
-			}
-		},this);
-
 
 		if(this.dirDelta > this.msPerFrame*Number.random(16,32)) {
 			this.dirDelta = 0;
@@ -230,46 +169,45 @@ var Octorock = new Class({
 			new RockProjectile(this);
 		}
 
+		this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
+		this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
+
+		var xTile = this.x/TILESIZE;
+		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
 		switch(this.direction) {
-			case 'right':
-				var tmpXTile = Math.floor((this.x+this.moveDelta+TILESIZE)/TILESIZE);
-				if(tmpXTile != xTile && (tmpXTile >= this.currentRoom.roomWidth || this.currentRoom.getTile(yTile, tmpXTile).isSolid)) {
-					this.randomDirection();
-					break;
-				}
-			
-				this.x = this.x+this.moveDelta;
+			case 0: // right
+				xTile = Math.ceil(xTile);
+				yTile = Math.round(yTile)
 				break;
-
+			case 180: // left
+				xTile = Math.floor(xTile);
+				yTile = Math.round(yTile);
 				break;
-			case 'left':
-				var tmpXTile = Math.floor((this.x-this.moveDelta)/TILESIZE);
-				if(tmpXTile != xTile && (tmpXTile < 0 || this.currentRoom.getTile(yTile, tmpXTile).isSolid)) {
-					this.randomDirection();
-					break;
-				}
-				this.x = this.x-this.moveDelta;
+			case 90: // down
+				xTile = Math.round(xTile);
+				yTile = Math.ceil(yTile);
 				break;
-			case 'up':
-				var tmpYTile = Math.floor((this.y-this.moveDelta)/TILESIZE)-4;
-				if(tmpYTile != yTile && (tmpYTile < 0 || this.currentRoom.getTile(tmpYTile,xTile).isSolid)) {
-					this.randomDirection();
-					break;
-				}
-
-				this.y = this.y-this.moveDelta;
-
-				break;
-			case 'down':
-				var tmpYTile = Math.floor((this.y+this.moveDelta+TILESIZE)/TILESIZE)-4;
-				if(tmpYTile != yTile && (tmpYTile >= this.currentRoom.roomHeight || this.currentRoom.getTile(tmpYTile,xTile).isSolid)) {
-					this.randomDirection();
-					break;
-				}
-
-				this.y = this.y+this.moveDelta;
+			case 270:
+			case -90: // up
+				xTile = Math.round(xTile);
+				yTile = Math.floor(yTile);
 				break;
 		}
+
+		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
+		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
+
+		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
+		|| yTile < 1 || yTile > this.currentRoom.roomHeight 
+		|| this.currentRoom.getTile(yTile,xTile).isSolid) {
+			this.randomDirection();
+		}
+
+		Array.each(solidObjects, function(that){
+			if(that != this && that.isFriendly && this.collidesWith(that)) {
+				that.impact(this.damage, this.direction);
+			}
+		},this);
 
 		this.dirDelta += delta;
 		this.rockDelta += delta;
@@ -277,7 +215,7 @@ var Octorock = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,randomDirection: function() {
-		directions = ['up', 'right', 'down', 'left'];
+		directions = [0, 90, 180, 270];
 		this.direction = directions[Number.random(0,3)];
 	}
 	,draw: function() {
@@ -285,7 +223,7 @@ var Octorock = new Class({
 
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
-			if(typeof this.frames[this.direction][++this.animFrame] == 'undefined') this.animFrame=0;
+			if(typeof this.frames[++this.animFrame] == 'undefined') this.animFrame=0;
 			if(this.isImmune) {
 				if(++this.palette > 3) this.palette = 0;
 			}
@@ -294,16 +232,16 @@ var Octorock = new Class({
 
 		}
 
-		frame = this.frames[this.direction][this.animFrame];
+		frame = this.frames[this.animFrame];
 		rotation = null;
 		switch(this.direction) {
-			case 'left':
+			case 180:
 				rotation = 0.5;
 				break;
-			case 'right':
+			case 0:
 				rotation = 1.5;
 				break;
-			case 'up':
+			case 270:
 				rotation = 1.0;
 				break;
 		}

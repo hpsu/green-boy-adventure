@@ -258,6 +258,81 @@ var BlueOctorock = new Class({
 	,defaultPalette: 3
 });
 
+var Tektike = new Class({
+	Extends: Enemy
+	,velocityX: 1.0
+	,velocityY: 0.0
+	,msPerFrame: 10
+	,gravity: 0.5
+	,damage: 0.5
+	,health: 0.5
+	,startY: 0
+	,targetY: 0
+	,sprite: 86
+	,isJumping: false
+	,initialize: function(x,y) {
+		this.parent(x,y);
+		this.jump();
+	}
+	,jump: function() {
+		this.isJumping = true;
+		this.velocityY = -5.0;
+		var infCnt = 0
+		this.startY = this.y;
+
+		do {
+			this.targetY = this.y+Number.random(-TILESIZE,TILESIZE);
+		} while((this.targetY <= 4*TILESIZE || this.targetY >= 14*TILESIZE) && ++infCnt <100 );
+
+		if(infCnt >= 100) {
+			this.targetY = this.startY;
+		}
+
+		this.sprite = 87;
+		if(Number.random(0,1) == 1) {
+			this.velocityX *= -1;
+		}
+	}
+	,stopJump: function() {
+		this.velocityY = 0;
+		this.isJumping=false;
+		this.sprite = 86;
+		(function(ob){ob.jump();}).pass(this).delay(Number.random(100,1000));
+	}
+	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+		if(this.isJumping && this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			this.velocityY += this.gravity;
+			this.y += this.velocityY;
+			this.x += this.velocityX;
+			
+			if(this.y >= this.targetY && this.velocityY >0) {
+				this.y = this.targetY;
+				this.stopJump();
+			}
+			else if(this.x > sc((this.currentRoom.roomWidth*TILESIZE)-TILESIZE-HALFTILE)
+			|| this.x < sc(HALFTILE)) {
+				this.y -= this.velocityY;
+				this.x -= this.velocityX;
+				this.stopJump();
+			}
+			Array.each(solidObjects, function(that){
+				if(that != this && that.isFriendly && this.collidesWith(that)) {
+					//@TODO: fix impact direction
+					that.impact(this.damage, null);
+				}
+			},this);
+		}
+		this.draw();
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		placeTile(this.sprite, this.x, this.y);
+	}
+});
+
 
 var Leever = new Class({
 	Extends: Enemy
@@ -434,5 +509,126 @@ var Zola = new Class({
 		if(this.isImmune)
 			this.changePalette(1);
 	
+	}
+});
+
+var Peahat = new Class({
+	Extends: Enemy
+	,health: 1
+	,damage:0.5
+	,frames: [88,89]
+	,msPerPalette: 50
+	,acPaletteDelta: 0
+	,acDirDelta: 0
+	,direction: 0
+	,animFrame: 0
+	,moveRate: 1
+	,stateFrame: 0
+	,msSpeed:0
+	,accelAdd: 1.5
+	,state: 0 // Acceleration, flight, deceleration, rest
+	,initialize: function(x,y) {
+		this.parent(x,y);
+		this.randomDirection();
+	}
+	,impact: function(damage, direction) {
+		if(this.state == 3) {
+			this.parent(damage,direction);
+		}
+	}
+	,randomDirection: function() {
+		directions = [0, 45, 90, 135, 180, 225, 270, 315];
+		this.direction = directions[Number.random(0,directions.length-1)];
+	}
+	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+
+		if(this.acDirDelta > this.msPerFrame*Number.random(64,256)) {
+			this.acDirDelta = 0;
+			this.randomDirection();
+		}
+
+		if(this.acDelta > this.msPerFrame-this.msSpeed) {
+			this.acDelta = 0;
+			switch(this.state) {
+				case 0:
+					if(this.msSpeed >= 90) {
+						console.log('entering state 1');
+						this.state = 1;
+						this.stateFrame = 0;
+						this.stateTime = Number.random(0, 5000)
+					}
+					else {
+						this.msSpeed+=this.accelAdd;
+					}
+					break;
+				case 1:
+					if(this.stateFrame >= this.stateTime) {
+						console.log('entering state 2');
+						this.state = 2;
+						this.stateFrame = 0;
+					}
+					break;
+				case 2:
+					if(this.msSpeed < 0) {
+						console.log('entering state 3');
+						this.state = 3;
+						this.stateFrame = 0
+						this.stateTime = Number.random(0, 5000)
+					}
+					else {
+						this.msSpeed-=this.accelAdd;
+					}
+					break;
+				case 3:
+					if(this.stateFrame >= this.stateTime) {
+						console.log('entering state 0');
+						this.state = 0;
+						this.stateFrame = 0;
+					}
+					break;
+			}
+			if(this.state != 3) {
+				if(typeof this.frames[++this.animFrame] == 'undefined') this.animFrame=0;
+				this.x += Math.cos(this.direction * Math.PI/180) * this.moveRate;
+				this.y += Math.sin(this.direction * Math.PI/180) * this.moveRate;
+			}
+
+			if(this.x > sc((this.currentRoom.roomWidth*TILESIZE)-TILESIZE-HALFTILE)
+			|| this.y < sc(TILESIZE*4)
+			|| this.x < sc(HALFTILE)
+			|| this.y > sc(TILESIZE*14)) {
+				this.x -= Math.cos(this.direction * Math.PI/180) * this.moveRate;
+				this.y -= Math.sin(this.direction * Math.PI/180) * this.moveRate;
+				this.randomDirection();
+			}
+		}
+
+		Array.each(solidObjects, function(that){
+			if(that.isFriendly && this.collidesWith(that)) {
+				that.impact(this.damage, this.direction);
+			}
+		},this);
+
+		this.draw();
+		this.stateFrame+=delta;
+		this.acDelta+=delta;
+		this.acDirDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+
+		if(this.isImmune && this.acPaletteDelta > this.msPerPalette) {
+			this.acPaletteDelta = 0;
+			if(++this.palette > 3) this.palette = 0;
+		}
+
+		frame = this.frames[this.animFrame];
+		placeTile(frame, this.x, this.y);
+		if(this.isImmune)
+			this.changePalette(2);
+
+		this.acPaletteDelta+=delta;
 	}
 });

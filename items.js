@@ -41,8 +41,12 @@ var Sword = new Class({
 	}
 	,draw: function() {
 		Array.each(rooms.getCurrentRoom().MOBs, function(that){
-			if(that != this && !that.isFriendly && this.collidesWith(that)) {
-				that.impact(this.damage, this.direction);
+			if(that != this && this.collidesWith(that)) {
+				if(!that.isFriendly)
+					that.impact(this.damage, this.direction);
+				else if(that.pickup) {
+					that.pickup(this.ancestor);
+				}
 			}
 		},this);
 
@@ -125,6 +129,7 @@ var SwordThrow = new Class({
 	,msPerFrame: 10
 	,palette: 0
 	,sprite: 12
+	,acImpactMove: 0
 	,movementRate:3
 	,destroy: function() {
 		(function(ancestor){ancestor.swordThrow = null;}).pass(this.ancestor).delay(300);
@@ -243,7 +248,6 @@ var Fairy = new Class({
 			|| this.y < sc(TILESIZE*4)
 			|| this.x < sc(HALFTILE)
 			|| this.y > sc(TILESIZE*14)) {
-				console.log('collides');
 				this.x -= Math.cos(this.direction * Math.PI/180) * this.moveRate;
 				this.y -= Math.sin(this.direction * Math.PI/180) * this.moveRate;
 				this.randomDirection();

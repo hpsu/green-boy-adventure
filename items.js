@@ -153,8 +153,8 @@ var SwordThrow = new Class({
 
 			Array.each(this.currentRoom.MOBs, function(that){
 				if(that != this &&  !that.isFriendly && this.collidesWith(that)) {
-					that.impact(this.damage, this.direction);
-					this.destroy();
+					if(that.impact(this.damage, this.direction))
+						this.destroy();
 				}
 			},this);
 

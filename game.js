@@ -153,7 +153,7 @@ var Mob = new Class({
 	}
 	,impact: function(damage, direction) {
 		if(this.isImmune)
-			return;
+			return true;
 		this.impactDirection = direction;
 		this.acImpactMove = 0;
 		this.health -= damage;
@@ -161,6 +161,7 @@ var Mob = new Class({
 			this.die();
 		this.isImmune = true;
 		(function(){this.isImmune=false}).delay(1000, this);
+		return true;
 	}
 	,die: function() {
 	}
@@ -406,18 +407,21 @@ var Link = new Class({
 		switch(true) {
 			case xTile < 0:
 				if(this.isMoving) {
+					if(!rooms.exists(this.currentRoom.row, this.currentRoom.col-1)) {console.log('Room not found');return false;}
 					this.currentRoom = switchRoom(this.currentRoom.row, this.currentRoom.col-1);
 					this.x = (this.currentRoom.roomWidth-1)*TILESIZE;
 				}
 				return;
 			case xTile > this.currentRoom.roomWidth-1:
 				if(this.isMoving) {
+					if(!rooms.exists(this.currentRoom.row, this.currentRoom.col+1)) {console.log('Room not found');return false;}
 					this.currentRoom = switchRoom(this.currentRoom.row, this.currentRoom.col+1);
 					this.x = 0;
 				}
 				return;
 			case yTile < 0:
 				if(this.isMoving) {
+					if(!rooms.exists(this.currentRoom.row-1, this.currentRoom.col)) {console.log('Room not found');return false;}
 					this.currentRoom = switchRoom(this.currentRoom.row-1, this.currentRoom.col);
 					this.y = (this.currentRoom.roomHeight+4-1)*TILESIZE;
 				}
@@ -428,6 +432,7 @@ var Link = new Class({
 						this.currentRoom = switchRoom(this.currentRoom.row, this.currentRoom.col, overworld);
 					}
 					else {
+						if(!rooms.exists(this.currentRoom.row+1, this.currentRoom.col)) {console.log('Room not found');return false;}
 						this.currentRoom = switchRoom(this.currentRoom.row+1, this.currentRoom.col);
 						this.y = 4*TILESIZE;
 					}
@@ -459,7 +464,6 @@ var Link = new Class({
 			else {
 				console.log('Failed to skuffa', this.impactDirection);
 			}
-			
 		}
 		
 		switch(true) {

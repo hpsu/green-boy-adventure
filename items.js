@@ -7,13 +7,18 @@ var Sword = new Class({
 	,msShown: 200
 	,lastUpdateTime: 0
 	,acDelta: 0
+	,acTotalDelta: 0
 	,width: 16
 	,height: 16
 	,sprite: 12
+	,movementRate: 1.3
+	,fullPower: false
 	,initialize: function(ancestor) {
 		this.ancestor = ancestor;
 		this.x = ancestor.x;
 		this.y = ancestor.y;
+		this.parent(ancestor.x, ancestor.y);
+		this.fullPower = this.ancestor.health == this.ancestor.hearts;
 		switch(this.ancestor.direction) {
 			case 0:
 				this.x += 11;
@@ -30,6 +35,9 @@ var Sword = new Class({
 				break;
 		}
 	}
+	,move: function() {
+		this.draw();
+	}
 	,draw: function() {
 		Array.each(rooms.getCurrentRoom().MOBs, function(that){
 			if(that != this && !that.isFriendly && this.collidesWith(that)) {
@@ -39,9 +47,18 @@ var Sword = new Class({
 
 		xAdd = 0;
 		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
-		if(this.acDelta > this.msShown) {
+		if(this.acTotalDelta > this.msShown) {
 			this.ancestor.usingItem = false;
-		} else if (this.acDelta > this.msShown/2) {
+			this.destroy();
+		} else if (this.acDelta > this.msPerFrame) {
+			if(this.acDelta > this.msShown) {
+				if(this.fullPower) {
+					this.x += Math.cos(this.ancestor.direction * Math.PI/180) * this.movementRate;
+					this.y += Math.sin(this.ancestor.direction * Math.PI/180) * this.movementRate;
+				}
+				
+			}
+
 			//@TODO: Link should animate when subtracting the sword (walking frames from right to left)
 		}
 		rotation = null;
@@ -59,6 +76,7 @@ var Sword = new Class({
 		placeTile(this.sprite, this.x+xAdd, this.y, false, null, rotation);
 		
 		this.acDelta+=delta;
+		this.acTotalDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}	
 });
@@ -66,6 +84,19 @@ var Sword = new Class({
 /***************
  * Pickupables *
  ***************/
+var PickupSword = new Class({
+	Extends: Mob
+	,isFriendly: true
+	,pickup: function(that) {
+		console.log('picked up sword');
+		that.items.sword = 1;
+		this.destroy();
+	}
+	,draw: function() {
+		placeTile(12, this.x, this.y);
+	}
+});
+
 var Rupee = new Class({
 	Extends: Mob
 	,acDelta: 0

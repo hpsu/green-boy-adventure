@@ -2,6 +2,7 @@
 
 // Global vars
 var ctx = null
+	,ctxBg = null
 	,WIDTH = 256
 	,HEIGHT = 240
 	,SCALE = 1
@@ -39,9 +40,12 @@ env.spriteSheet.src='sprites.png';
 
 window.addEvent('load', function () {
     ctx = $('screen').getContext('2d');
+    ctxBg = $('background').getContext('2d');
 	ctx.webkitImageSmoothingEnabled=false;
+	ctxBg.webkitImageSmoothingEnabled=false;
 	env.player = new Link(WIDTH/2, HEIGHT/2);
 	
+	paintRoom();
 	window.requestAnimationFrame(animate);
 });
 
@@ -56,7 +60,6 @@ window.addEvent('keyup', function(e) { env.keyStates[e.key] = false; });
  */
 var Mob = new Class({
 	initialize: function(x,y,room){
-		this.isFriendly = false;
 		if(room)
 			this.currentRoom = room
 		else
@@ -65,6 +68,7 @@ var Mob = new Class({
 		
 		this.moveToRandomNonSolidTile(x,y);
 	}
+	,isFriendly: false
 	,moveToRandomNonSolidTile: function(x, y) {
 		if(x && y) {
 			if(x) this.x = x;
@@ -106,6 +110,7 @@ var Mob = new Class({
 	,palette: 0
 	,frames: []
 	,acDelta: 0
+	,acImpactMove: 0
 	,lastUpdatedTime: 0
 	,changePalette: function(fromPalette) {
 		if(!fromPalette) fromPalette = 0;
@@ -144,6 +149,7 @@ var Mob = new Class({
 		if(this.isImmune)
 			return;
 		this.impactDirection = direction;
+		this.acImpactMove = 0;
 		this.health -= damage;
 		if(this.health <= 0)
 			this.die();
@@ -162,6 +168,88 @@ var Mob = new Class({
 			this.draw();
 	},draw: function() {
 		
+	}
+});
+
+var SwordEvent = new Class({
+	initialize: function(room) {
+		//@TODO: Freeze player movement during event
+		room.tmpX = env.player.x;
+		room.tmpY = env.player.y;
+		room.addEvent('leave', function() {
+			env.player.y = this.tmpY;
+			env.player.x = this.tmpX;
+			console.log(this);
+			for(var i=0; i < this.MOBs.length; i++) {
+				var mob = this.MOBs[i];
+				this.MOBs.splice(i);
+				mob.destroy();
+			}
+			room.removeEvents('leave');
+			room.addEvent('leave',  room.onLeave);
+		});
+		env.player.y = (11+4-1)*TILESIZE;
+		env.player.x = TILESIZE*7;
+		env.player.direction=270;
+		new Fire(TILESIZE*5, TILESIZE*8, room);
+		new Fire(TILESIZE*10, TILESIZE*8, room);
+		
+		if(env.player.items.sword == 0) {
+			new WiseMan((TILESIZE*7)+HALFTILE, TILESIZE*8, room);
+			new PickupSword((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room);
+			new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "it's dangerous to go\n  alone! take this.");
+		}
+		Array.each(room.tiles[4], function(tile) {
+			tile.isSolid = true;
+		});
+	}
+	,tmpX: null
+	,tmpY: null
+});
+
+var TextContainer = new Class({
+	Extends: Mob
+	,msPerFrame: 80
+	,initialize: function(x, y, room, text) {
+		this.parent(x,y,room)
+		this.x = x;
+		this.y = y;
+		this.animFrame=0;
+		this.text = text;
+	}
+	,draw: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			if(["\n"," "].contains(this.text[this.animFrame])) this.animFrame++;
+			if(++this.animFrame > this.text.length) this.animFrame = this.text.length;
+		}
+		writeText(this.text.substr(0,this.animFrame), this.x, this.y);
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+});
+
+var Fire = new Class({
+	Extends: Mob
+	,flip: 0
+	,draw: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			this.flip = this.flip ? 0 : 1;
+		}
+		var rotation = this.flip ? 0.5 : null;
+		placeTile(84, this.x, this.y, null, null, null, (this.flip ? 'x' : null));
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+});
+
+var WiseMan = new Class({
+	Extends: Mob
+	,draw: function() {
+		placeTile(85, this.x, this.y);
 	}
 });
 
@@ -239,6 +327,11 @@ var Link = new Class({
 	,moving: false
 	,movementRate: 1.3
 	,impactDirection: null
+	,items: {
+		 sword: 0
+		,boomerang: 0
+		,bow: 0
+	}
 	,initialize: function(x,y) {
 		this.currentRoom = rooms.getCurrentRoom();
 		this.x=x;
@@ -253,6 +346,13 @@ var Link = new Class({
 		};
 		this.usingItem = false;
 	}
+	,impact: function(damage, direction) {
+		if(this.moving) {
+			direction = (180+this.direction)%360;
+			console.log('skuffa direction',direction);
+		}
+		this.parent(damage, direction);
+	}
 	,die: function() {
 		new EnemyDeath(this.x, this.y);
 		this.destroy();
@@ -261,15 +361,14 @@ var Link = new Class({
 		this.isActive = false;
 		solidObjects.erase(this);
 	}
-	,flytta: function(direction) {
+	,flytta: function(direction, showDirection) {
 		xTile = Math.round(this.x/TILESIZE);
 		yTile = Math.round(this.y/TILESIZE)-4; // -4 is accounting for the header
 		var currentRoom = rooms.getCurrentRoom();
 		if(window.spriteDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, "#f0f") // debug tile
 		if(direction == null) direction = this.direction;
-		else this.direction = direction;
-
-		this.moving = true;
+		else if(showDirection) this.direction = direction;
+		if(showDirection) this.moving=true;
 
 		var xTile = this.x/TILESIZE;
 		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
@@ -296,11 +395,41 @@ var Link = new Class({
 		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
 		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
 
-		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
-		|| yTile < 1 || yTile > this.currentRoom.roomHeight 
-		|| this.currentRoom.getTile(yTile,xTile).isSolid) {
-			return;
+		switch(true) {
+			case xTile < 0:
+				if(this.moving) {
+					this.currentRoom = switchRoom(this.currentRoom.row, this.currentRoom.col-1);
+					this.x = (this.currentRoom.roomWidth-1)*TILESIZE;
+				}
+				return;
+			case xTile > this.currentRoom.roomWidth-1:
+				if(this.moving) {
+					this.currentRoom = switchRoom(this.currentRoom.row, this.currentRoom.col+1);
+					this.x = 0;
+				}
+				return;
+			case yTile < 0:
+				if(this.moving) {
+					this.currentRoom = switchRoom(this.currentRoom.row-1, this.currentRoom.col);
+					this.y = (this.currentRoom.roomHeight+4-1)*TILESIZE;
+				}
+				return;
+			case yTile > this.currentRoom.roomHeight-1:
+				if(this.moving) {
+					if(rooms == underworld) {
+						this.currentRoom = switchRoom(this.currentRoom.row, this.currentRoom.col, overworld);
+					}
+					else {
+						this.currentRoom = switchRoom(this.currentRoom.row+1, this.currentRoom.col);
+						this.y = 4*TILESIZE;
+					}
+				}
+				return;
+			case this.currentRoom.getTile(yTile,xTile).isSolid && !window.godMode:
+				return;
+				
 		}
+		this.currentRoom.getTile(yTile,xTile).fireEvent('enter');
 
 		Array.each(rooms.getCurrentRoom().MOBs, function(that){
 			if(that != this && that.isFriendly && this.collidesWith(that)) {
@@ -314,27 +443,37 @@ var Link = new Class({
 		this.y += Math.sin(direction * Math.PI/180) * this.movementRate;
 	}
 	,move: function() {
+		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 2*TILESIZE) {
+			if(!isNaN(this.impactDirection)) {
+				this.flytta(this.impactDirection, false);
+				this.acImpactMove += this.movementRate;
+			}
+			else {
+				console.log('Failed to skuffa', this.impactDirection);
+			}
+			
+		}
+		
 		switch(true) {
-//			case this.isImmune:
-	//			this.flytta(this.impactDirection);
-
 			case this.usingItem != false:
 				break;
 			case env.keyStates['space'] && this.usingItem == false:
-				this.usingItem = new Sword(this);
+				if(this.items.sword > 0) {
+					this.usingItem = new Sword(this);
+				}
 				env.keyStates['space']=null;
 				break;
 			case env.keyStates['down']: case env.keyStates['s']:
-				this.flytta(90);
+				this.flytta(90, true);
 				break;
 			case env.keyStates['up']: case env.keyStates['w']:
-				this.flytta(270);
+				this.flytta(270, true);
 				break;
 			case env.keyStates['right']: case env.keyStates['d']:
-				this.flytta(0);
+				this.flytta(0, true);
 				break;
 			case env.keyStates['left']: case env.keyStates['a']:
-				this.flytta(180);
+				this.flytta(180, true);
 				break;
 		}
 		
@@ -418,6 +557,9 @@ function paintHeader() {
 	writeText('B', xOff+(6*TILESIZE)+TILESIZE, yOff); 
 	drawBorder(xOff+(8*TILESIZE), yOff, 3, 4);
 	writeText('A', xOff+(8*TILESIZE)+HALFTILE, yOff); 
+	if(env.player.items.sword > 0) {
+		placeTile(12, xOff+(8*TILESIZE)+(HALFTILE/2), yOff+HALFTILE);
+	}
 
 	writeText('-LIFE-', xOff+(10*TILESIZE)+HALFTILE, yOff, [216, 40, 0]); 
 	
@@ -445,6 +587,7 @@ function paintHeader() {
 
 function paintRoom(){
 	var room = rooms.getCurrentRoom();
+	ctxBg.clearRect(0,0,WIDTH*SCALE,HEIGHT*SCALE);
 	y = 4, x = 0;
 	Array.each(room.getTiles(), function(row) {
 		x = 0;
@@ -456,7 +599,7 @@ function paintRoom(){
 				ctx.stroke();
 			}
 			if(tile.sprite) {
-				placeTile(tile.sprite, x*TILESIZE, y*TILESIZE, tile.tintFrom, tile.tintTo);
+				placeTile(tile.sprite, x*TILESIZE, y*TILESIZE, tile.tintFrom, tile.tintTo, null, null, ctxBg);
 			}
 			x++;
 		});
@@ -464,31 +607,33 @@ function paintRoom(){
 	});
 }
 
-function placeTile(frame, x, y, tintFrom, tintTo, rotate) {
+function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
+	if(!tCtx) tCtx = ctx;
 	tmpX = x; tmpY = y;
 	if(tintTo && TintCache.get(tintTo, frame)) {
-		return ctx.putImageData(TintCache.get(tintTo, frame), x, y);
+		return tCtx.putImageData(TintCache.get(tintTo, frame), x, y);
 	}
-	if(rotate) {
+	if(rotate || flip) {
 		tmpY = 16/-2;
 		tmpX = 16/-2;;
 		rotate = rotate*Math.PI;
-		ctx.save();
-		ctx.translate(x+8, y+8);
-		ctx.rotate(rotate);
+		tCtx.save(); 
+		tCtx.translate(x+8, y+8);
+		if(rotate)
+			tCtx.rotate(rotate);
+		if(flip)
+			tCtx.scale((flip=='x' ? -1 : 1), (flip=='y' ? -1 : 1));
 	}
-	ctx.drawImage(env.spriteSheet
+	tCtx.drawImage(env.spriteSheet
 		,(frame*TILESIZE)
 		,0
 		,TILESIZE, TILESIZE, tmpX*SCALE, tmpY*SCALE, TILESIZE*SCALE, TILESIZE*SCALE);
-	if(rotate) {
-		ctx.restore();
+	if(rotate || flip) {
+		tCtx.restore();
 	}
 
 	if(tintTo) {
-		if(window.spriteDebug || true) console.log('tinting tile '+frame);
-		
-		map = ctx.getImageData(x, y, TILESIZE, TILESIZE);
+		map = tCtx.getImageData(x, y, TILESIZE, TILESIZE);
 		imdata = map.data;
 		for(var p = 0, len = imdata.length; p < len; p+=4) {
 			r = imdata[p]
@@ -502,7 +647,7 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate) {
 			}
 		}
 		TintCache.set(tintTo, frame, map);
-		return ctx.putImageData(map, x, y);
+		return tCtx.putImageData(map, x, y);
 	}
 }
 
@@ -517,6 +662,11 @@ function writeText(string, x, y, color, tCtx) {
 	if(!tCtx) tCtx = ctx;
 	var xOff = 0;
 	Array.each(string.toLowerCase(), function(c){
+		if(c == "\n") {
+			y+= HALFTILE;
+			xOff = 0;
+			return;
+		}
 		char = font[c];
 		if(char) {
 			tCtx.drawImage(
@@ -678,7 +828,6 @@ function drawNumberedTiles() {
 function animate() {
 	if(!env.paused) {
 		ctx.clearRect(0,0,WIDTH*SCALE,HEIGHT*SCALE);
-		paintRoom();
 		paintHeader();
 		Array.each(solidObjects, function(o){
 			if(o.isActive)

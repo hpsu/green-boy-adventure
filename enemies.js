@@ -122,7 +122,7 @@ var RockProjectile = new Class({
 		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
 
 		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
-		|| yTile < 1 || yTile > this.currentRoom.roomHeight 
+		|| yTile < 1 || yTile > this.currentRoom.roomHeight-2
 		|| this.currentRoom.getTile(yTile,xTile).isSolid) {
 			this.destroy();
 		}
@@ -198,7 +198,7 @@ var Octorock = new Class({
 		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
 
 		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
-		|| yTile < 1 || yTile > this.currentRoom.roomHeight 
+		|| yTile < 1 || yTile > this.currentRoom.roomHeight-2
 		|| this.currentRoom.getTile(yTile,xTile).isSolid) {
 			this.randomDirection();
 		}
@@ -392,7 +392,7 @@ var Zola = new Class({
 			xTile = Number.random(1, this.currentRoom.roomWidth-2);
 			yTile = Number.random(1, this.currentRoom.roomHeight-2);
 			if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, this.width, this.height, "#f0f");
-			if(++infCnt >10)
+			if(++infCnt >100)
 				return false;
 		} while(![34, 35, 36, 37, 38, 39, 40, 41, 42].contains(this.currentRoom.getTile(yTile, xTile).sprite));
 		this.x = xTile*TILESIZE;

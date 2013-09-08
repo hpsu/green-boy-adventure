@@ -60,6 +60,8 @@ window.addEvent('keyup', function(e) { env.keyStates[e.key] = false; });
  */
 var Mob = new Class({
 	initialize: function(x,y,room){
+		x = sc(x);
+		y = sc(y);
 		if(room)
 			this.currentRoom = room
 		else
@@ -114,6 +116,10 @@ var Mob = new Class({
 	,lastUpdatedTime: 0
 	,changePalette: function(fromPalette) {
 		if(!fromPalette) fromPalette = 0;
+		if(!env.palettes[this.palette]) { 
+			console.log('There is no palette',this.palette);
+			return;
+		}
 		if(this.palette != fromPalette) {
 			map = ctx.getImageData(this.x, this.y, TILESIZE, TILESIZE);
 			imdata = map.data;
@@ -291,7 +297,9 @@ var EnemyDeath = new Class({
 			if(typeof this.frames[++this.animFrame] == 'undefined') {
 				this.destroy();
 				if(Number.random(1,5) == 5) {
-					if(Number.random(1,5) == 5)
+					if(Number.random(1,10) == 5)
+						new Fairy(this.x, this.y);
+					else if(Number.random(1,5) == 5)
 						new Bomb(this.x, this.y);
 					else if(Number.random(1,5) == 5)
 						new MidRupee(this.x, this.y);
@@ -324,9 +332,10 @@ var Link = new Class({
 	,animFrame: 0
 	,health: 3
 	,direction: 270
-	,moving: false
+	,isMoving: false
 	,movementRate: 1.3
 	,impactDirection: null
+	,swordThrow: null
 	,items: {
 		 sword: 0
 		,boomerang: 0
@@ -347,9 +356,8 @@ var Link = new Class({
 		this.usingItem = false;
 	}
 	,impact: function(damage, direction) {
-		if(this.moving) {
+		if(this.isMoving) {
 			direction = (180+this.direction)%360;
-			console.log('skuffa direction',direction);
 		}
 		this.parent(damage, direction);
 	}
@@ -368,7 +376,7 @@ var Link = new Class({
 		if(window.spriteDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, "#f0f") // debug tile
 		if(direction == null) direction = this.direction;
 		else if(showDirection) this.direction = direction;
-		if(showDirection) this.moving=true;
+		if(showDirection) this.isMoving=true;
 
 		var xTile = this.x/TILESIZE;
 		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
@@ -397,25 +405,25 @@ var Link = new Class({
 
 		switch(true) {
 			case xTile < 0:
-				if(this.moving) {
+				if(this.isMoving) {
 					this.currentRoom = switchRoom(this.currentRoom.row, this.currentRoom.col-1);
 					this.x = (this.currentRoom.roomWidth-1)*TILESIZE;
 				}
 				return;
 			case xTile > this.currentRoom.roomWidth-1:
-				if(this.moving) {
+				if(this.isMoving) {
 					this.currentRoom = switchRoom(this.currentRoom.row, this.currentRoom.col+1);
 					this.x = 0;
 				}
 				return;
 			case yTile < 0:
-				if(this.moving) {
+				if(this.isMoving) {
 					this.currentRoom = switchRoom(this.currentRoom.row-1, this.currentRoom.col);
 					this.y = (this.currentRoom.roomHeight+4-1)*TILESIZE;
 				}
 				return;
 			case yTile > this.currentRoom.roomHeight-1:
-				if(this.moving) {
+				if(this.isMoving) {
 					if(rooms == underworld) {
 						this.currentRoom = switchRoom(this.currentRoom.row, this.currentRoom.col, overworld);
 					}
@@ -460,21 +468,30 @@ var Link = new Class({
 			case env.keyStates['space'] && this.usingItem == false:
 				if(this.items.sword > 0) {
 					this.usingItem = new Sword(this);
+					if(this.health == this.hearts && this.swordThrow == null) {
+						this.swordThrow = new SwordThrow(this);
+					}
 				}
 				env.keyStates['space']=null;
 				break;
 			case env.keyStates['down']: case env.keyStates['s']:
+				this.isMoving=true;
 				this.flytta(90, true);
 				break;
 			case env.keyStates['up']: case env.keyStates['w']:
+				this.isMoving=true;
 				this.flytta(270, true);
 				break;
 			case env.keyStates['right']: case env.keyStates['d']:
+				this.isMoving=true;
 				this.flytta(0, true);
 				break;
 			case env.keyStates['left']: case env.keyStates['a']:
+				this.isMoving=true;
 				this.flytta(180, true);
 				break;
+			default:
+				this.isMoving=false
 		}
 		
 		this.draw();		
@@ -486,6 +503,9 @@ var Link = new Class({
 			//@TODO: Link should animate when subtracting the sword (walking frames from right to left)
 			this.acDelta = 0;
 			this.usingItem.draw();
+			if(this.health == this.hearts && this.swordThrow) {
+				this.swordThrow.draw();
+			}
 			this.animFrame = 0;
 		}		
 		else if(this.acDelta > this.msPerFrame) {
@@ -493,7 +513,7 @@ var Link = new Class({
 			if(this.isImmune) {
 				if(++this.palette > 3) this.palette = 0;
 			}
-			if(this.moving)
+			if(this.isMoving)
 				if(typeof this.frames[this.direction]['normal'][++this.animFrame] == 'undefined') this.animFrame=0;
 		}
 		frame = this.frames[this.direction][(this.usingItem?'item':'normal')][this.animFrame];
@@ -504,7 +524,6 @@ var Link = new Class({
 		}
 		this.acDelta += delta;
 		this.lastUpdateTime = Date.now();
-		this.moving = false;
 	}
 	
 });
@@ -622,7 +641,7 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 		if(rotate)
 			tCtx.rotate(rotate);
 		if(flip)
-			tCtx.scale((flip=='x' ? -1 : 1), (flip=='y' ? -1 : 1));
+			tCtx.scale((flip.contains('x') ? -1 : 1), (flip.contains('y') ? -1 : 1));
 	}
 	tCtx.drawImage(env.spriteSheet
 		,(frame*TILESIZE)
@@ -633,7 +652,7 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 	}
 
 	if(tintTo) {
-		map = tCtx.getImageData(x, y, TILESIZE, TILESIZE);
+		map = tCtx.getImageData(x*SCALE, y*SCALE, TILESIZE*SCALE, TILESIZE*SCALE);
 		imdata = map.data;
 		for(var p = 0, len = imdata.length; p < len; p+=4) {
 			r = imdata[p]
@@ -654,7 +673,7 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 function filledRectangle(x, y, w, h, c) {
 	ctx.beginPath();
 	ctx.fillStyle=c;
-	ctx.rect(x, y, w, h);
+	ctx.rect(x*SCALE, y*SCALE, w*SCALE, h*SCALE);
 	ctx.fill();
 }
 
@@ -675,10 +694,10 @@ function writeText(string, x, y, color, tCtx) {
 				char[1]*HALFTILE, 
 				HALFTILE, 
 				HALFTILE, 
-				x+(xOff*HALFTILE), 
-				y, 
-				HALFTILE, 
-				HALFTILE);
+				(x+(xOff*HALFTILE))*SCALE, 
+				y*SCALE, 
+				HALFTILE*SCALE, 
+				HALFTILE*SCALE);
 			if(color) {
 				map = tCtx.getImageData(x+(xOff*HALFTILE), y, HALFTILE, HALFTILE);
 				imdata = map.data;
@@ -840,4 +859,20 @@ function animate() {
 	}
 
 	window.requestAnimationFrame(animate);
+}
+
+function changeScale(scale) {
+	new Element('canvas', {id: 'background', width: 256*scale, height: 240*scale}).replaces($('background'));
+	new Element('canvas', {id: 'screen', width: 256*scale, height: 240*scale}).replaces($('screen'));
+	ctxBg = $('background').getContext('2d');
+	ctxBg.webkitImageSmoothingEnabled=false;
+	ctx = $('screen').getContext('2d');
+	ctx.webkitImageSmoothingEnabled=false;
+	SCALE = scale
+	paintRoom();
+	paintHeader();
+}
+
+function sc(inp) {
+	return inp*SCALE;
 }

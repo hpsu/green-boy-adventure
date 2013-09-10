@@ -98,10 +98,16 @@ var FireBall = new Class({
 	,tile: 80
 	,tileBlock: false
 	,rotate: false
+	,height: 10
+	,width: 8
 	,rotatePalette: true
 	,initialize: function(ancestor) {
 		this.parent(ancestor);
 		this.direction = Math.atan2(env.player.y - this.y, env.player.x - this.x) * 180 / Math.PI;
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (this.tile*TILESIZE)+4, HALFTILE-5, this.width, this.height, Math.round(this.x), Math.round(this.y), this.width, this.height);
+		if(this.rotatePalette) this.changePalette();
 	}
 });
 
@@ -188,6 +194,7 @@ var Tektite = new Class({
 	,startY: 0
 	,targetY: 0
 	,sprite: 86
+	,defaultPalette: 0
 	,isJumping: false
 	,initialize: function(x,y) {
 		this.parent(x,y);
@@ -237,13 +244,14 @@ var Tektite = new Class({
 				this.x -= this.velocityX;
 				this.stopJump();
 			}
-			Array.each(solidObjects, function(that){
-				if(that != this && that.isFriendly && this.collidesWith(that)) {
-					//@TODO: fix impact direction
-					that.impact(this.damage, null);
-				}
-			},this);
 		}
+		Array.each(solidObjects, function(that){
+			if(that != this && that.isFriendly && this.collidesWith(that)) {
+				var direction = (360+Math.floor( Math.atan2(env.player.y - this.y, env.player.x - this.x) * 180 / Math.PI /90 )*90)%360;
+
+				that.impact(this.damage, direction);
+			}
+		},this);
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
@@ -685,45 +693,26 @@ var RandomMob = new Class({
 	,animFrame: 0
 	,lastUpdateTime: 0
 	,msPerFrame: 110
+	,msPerPalette: 20
+	,acPaletteDelta: 0
 	,acDelta: 0
 	,movementRate: 0.5
 	,dirDelta: 0
+	,passive: false
 	,rockDelta: 0
 	,defaultPalette: 0
 	,direction: 90
-	,move: function() {
-		var delta = Date.now() - this.lastUpdateTime;
+	,impact: function(damage, direction) {
+		direction = (direction == this.direction || this.direction == 180-direction ? direction : null);
+		this.parent(damage, direction);
+	}
+	,flytta: function(direction) {
+		var tx = this.x + Math.cos(direction * Math.PI/180) * this.movementRate;
+		var ty = this.y + Math.sin(direction * Math.PI/180) * this.movementRate;
 
-		if(this.acDelta > this.msPerFrame) {
-			this.acDelta = 0;
-			if(++this.animFrame >= this.maxAnimFrames) this.animFrame=0;
-			if(this.isImmune) {
-				if(++this.palette > 3) this.palette = 0;
-			}
-			else 
-				this.palette = this.defaultPalette;
-
-		}
-
-		if(rooms.getCurrentRoom() != this.currentRoom) return;
-		var delta = Date.now() - this.lastUpdateTime;
-
-		if(this.dirDelta > this.msPerFrame*Number.random(16,32)) {
-			this.dirDelta = 0;
-			this.randomDirection();
-		}
-		
-		if(this.projectile && this.rockDelta > this.msPerFrame*Number.random(32,64)) {
-			this.rockDelta = 0;
-			new this.projectile(this);
-		}
-
-		this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
-		this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
-
-		var xTile = this.x/TILESIZE;
-		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
-		switch(this.direction) {
+		var xTile = tx/TILESIZE;
+		var yTile = (ty/TILESIZE)-4; // -4 is accounting for the header
+		switch(direction) {
 			case 0: // right
 				xTile = Math.ceil(xTile);
 				yTile = Math.round(yTile)
@@ -743,24 +732,74 @@ var RandomMob = new Class({
 				break;
 		}
 
-		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
-
 		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
 		|| yTile < 1 || yTile > this.currentRoom.roomHeight-2
 		|| this.currentRoom.getTile(yTile,xTile).isSolid) {
 			this.randomDirection();
+			return;
 		}
+
+		this.x = tx;
+		this.y = ty;
 
 		Array.each(solidObjects, function(that){
 			if(that != this && that.isFriendly && this.collidesWith(that)) {
-				that.impact(this.damage, this.direction);
+				that.impact(this.damage, direction);
 			}
 		},this);
+
+	}
+	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+
+			if(++this.animFrame >= this.maxAnimFrames) this.animFrame=0;
+		}
+
+		if(this.isImmune) {
+			if(this.acPaletteDelta > this.msPerPalette) {
+				this.acPaletteDelta = 0;
+				if(++this.palette > 3) this.palette = 0;
+			}
+		}
+		else 
+			this.palette = this.defaultPalette;
+
+
+		if(this.dirDelta > this.msPerFrame*Number.random(16,32)) {
+			this.dirDelta = 0;
+			this.randomDirection();
+		}
+		
+		if(this.projectile && this.rockDelta > this.msPerFrame*Number.random(32,64)) {
+			this.rockDelta = 0;
+			this.passive=true;
+			(function(o){o.passive=false}).pass(this).delay(500);
+			new this.projectile(this);
+		}
+
+		//skuffa
+		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 4*HALFTILE) {
+			if(!isNaN(this.impactDirection)) {
+				for(var i=0; i<6; i++) {
+					this.flytta(this.impactDirection);
+					this.acImpactMove += this.movementRate;
+				}
+			}
+			else {
+				console.log('Failed to skuffa', this.impactDirection);
+			}
+		}
+
+		if(!this.passive)
+		this.flytta(this.direction);
 
 		this.dirDelta += delta;
 		this.rockDelta += delta;
 		this.acDelta+=delta;
+		this.acPaletteDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
 	,randomDirection: function() {
@@ -791,6 +830,8 @@ var Octorok = new Class({
 		frame = this.frames[this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, (270+this.direction%360)/180);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+		//if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
+//		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
 	}
 });
 
@@ -901,6 +942,6 @@ var Ghini = new Class({
 		frame = this.frames[this.direction]['sprites'][0];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(3);
 	}
 });

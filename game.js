@@ -313,7 +313,7 @@ var DeathEvent = new Class({
 	}
 });
 
-var SwordEvent = new Class({
+var Event = new Class({
 	initialize: function(room) {
 		//@TODO: Freeze player movement during event
 		room.tmpX = env.player.x;
@@ -333,14 +333,9 @@ var SwordEvent = new Class({
 		env.player.y = (11+4-1)*TILESIZE;
 		env.player.x = TILESIZE*7;
 		env.player.direction=270;
-		new Fire(TILESIZE*5, TILESIZE*8, room);
-		new Fire(TILESIZE*10, TILESIZE*8, room);
+		new Fire((TILESIZE*5)-HALFTILE, TILESIZE*8, room);
+		new Fire((TILESIZE*10)+HALFTILE, TILESIZE*8, room);
 		
-		if(env.player.items.sword == 0) {
-			new WiseMan((TILESIZE*7)+HALFTILE, TILESIZE*8, room);
-			new PickupSword((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room);
-			new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "it's dangerous to go\n  alone! take this.");
-		}
 		Array.each(room.tiles[4], function(tile) {
 			tile.isSolid = true;
 		});
@@ -348,6 +343,54 @@ var SwordEvent = new Class({
 	,tmpX: null
 	,tmpY: null
 });
+
+var SwordEvent = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room);
+		
+		if(env.player.items.sword == 0) {
+			new WiseMan((TILESIZE*7)+HALFTILE, TILESIZE*8, room);
+			new puSword((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room);
+			new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "it's dangerous to go\n  alone! take this.");
+		}
+	}
+});
+
+var MoneyMakingGameEvent = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room);
+		
+		new TextContainer(TILESIZE*3.5, (TILESIZE*6)+HALFTILE, room, "let's play money\nmaking game.");
+		new WiseMan((TILESIZE*7)+HALFTILE, TILESIZE*8, room);
+		room.rupees = [];
+		room.rupees[0] = new mmgRupee((TILESIZE*5)+HALFTILE, (TILESIZE*10)-HALFTILE, room);
+		room.rupees[1] = new mmgRupee((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room);
+		room.rupees[2] = new mmgRupee((TILESIZE*9)+HALFTILE, (TILESIZE*10)-HALFTILE, room);
+		room.winningRupee = Number.random(0,2);
+		room.priceRupee = Number.random(0,2);
+		//new TextContainer(TILESIZE*4, (TILESIZE*11), room, "x -10 -10 -10");
+		
+		var values = [20,50];
+		var devalues = [-10, -40, -50]
+		var rupeeWorth = [values[Number.random(0,values.length-1)], devalues[Number.random(0,devalues.length-1)], -10];
+		
+	   for (var i = 2; i > 0; i--) {
+			var j = Math.floor(Math.random() * (i + 1));
+			var temp = rupeeWorth[i];
+			rupeeWorth[i] = rupeeWorth[j];
+			rupeeWorth[j] = temp;
+		}
+		
+		room.rupees[0].worth = rupeeWorth[0];
+		room.rupees[1].worth = rupeeWorth[1];
+		room.rupees[2].worth = rupeeWorth[2];
+		
+		new mmgRupee((TILESIZE*3), (TILESIZE*11)-4, room, true);
+	}
+});
+
 
 var TextContainer = new Class({
 	Extends: Mob
@@ -434,15 +477,15 @@ var EnemyDeath = new Class({
 				this.destroy();
 				if(Number.random(1,5) == 5) {
 					if(Number.random(1,10) == 5)
-						new Fairy(this.x, this.y);
+						new puFairy(this.x, this.y);
 					else if(Number.random(1,5) == 5)
-						new Bomb(this.x, this.y);
+						new puBomb(this.x, this.y);
 					else if(Number.random(1,5) == 5)
-						new MidRupee(this.x, this.y);
+						new puMidRupee(this.x, this.y);
 					else if(env.player.health < env.player.items.hearts && Number.random(1,2) == 2)
-						new Heart(this.x, this.y);
+						new puHeart(this.x, this.y);
 					else 
-						new Rupee(this.x, this.y);
+						new puRupee(this.x, this.y);
 				}
 			}
 			if(++this.palette > env.palettes.length-1)
@@ -468,6 +511,16 @@ var Link = new Class({
 	,movementRate: 1.3
 	,impactDirection: null
 	,swordThrow: null
+	,bomb: null
+	,impacted: false
+	,getRupees: function() {
+		return this.items.rupees;
+	}
+	,addRupees: function(worth) {
+		this.items.rupees+=worth;
+		if(this.items.rupees <0) this.items.rupees = 0;
+		else if(this.items.rupees >255) this.items.rupees = 255;			
+	}
 	,items: {
 		 sword: 0
 		,boomerang: 0
@@ -492,6 +545,7 @@ var Link = new Class({
 		this.usingItem = false;
 	}
 	,impact: function(damage, direction) {
+		this.impacted=true;
 		if(this.isMoving) {
 			direction = (180+this.direction)%360;
 		}
@@ -506,17 +560,18 @@ var Link = new Class({
 		solidObjects.erase(this);
 	}
 	,flytta: function(direction, showDirection) {
-		xTile = Math.round(this.x/TILESIZE);
-		yTile = Math.round(this.y/TILESIZE)-4; // -4 is accounting for the header
+		var tx = this.x + (Math.cos(direction * Math.PI/180) * this.movementRate);
+		var ty = this.y + (Math.sin(direction * Math.PI/180) * this.movementRate);
+
 		var currentRoom = rooms.getCurrentRoom();
-		if(window.spriteDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, "#f0f") // debug tile
 		if(direction == null) direction = this.direction;
 		else if(showDirection) this.direction = direction;
 		if(showDirection) this.isMoving=true;
 
-		var xTile = this.x/TILESIZE;
-		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
-		switch(this.direction) {
+		var xTile =(tx/TILESIZE);
+		var yTile =((ty/TILESIZE)-4); // -4 is accounting for the header
+
+		switch(direction) {
 			case 0: // right
 				xTile = Math.ceil(xTile);
 				yTile = Math.round(yTile)
@@ -534,10 +589,11 @@ var Link = new Class({
 				xTile = Math.round(xTile);
 				yTile = Math.floor(yTile);
 				break;
+			default:
+				console.log('unknown angle'+direction);
+				xTile = Math.round(xTile);
+				yTile = Math.round(yTile);
 		}
-
-		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
 
 		switch(true) {
 			case xTile < 0:
@@ -577,6 +633,12 @@ var Link = new Class({
 				return;
 				
 		}
+
+		// No obstacles found, move along
+
+		this.x = tx;
+		this.y = ty;
+
 		this.currentRoom.getTile(yTile,xTile).fireEvent('enter');
 
 		Array.each(rooms.getCurrentRoom().MOBs, function(that){
@@ -585,18 +647,15 @@ var Link = new Class({
 					that.pickup(this);
 			}
 		},this);
-
-
-		this.x += Math.cos(direction * Math.PI/180) * this.movementRate;
-		this.y += Math.sin(direction * Math.PI/180) * this.movementRate;
 	}
 	,move: function() {
+		this.impacted = false;
+
 		var delta = Date.now() - this.lastUpdateTime;
 
 		if(this.usingItem) {
 			//@TODO: Link should animate when subtracting the sword (walking frames from right to left)
 			this.acDelta = 0;
-			this.usingItem.draw();
 			if(this.health == this.items.hearts && this.swordThrow) {
 				this.swordThrow.draw();
 			}
@@ -611,10 +670,12 @@ var Link = new Class({
 				if(typeof this.frames[this.direction]['normal'][++this.animFrame] == 'undefined') this.animFrame=0;
 		}
 
-		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 2*TILESIZE) {
+		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 3*HALFTILE) {
 			if(!isNaN(this.impactDirection)) {
-				this.flytta(this.impactDirection, false);
-				this.acImpactMove += this.movementRate;
+				for(var i=0; i<4; i++) {
+					this.flytta(this.impactDirection, false);
+					this.acImpactMove += this.movementRate;
+				}
 			}
 			else {
 				console.log('Failed to skuffa', this.impactDirection);
@@ -623,6 +684,10 @@ var Link = new Class({
 		
 		switch(true) {
 			case this.usingItem != false:
+				break;
+			case env.keyStates['z'] && this.usingItem == false && this.bomb == null:
+				this.bomb = this.usingItem = new Bomb(this);
+				env.keyStates['z']=null;
 				break;
 			case env.keyStates['space'] && this.usingItem == false:
 				if(this.items.sword > 0) {
@@ -658,7 +723,7 @@ var Link = new Class({
 	}
 	,draw: function() {
 		frame = this.frames[this.direction][(this.usingItem?'item':'normal')][this.animFrame];
-		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, "#0f0");
+		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, this.impacted ? "#ff0": "#0f0");
 		placeTile(frame, this.x, this.y);
 	 	if(this.isImmune) {
 			this.changePalette();
@@ -701,7 +766,7 @@ function paintHeader() {
 	
 	// Rupees
 	ctx.drawImage(env.spriteSheet, (21*TILESIZE), 0,HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff, HALFTILE, HALFTILE); // Rupee
-	writeText('X'+env.player.items.rupees, xOff+(4*TILESIZE)+TILESIZE, yOff); 
+	writeText((env.player.getRupees() <= 99 ? 'X' : '')+env.player.items.rupees, xOff+(4*TILESIZE)+TILESIZE, yOff); 
 
 	// Keys
 	ctx.drawImage(env.spriteSheet, (21*TILESIZE)+HALFTILE, 0,HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff+(TILESIZE), HALFTILE, HALFTILE); // Key
@@ -751,10 +816,10 @@ function paintRoom(tintFrom, tintTo){
 		x = 0;
 		Array.each(row, function(tile) {
 			if(window.spriteDebug) {
-				ctx.beginPath();
-				ctx.strokeStyle="#f0f";;
-				ctx.rect(x*TILESIZE, y*TILESIZE, TILESIZE, TILESIZE);
-				ctx.stroke();
+				ctxBg.beginPath();
+				ctxBg.strokeStyle="#f0f";;
+				ctxBg.rect(x*TILESIZE, y*TILESIZE, TILESIZE, TILESIZE);
+				ctxBg.stroke();
 			}
 			if(tile.sprite) {
 				placeTile(tile.sprite, x*TILESIZE, y*TILESIZE, tintFrom ? tintFrom : tile.tintFrom, tintTo ? tintTo : tile.tintTo, null, null, ctxBg);
@@ -1002,8 +1067,11 @@ function animate() {
 				o.draw();
 		});
 		Array.each(rooms.getCurrentRoom().MOBs, function(o){
-			if(o.isActive)
+			if(o.isActive) {
+				//if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
+				if(window.collisionDebug) filledRectangle(o.x, o.y, o.width, o.height, '#f00');
 				o.draw();
+			}
 		});
 	}
 
@@ -1033,4 +1101,27 @@ function continueGame() {
 	console.log(save);
 	env.player = new Link(WIDTH/2, HEIGHT/2);
 	env.player.items = save;
+}
+
+function tintWorld() {
+	var deathPalette = [[188,188,188], [116,116,116], [252,252,252]];
+	palette = deathPalette;
+	var clrs = [[0,168,0], [200,76,12]];
+	map = ctxBg.getImageData(0, 0, WIDTH, HEIGHT);
+	imdata = map.data;
+	for(var p = 0, len = imdata.length; p < len; p+=4) {
+		r = imdata[p]
+		g = imdata[p+1];
+		b = imdata[p+2];
+		Array.each(clrs, function(i) {
+			//Array.each(fromPalette, function(i, k){
+				if(r == i[0] && g == i[1] && b == i[2]) {
+					imdata[p] = palette[0][0];
+					imdata[p+1] = palette[0][1];
+					imdata[p+2] = palette[0][2];
+				}
+			//});
+		});
+	}
+	ctxBg.putImageData(map, 0, 0);
 }

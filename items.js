@@ -2,6 +2,105 @@
  * Weapon classes *
  ******************/
 
+var Bomb = new Class({
+	Extends: Mob
+	,msShown: 200
+	,msBlowup: 2000
+	,isFriendly: true
+	,sprite: 69
+	,initialize: function(ancestor) {
+		this.name = 'Sword';
+		this.ancestor = ancestor;
+		this.parent(ancestor.x, ancestor.y);
+		this.rePosition();
+	}
+	,destroy: function() {
+		new Detonation(this.x, this.y);
+		this.parent();
+	}
+	,rePosition: function() {
+		this.x = this.ancestor.x;
+		this.y = this.ancestor.y;
+		this.direction = this.ancestor.direction;
+		switch(this.direction) {
+			case 0:
+				this.x += TILESIZE*1.5;
+				break;
+			case 180:
+				this.x -= TILESIZE*1.5;
+				break;
+			case 270:
+				this.y -= TILESIZE*1.5;
+				break;
+			case 90:
+				this.y += TILESIZE*1.5;
+				break;
+		}
+	}
+	,move: function() {
+		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+		if(this.acDelta > this.msBlowup) {
+			this.ancestor.bomb = null;
+			this.destroy();
+		}
+		else if(this.acDelta > this.msShown) {
+			this.ancestor.usingItem = false;
+		} 
+		this.acDelta+=delta;
+		this.acTotalDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		placeTile(this.sprite, this.x, this.y);
+	}
+});
+
+
+var Detonation = new Class({
+	Extends: Mob
+	,isFriendly: true
+	,frame: 0
+	,msPerFrame: 20
+	,acTileSwitchDelta: 0
+	,tile: 66
+	,move: function() {
+		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+		if(this.acTileSwitchDelta > 600) {
+			this.destroy();
+		}
+		else if(this.acTileSwitchDelta > 300) {
+			this.tile = 67;
+		}
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta=0;
+			if(++this.frame > 1) this.frame=0;
+		}
+		this.acDelta += delta;
+		this.acTileSwitchDelta += delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+
+		placeTile(this.tile, this.x, this.y);
+
+		if(this.frame == 0) {
+			placeTile(this.tile, this.x-8, this.y-14);
+			placeTile(this.tile, this.x+8, this.y+14);
+			placeTile(this.tile, this.x+14, this.y);
+		}
+		else {
+			placeTile(this.tile, this.x+8, this.y-14);
+			placeTile(this.tile, this.x-8, this.y+14);
+			placeTile(this.tile, this.x-14, this.y);
+		}
+
+
+
+	}
+
+});(this.x, this.y);
+
+
 var Sword = new Class({
 	Extends: Mob
 	,damage: 0.5
@@ -171,12 +270,11 @@ var SwordThrow = new Class({
 /***************
  * Pickupables *
  ***************/
-var PickupSword = new Class({
+var puSword = new Class({
 	Extends: Mob
-	,name: 'PickupSword'
+	,name: 'puSword'
 	,isFriendly: true
 	,pickup: function(that) {
-		console.log('picked up sword');
 		that.items.sword = 1;
 		this.destroy();
 	}
@@ -185,7 +283,7 @@ var PickupSword = new Class({
 	}
 });
 
-var Fairy = new Class({
+var puFairy = new Class({
 	Extends: Mob
 	,name: 'Fairy'
 	,width: 16
@@ -248,8 +346,7 @@ var Fairy = new Class({
 	}
 });
 
-
-var Rupee = new Class({
+var puRupee = new Class({
 	Extends: Mob
 	,name: 'Rupee'
 	,acDelta: 0
@@ -261,14 +358,16 @@ var Rupee = new Class({
 	,paletteFrames: [2,3]
 	,palettePosition: 0
 	,lastUpdateTime: 0
+	,expiry: 10000
 	,worth: 1
-	,initialize: function(x,y) {
-		this.parent(x,y);
+	,initialize: function(x,y,room) {
+		this.parent(x,y,room);
 		this.isFriendly = true;
-		(function(){this.destroy();}).delay(10000, this);
+		if(this.expiry)
+			(function(){this.destroy();}).delay(10000, this);
 	}
 	,pickup: function(that) {
-		that.items.rupees += this.worth;
+		that.addRupees(this.worth);
 		this.destroy();
 	}
 	,draw: function() {
@@ -288,14 +387,52 @@ var Rupee = new Class({
 	}
 });
 
-var MidRupee = new Class({
-	Extends: Rupee
+var mmgRupee = new Class({
+	Extends: puRupee
+	,worth: 10
+	,text: '-10'
+	,static: false
+	,expiry: null
+	,initialize: function(x,y,room,static){
+		if(static) {
+			this.static = true;
+			this.pickup = (function(){});
+			this.text = 'x';
+		}
+		this.parent(x,y,room);
+	}
+	,reveal: function(){
+		this.text = (this.worth > 0 ? '+' : '') + String(this.worth);
+		this.pickup = (function(){});
+	}
+	,pickup: function(that) {
+		if(that.getRupees() < 10) return;
+		Array.each(this.currentRoom.rupees, function(o) {
+			o.reveal();
+		});
+		that.addRupees(this.worth);
+	}
+	,draw: function() {
+		this.parent();
+		if(this.static) {
+			writeText(this.text, this.x+TILESIZE, this.y+(HALFTILE/2));
+		}
+		else {
+			writeText(this.text, this.x-HALFTILE, this.y+TILESIZE+HALFTILE);
+		}
+		
+	}
+	
+});
+
+var puMidRupee = new Class({
+	Extends: puRupee
 	,name: 'MidRupee'
 	,paletteFrames: [3]
 	,worth: 5
 });
 
-var Heart = new Class({
+var puHeart = new Class({
 	Extends: Mob
 	,name: 'Heart'
 	,acDelta: 0
@@ -335,7 +472,7 @@ var Heart = new Class({
 	
 });
 
-var Bomb = new Class({
+var puBomb = new Class({
 	Extends: Mob
 	,name: 'Bomb'
 	,palette: 2
@@ -358,5 +495,5 @@ var Bomb = new Class({
 
 var font = {
 	 a: [ 0, 0],b: [ 1, 0],e: [ 2, 0],f: [ 3, 0],i: [ 4, 0],j: [ 5, 0],m: [ 6, 0],n: [ 7, 0],q: [ 8, 0],r: [ 9, 0],u: [10, 0],v: [11, 0],  y: [12, 0],  z: [13, 0],',': [14, 0],'!': [15, 0],'.': [16, 0],0: [17, 0],3: [18, 0],4: [19, 0],7: [20, 0],8: [21, 0]
-	,c: [ 0, 1],d: [ 1, 1],g: [ 2, 1],h: [ 3, 1],k: [ 4, 1],l: [ 5, 1],o: [ 6, 1],p: [ 7, 1],s: [ 8, 1],t: [ 9, 1],w: [10, 1],x: [11, 1],'-': [12, 1],'.': [13, 1],"'": [14, 1],'&': [15, 1],  1: [16, 1],2: [17, 1],5: [18, 1],6: [19, 1],9: [20, 1]
+	,c: [ 0, 1],d: [ 1, 1],g: [ 2, 1],h: [ 3, 1],k: [ 4, 1],l: [ 5, 1],o: [ 6, 1],p: [ 7, 1],s: [ 8, 1],t: [ 9, 1],w: [10, 1],x: [11, 1],'-': [12, 1],'.': [13, 1],"'": [14, 1],'&': [15, 1],  1: [16, 1],2: [17, 1],5: [18, 1],6: [19, 1],9: [20, 1],'+': [21, 1]
 };

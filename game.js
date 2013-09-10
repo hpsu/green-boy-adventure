@@ -50,10 +50,8 @@ window.addEvent('load', function () {
 });
 
 // Record keypresses
-window.addEvent('keydown', function(e) { if(env.keyStates[e.key] !== null) env.keyStates[e.key] = true; });
+window.addEvent('keydown', function(e) { if(env.keyStates[e.key] !== null) env.keyStates[e.key] = true;});
 window.addEvent('keyup', function(e) { env.keyStates[e.key] = false; });
-
-
 
 /*
  * Base skeleton class for all Mobile OBjects
@@ -73,8 +71,8 @@ var Mob = new Class({
 	,isFriendly: false
 	,moveToRandomNonSolidTile: function(x, y) {
 		if(x && y) {
-			if(x) this.x = x;
-			if(y) this.y = y;
+			this.x = x;
+			this.y = y;
 		}
 		else {
 			var infCnt = 0;
@@ -114,13 +112,15 @@ var Mob = new Class({
 	,acDelta: 0
 	,acImpactMove: 0
 	,lastUpdatedTime: 0
-	,changePalette: function(fromPalette) {
+	,changePalette: function(fromPalette, palettes) {
+		if(!palettes) palettes = env.palettes;
 		if(!fromPalette) fromPalette = 0;
-		if(!env.palettes[this.palette]) { 
+		
+		if(!palettes[this.palette]) { 
 			console.log('There is no palette',this.palette);
 			return;
 		}
-		if(this.palette != fromPalette) {
+		if(this.palette != fromPalette || palettes != env.palettes) {
 			map = ctx.getImageData(this.x, this.y, TILESIZE, TILESIZE);
 			imdata = map.data;
 			for(var p = 0, len = imdata.length; p < len; p+=4) {
@@ -130,9 +130,9 @@ var Mob = new Class({
 				Array.each([0,1,2], function(i){
 					j = i;
 					if(r == env.palettes[fromPalette][i][0] && g == env.palettes[fromPalette][i][1] && b == env.palettes[fromPalette][i][2]) {
-						imdata[p] = env.palettes[this.palette][j][0];
-						imdata[p+1] = env.palettes[this.palette][j][1];
-						imdata[p+2] = env.palettes[this.palette][j][2];
+						imdata[p] = palettes[this.palette][j][0];
+						imdata[p+1] = palettes[this.palette][j][1];
+						imdata[p+2] = palettes[this.palette][j][2];
 					}
 				},this);
 			}
@@ -170,11 +170,146 @@ var Mob = new Class({
 		this.currentRoom.MOBs.erase(this);
 	}
 	,isActive: true
-	,move: function() {
-		if(rooms.getCurrentRoom() == this.currentRoom)
-			this.draw();
-	},draw: function() {
+	,move: function() {},draw: function() {}
+});
+
+var DeathEvent = new Class({
+	Extends:Mob
+	,stage:0
+	,acDelta:0
+	,acTimerDelta:0
+	,msPerFrame: 100
+	,lastUpdateTime:0
+	,direction:0
+	,choice:0
+	,colors: [
+		{bg: '#d82800', tiles: [200, 76, 12]}
+		,{bg: '#c84c0c', tiles: [164, 0, 0]}
+		,{bg: '#a40000', tiles: [124, 8, 0]}
+		,{bg: '#7c0800', tiles: [0, 0, 0]}
+		,{bg: '#000000', tiles: [0, 0, 0]}
+	]
+	,deathPalette: [[[188,188,188], [116,116,116], [252,252,252]]]
+	,frame:0
+	,initialize: function(){
+		this.x = env.player.x;
+		this.y = env.player.y;
+		this.palettes = env.palettes;
+		Array.each(rooms.getCurrentRoom().MOBs, function(mob) {
+			mob.isActive=false;
+		});
+		env.player.isActive=false;
+		this.direction=90;
+		this.parent(this.x,this.y);
+	}
+	,draw: function() {
+		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+		var frame = env.player.frames[this.direction].normal[0];
+		switch(this.stage) {
+			case 0: // Spin palette
+				if(this.acTimerDelta > 1000) {
+					this.acTimerDelta = 0;
+					this.stage = 1;
+					this.palette=0;
+					$('background').setStyle('background', this.colors[0].bg);
+					paintRoom([0, 168, 0], this.colors[0].tiles);
+				}
+				else if(this.acDelta > 50) {
+					this.acDelta=0;
+					if(++this.palette > env.palettes.length-1)
+						this.palette=0;
+				}
+				break;
+			case 1: // Spin player
+				if(this.acTimerDelta > 2000 && this.direction == 90) {
+					this.acTimerDelta = 0;
+					this.stage=2;
+				}
+				if(this.acDelta > 100) {
+					this.acDelta = 0;
+					this.direction = (90+this.direction%360);
+					if(this.direction == 360) this.direction=0;
+				}
+				break;
+			case 2: // Successively tint darker tiles and bg
+				if(this.acDelta > 400) {
+					this.acDelta = 0;
+					this.frame++;
+					if(this.frame >= this.colors.length) {
+						this.stage = 3;
+					}
+					else {
+						$('background').setStyle('background', this.colors[this.frame].bg);
+						paintRoom([0, 168, 0], this.colors[this.frame].tiles);
+					}
+				}
+				break;
+			case 3: // Tint player white 
+				this.palette=0;
+				if(this.acDelta > 2000) {
+					this.stage = 4;
+					frame = null;
+					this.acDelta = 0;
+				}
+				else if(this.acDelta > 900) {
+					frame = null;
+				}
+				else if(this.acDelta > 600) {
+					frame = 65;
+				}
+				else if(this.acDelta > 300) {
+					frame = 64;
+				}
+				this.palettes = this.deathPalette;
+				break;
+			case 4:
+				if(this.acDelta > 1500) {
+					this.stage=5;
+				}
+				frame = null;
+				writeText("game over", 6*TILESIZE, 9*TILESIZE);
+				break;
+			case 5:
+				filledRectangle(0, 0, 16*TILESIZE, 4*TILESIZE, '#000');
+				frame = 22;
+				
+				if(this.acDelta > 250 && env.keyStates['up']) {
+					if(--this.choice < 0) this.choice=2;
+					this.acDelta = 0;
+				}
+				else if(this.acDelta > 250 && env.keyStates['down']) {
+					if(++this.choice >= 3) this.choice=0;
+					this.acDelta = 0;
+				}
+				else if(this.acDelta > 250 && env.keyStates['enter']) {
+					switch(this.choice) {
+					}
+					continueGame();
+					this.destroy();
+				}
+				
+				
+				
+				writeText("continue", 5*TILESIZE, 5*TILESIZE);
+				writeText("save", 5*TILESIZE, (6*TILESIZE)+HALFTILE);
+				writeText("retry", 5*TILESIZE, 8*TILESIZE);
+				break;
+			
+
+		}
+		if(frame) {
+			if(frame == 22) {
+				ctx.drawImage(env.spriteSheet, (22*TILESIZE), 0, HALFTILE, HALFTILE, 4*TILESIZE, (5*TILESIZE)+(this.choice*1.5*TILESIZE), HALFTILE, HALFTILE); // Heart
+			}
+			else {
+				placeTile(frame, this.x,this.y);
+			}
+		}
+		this.changePalette(null, this.palettes);
 		
+		this.acDelta += delta;
+		this.acTimerDelta += delta;
+		this.lastUpdateTime = Date.now();
 	}
 });
 
@@ -304,7 +439,7 @@ var EnemyDeath = new Class({
 						new Bomb(this.x, this.y);
 					else if(Number.random(1,5) == 5)
 						new MidRupee(this.x, this.y);
-					else if(env.player.health < env.player.hearts && Number.random(1,2) == 2)
+					else if(env.player.health < env.player.items.hearts && Number.random(1,2) == 2)
 						new Heart(this.x, this.y);
 					else 
 						new Rupee(this.x, this.y);
@@ -326,10 +461,6 @@ var Link = new Class({
 	Extends: Mob
 	,isFriendly: true
 	,paletteFrame: 0
-	,rupees: 0
-	,keys: 0
-	,bombs: 0
-	,hearts: 3
 	,animFrame: 0
 	,health: 3
 	,direction: 270
@@ -341,6 +472,10 @@ var Link = new Class({
 		 sword: 0
 		,boomerang: 0
 		,bow: 0
+		,keys: 0
+		,rupees: 0
+		,bombs: 0
+		,hearts: 3
 	}
 	,initialize: function(x,y) {
 		this.currentRoom = rooms.getCurrentRoom();
@@ -363,7 +498,7 @@ var Link = new Class({
 		this.parent(damage, direction);
 	}
 	,die: function() {
-		new EnemyDeath(this.x, this.y);
+		new DeathEvent(this.x, this.y);
 		this.destroy();
 	}
 	,destroy: function() {
@@ -456,6 +591,26 @@ var Link = new Class({
 		this.y += Math.sin(direction * Math.PI/180) * this.movementRate;
 	}
 	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+
+		if(this.usingItem) {
+			//@TODO: Link should animate when subtracting the sword (walking frames from right to left)
+			this.acDelta = 0;
+			this.usingItem.draw();
+			if(this.health == this.items.hearts && this.swordThrow) {
+				this.swordThrow.draw();
+			}
+			this.animFrame = 0;
+		}		
+		else if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			if(this.isImmune) {
+				if(++this.palette > 3) this.palette = 0;
+			}
+			if(this.isMoving)
+				if(typeof this.frames[this.direction]['normal'][++this.animFrame] == 'undefined') this.animFrame=0;
+		}
+
 		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 2*TILESIZE) {
 			if(!isNaN(this.impactDirection)) {
 				this.flytta(this.impactDirection, false);
@@ -472,7 +627,7 @@ var Link = new Class({
 			case env.keyStates['space'] && this.usingItem == false:
 				if(this.items.sword > 0) {
 					this.usingItem = new Sword(this);
-					if(this.health == this.hearts && this.swordThrow == null) {
+					if(this.health == this.items.hearts && this.swordThrow == null) {
 						this.swordThrow = new SwordThrow(this);
 					}
 				}
@@ -498,36 +653,16 @@ var Link = new Class({
 				this.isMoving=false
 		}
 		
-		this.draw();		
+		this.acDelta += delta;
+		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		var delta = Date.now() - this.lastUpdateTime;
-
-		if(this.usingItem) {
-			//@TODO: Link should animate when subtracting the sword (walking frames from right to left)
-			this.acDelta = 0;
-			this.usingItem.draw();
-			if(this.health == this.hearts && this.swordThrow) {
-				this.swordThrow.draw();
-			}
-			this.animFrame = 0;
-		}		
-		else if(this.acDelta > this.msPerFrame) {
-			this.acDelta = 0;
-			if(this.isImmune) {
-				if(++this.palette > 3) this.palette = 0;
-			}
-			if(this.isMoving)
-				if(typeof this.frames[this.direction]['normal'][++this.animFrame] == 'undefined') this.animFrame=0;
-		}
 		frame = this.frames[this.direction][(this.usingItem?'item':'normal')][this.animFrame];
 		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, "#0f0");
 		placeTile(frame, this.x, this.y);
 	 	if(this.isImmune) {
 			this.changePalette();
 		}
-		this.acDelta += delta;
-		this.lastUpdateTime = Date.now();
 	}
 	
 });
@@ -566,15 +701,15 @@ function paintHeader() {
 	
 	// Rupees
 	ctx.drawImage(env.spriteSheet, (21*TILESIZE), 0,HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff, HALFTILE, HALFTILE); // Rupee
-	writeText('X'+env.player.rupees, xOff+(4*TILESIZE)+TILESIZE, yOff); 
+	writeText('X'+env.player.items.rupees, xOff+(4*TILESIZE)+TILESIZE, yOff); 
 
 	// Keys
 	ctx.drawImage(env.spriteSheet, (21*TILESIZE)+HALFTILE, 0,HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff+(TILESIZE), HALFTILE, HALFTILE); // Key
-	writeText('X'+env.player.keys, xOff+(4*TILESIZE)+TILESIZE, yOff+TILESIZE); 
+	writeText('X'+env.player.items.keys, xOff+(4*TILESIZE)+TILESIZE, yOff+TILESIZE); 
 
 	// Bombs
 	ctx.drawImage(env.spriteSheet, (21*TILESIZE)+HALFTILE, HALFTILE, HALFTILE, HALFTILE, xOff+(4*TILESIZE)+HALFTILE, yOff+(TILESIZE*1.5), HALFTILE, HALFTILE); // Bomb
-	writeText('X'+env.player.bombs, xOff+(4*TILESIZE)+TILESIZE, yOff+(HALFTILE*3)); 
+	writeText('X'+env.player.items.bombs, xOff+(4*TILESIZE)+TILESIZE, yOff+(HALFTILE*3)); 
 
 	drawBorder(xOff+(6*TILESIZE)+HALFTILE, yOff, 3, 4);
 	writeText('B', xOff+(6*TILESIZE)+TILESIZE, yOff); 
@@ -587,7 +722,7 @@ function paintHeader() {
 	writeText('-LIFE-', xOff+(10*TILESIZE)+HALFTILE, yOff, [216, 40, 0]); 
 	
 	tmpLife = env.player.health;
-	for(var i=0; i < env.player.hearts; i++) {
+	for(var i=0; i < env.player.items.hearts; i++) {
 		if(tmpLife >= 1) {
 			xAdd = 0;
 			yAdd = 0;
@@ -608,7 +743,7 @@ function paintHeader() {
  * Paint helper functions *
  **************************/
 
-function paintRoom(){
+function paintRoom(tintFrom, tintTo){
 	var room = rooms.getCurrentRoom();
 	ctxBg.clearRect(0,0,WIDTH*SCALE,HEIGHT*SCALE);
 	y = 4, x = 0;
@@ -622,7 +757,7 @@ function paintRoom(){
 				ctx.stroke();
 			}
 			if(tile.sprite) {
-				placeTile(tile.sprite, x*TILESIZE, y*TILESIZE, tile.tintFrom, tile.tintTo, null, null, ctxBg);
+				placeTile(tile.sprite, x*TILESIZE, y*TILESIZE, tintFrom ? tintFrom : tile.tintFrom, tintTo ? tintTo : tile.tintTo, null, null, ctxBg);
 			}
 			x++;
 		});
@@ -632,6 +767,8 @@ function paintRoom(){
 
 function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 	if(!tCtx) tCtx = ctx;
+	x = Math.round(x);
+	y = Math.round(y);
 	tmpX = x; tmpY = y;
 	if(tintTo && TintCache.get(tintTo, frame)) {
 		return tCtx.putImageData(TintCache.get(tintTo, frame), x, y);
@@ -850,8 +987,6 @@ function drawNumberedTiles() {
  ***********************/
 function animate() {
 	if(!env.paused) {
-		ctx.clearRect(0,0,WIDTH*SCALE,HEIGHT*SCALE);
-		paintHeader();
 		Array.each(solidObjects, function(o){
 			if(o.isActive)
 				o.move();
@@ -859,6 +994,16 @@ function animate() {
 		Array.each(rooms.getCurrentRoom().MOBs, function(o){
 			if(o.isActive)
 				o.move();
+		});
+		ctx.clearRect(0,0,WIDTH*SCALE,HEIGHT*SCALE);
+		paintHeader();
+		Array.each(solidObjects, function(o){
+			if(o.isActive)
+				o.draw();
+		});
+		Array.each(rooms.getCurrentRoom().MOBs, function(o){
+			if(o.isActive)
+				o.draw();
 		});
 	}
 
@@ -879,4 +1024,13 @@ function changeScale(scale) {
 
 function sc(inp) {
 	return inp*SCALE;
+}
+
+function continueGame() {
+	switchRoom(7,7,overworld);
+	var save = Object.clone(env.player.items);
+	env.player.destroy();
+	console.log(save);
+	env.player = new Link(WIDTH/2, HEIGHT/2);
+	env.player.items = save;
 }

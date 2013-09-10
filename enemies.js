@@ -1,6 +1,3 @@
-// @TODO: Refactor Octorok, Moblin, Ghini, Lynel into a RandomWalker baseclass
-
-
 var Enemy = new Class({
 	Extends: Mob
 	,initialize: function(x,y) {
@@ -14,93 +11,15 @@ var Enemy = new Class({
 });
 
 /**
- * Mob FireBall - A fireball spat by RiverZora
- *********************************************
- * Aims for player. Isn't destroyed on tile impact. Cannot be absorbed by standard shield
- * @TODO: Magical shield can deflect these
- * @TODO: Stupify angle. It shouldn't hit dead center every time
+ * Mob Projectile - Base Projectile class
+ ****************************************
  * 
  */
-var FireBall = new Class({
+var Projectile = new Class({
 	Extends: Mob
-	,damage: 0.5
-	,moveRate: 1.5
-	,acDelta: 0
-	,palette: 0
-	,msPerFrame:20
-	,lastUpdateTime: 0
-	,initialize: function(ancestor) {
-		this.ancestor = ancestor;
-		this.x = ancestor.x;
-		this.y = ancestor.y;
-		this.parent(this.x,this.y,ancestor.currentRoom);
-		this.direction = Math.atan2(env.player.y - this.y, env.player.x - this.x) * 180 / Math.PI;
-		this.target = {
-			x: env.player.x
-			,y: env.player.y
-		};
-		
-		switch(this.direction) {
-			case 'left':
-				this.x -= 11;
-				break;
-			case 'right':
-				this.x += 11;
-				break;
-			case 'up':
-				this.y -= 11;
-				break;
-			case 'down':
-				this.y += 11;
-				break;
-		}
-	}
-	,impact: function() {return false;}
-	,move: function() {
-		this.x += Math.cos(this.direction * Math.PI/180) * this.moveRate;
-		this.y += Math.sin(this.direction * Math.PI/180) * this.moveRate;
-
-		var xTile = Math.round(this.x/TILESIZE)
-			yTile = Math.round(this.y/TILESIZE)-4; // -4 is accounting for the header
-
-		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 || yTile < 1 || yTile > this.currentRoom.roomHeight - 2) {
-			this.destroy();
-		}
-
-		Array.each(solidObjects, function(that){
-			if(that != this && that.isFriendly && this.collidesWith(that)) {
-				that.impact(this.damage, this.direction);
-				this.destroy();
-			}
-		},this);
-
-		this.draw();
-	}
-	,draw: function() {
-		var delta = Date.now() - this.lastUpdateTime;
-
-		if(this.acDelta > this.msPerFrame) {
-			this.acDelta = 0;
-			if(++this.palette > env.palettes.length-1)
-				this.palette=0;
-		}
-		placeTile(80, this.x, this.y, null, null);
-		this.changePalette();
-		this.acDelta+=delta;
-		this.lastUpdateTime = Date.now();
-	}	
-});
-
-/**
- * Mob RockProjectile - Rock spat by Octorok
- *********************************************
- * Destroyed on tile collision
- */
-
-var RockProjectile = new Class({
-	Extends: Mob
-	,damage: 0.5
 	,movementRate: 3.5
+	,rotatePalette: false
+	,rotate: true
 	,initialize: function(ancestor) {
 		this.ancestor = ancestor;
 		this.x = ancestor.x;
@@ -142,7 +61,7 @@ var RockProjectile = new Class({
 
 		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
 		|| yTile < 1 || yTile > this.currentRoom.roomHeight-2
-		|| this.currentRoom.getTile(yTile,xTile).isSolid) {
+		|| (this.tileBlock && this.currentRoom.getTile(yTile,xTile).isSolid)) {
 			this.destroy();
 		}
 
@@ -152,12 +71,52 @@ var RockProjectile = new Class({
 				this.destroy();
 			}
 		},this);
-		
-		this.draw();
+
+
+		if(this.rotatePalette && ++this.palette > env.palettes.length-1)
+			this.palette=0;
 	}
 	,draw: function() {
-		placeTile(63, this.x, this.y);
+		placeTile(this.tile, this.x, this.y, null, null, this.rotate ? (90+this.direction%360)/180 : null);
+		if(this.rotatePalette) this.changePalette();
 	}	
+});
+
+
+/**
+ * Mob FireBall - A fireball spat by RiverZora
+ *********************************************
+ * Aims for player. Isn't destroyed on tile impact. Cannot be absorbed by standard shield
+ * @TODO: Magical shield can deflect these
+ * @TODO: Stupify angle. It shouldn't hit dead center every time
+ * 
+ */
+var FireBall = new Class({
+	Extends: Projectile
+	,damage: 0.5
+	,movementRate: 1.5
+	,tile: 80
+	,tileBlock: false
+	,rotate: false
+	,rotatePalette: true
+	,initialize: function(ancestor) {
+		this.parent(ancestor);
+		this.direction = Math.atan2(env.player.y - this.y, env.player.x - this.x) * 180 / Math.PI;
+	}
+});
+
+
+/**
+ * Mob RockProjectile - Rock spat by Octorok
+ *********************************************
+ * Destroyed on tile collision
+ */
+
+var RockProjectile = new Class({
+	Extends: Projectile
+	,damage: 0.5
+	,tile: 63
+	,tileBlock: true
 });
 
 /**
@@ -166,71 +125,15 @@ var RockProjectile = new Class({
  * Not bothered by tile collision
  * Creates ArrowWake on destruction
  */
-
 var ArrowProjectile = new Class({
-	Extends: Mob
+	Extends: Projectile
 	,damage: 0.5
-	,movementRate: 3.5
-	,initialize: function(ancestor) {
-		this.ancestor = ancestor;
-		this.x = ancestor.x;
-		this.y = ancestor.y;
-		this.parent(this.x,this.y,ancestor.currentRoom);
-		this.direction = ancestor.direction;
-	}
-	,impact: function() {return false;}
+	,tile: 94
+	,tileBlock: false
 	,destroy: function() {
-		this.parent();
 		new ArrowWake(this.x, this.y);
+		this.parent();
 	}
-	,move: function() {
-		if(rooms.getCurrentRoom() != this.currentRoom) return;
-
-		this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
-		this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
-		
-		var xTile = this.x/TILESIZE;
-		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
-		switch(this.direction) {
-			case 0: // right
-				xTile = Math.ceil(xTile);
-				yTile = Math.round(yTile)
-				break;
-			case 180: // left
-				xTile = Math.floor(xTile);
-				yTile = Math.round(yTile);
-				break;
-			case 90: // down
-				xTile = Math.round(xTile);
-				yTile = Math.ceil(yTile);
-				break;
-			case 270:
-			case -90: // up
-				xTile = Math.round(xTile);
-				yTile = Math.floor(yTile);
-				break;
-		}
-
-		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
-
-		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
-		|| yTile < 1 || yTile > this.currentRoom.roomHeight-2) {
-			this.destroy();
-		}
-
-		Array.each(solidObjects, function(that){
-			if(that != this && that.isFriendly && this.collidesWith(that)) {
-				that.impact(this.damage, this.direction);
-				this.destroy();
-			}
-		},this);
-		
-		this.draw();
-	}
-	,draw: function() {
-		placeTile(94, this.x, this.y, null, null, (90+this.direction%360)/180);
-	}	
 });
 
 /**
@@ -238,77 +141,15 @@ var ArrowProjectile = new Class({
  ********************************************
  * Not bothered by tile collision
   */
-
 var SwordProjectile = new Class({
-	Extends: Mob
+	Extends: Projectile
 	,damage: 2
-	,movementRate: 3.5
-	,initialize: function(ancestor) {
-		this.ancestor = ancestor;
-		this.x = ancestor.x;
-		this.y = ancestor.y;
-		this.parent(this.x,this.y,ancestor.currentRoom);
-		this.direction = ancestor.direction;
-	}
-	,impact: function() {return false;}
-	,destroy: function() {
-		this.parent();
-		new ArrowWake(this.x, this.y);
-	}
-	,move: function() {
-		if(rooms.getCurrentRoom() != this.currentRoom) return;
-
-		this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
-		this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
-		
-		var xTile = this.x/TILESIZE;
-		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
-		switch(this.direction) {
-			case 0: // right
-				xTile = Math.ceil(xTile);
-				yTile = Math.round(yTile)
-				break;
-			case 180: // left
-				xTile = Math.floor(xTile);
-				yTile = Math.round(yTile);
-				break;
-			case 90: // down
-				xTile = Math.round(xTile);
-				yTile = Math.ceil(yTile);
-				break;
-			case 270:
-			case -90: // up
-				xTile = Math.round(xTile);
-				yTile = Math.floor(yTile);
-				break;
-		}
-
-			if(++this.palette > env.palettes.length-1)
-				this.palette=0;
-
-
-		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
-
-		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
-		|| yTile < 1 || yTile > this.currentRoom.roomHeight-2) {
-			this.destroy();
-		}
-
-		Array.each(solidObjects, function(that){
-			if(that != this && that.isFriendly && this.collidesWith(that)) {
-				that.impact(this.damage, this.direction);
-				this.destroy();
-			}
-		},this);
-		
-		this.draw();
-	}
-	,draw: function() {
-		placeTile(12, this.x, this.y, null, null, (90+this.direction%360)/180);
-		this.changePalette();
-	}	
+	,tile: 12
+	,palette: 0
+	,rotatePalette: true
+	,tileBlock: false
 });
+
 
 /**
  * Mob ArrowWake - Tiny impact visual
@@ -326,134 +167,6 @@ var ArrowWake = new Class({
 	,draw: function() {
 		placeTile(95, this.x, this.y);
 	}
-});
-
-/**
- * Enemy Octorok
- *******************************************
- * Changes direction randomly or at tile collision. 
- * Regular shield can stop theier RockProjectils
- */
-var Octorok = new Class({
-	Extends: Enemy
-	,animFrame: 0
-	,lastUpdateTime: 0
-	,msPerFrame: 110
-	,acDelta: 0
-	,damage: 0.5
-	,health: 0.5
-	,movementRate: 0.5
-	,dirDelta: 0
-	,rockDelta: 0
-	,defaultPalette: 0
-	,direction: 90
-	,frames: [61,62]
-	,move: function() {
-		if(rooms.getCurrentRoom() != this.currentRoom) return;
-		var delta = Date.now() - this.lastUpdateTime;
-
-		if(this.dirDelta > this.msPerFrame*Number.random(16,32)) {
-			this.dirDelta = 0;
-			this.randomDirection();
-		}
-		
-		if(this.rockDelta > this.msPerFrame*Number.random(32,64)) {
-			this.rockDelta = 0;
-			new RockProjectile(this);
-		}
-
-		this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
-		this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
-
-		var xTile = this.x/TILESIZE;
-		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
-		switch(this.direction) {
-			case 0: // right
-				xTile = Math.ceil(xTile);
-				yTile = Math.round(yTile)
-				break;
-			case 180: // left
-				xTile = Math.floor(xTile);
-				yTile = Math.round(yTile);
-				break;
-			case 90: // down
-				xTile = Math.round(xTile);
-				yTile = Math.ceil(yTile);
-				break;
-			case 270:
-			case -90: // up
-				xTile = Math.round(xTile);
-				yTile = Math.floor(yTile);
-				break;
-		}
-
-		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
-
-		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
-		|| yTile < 1 || yTile > this.currentRoom.roomHeight-2
-		|| this.currentRoom.getTile(yTile,xTile).isSolid) {
-			this.randomDirection();
-		}
-
-		Array.each(solidObjects, function(that){
-			if(that != this && that.isFriendly && this.collidesWith(that)) {
-				that.impact(this.damage, this.direction);
-			}
-		},this);
-
-		this.dirDelta += delta;
-		this.rockDelta += delta;
-		this.draw();
-		this.lastUpdateTime = Date.now();
-	}
-	,randomDirection: function() {
-		directions = [0, 90, 180, 270];
-		this.direction = directions[Number.random(0,3)];
-	}
-	,draw: function() {
-		var delta = Date.now() - this.lastUpdateTime;
-
-		if(this.acDelta > this.msPerFrame) {
-			this.acDelta = 0;
-			if(typeof this.frames[++this.animFrame] == 'undefined') this.animFrame=0;
-			if(this.isImmune) {
-				if(++this.palette > 3) this.palette = 0;
-			}
-			else 
-				this.palette = this.defaultPalette;
-
-		}
-
-		frame = this.frames[this.animFrame];
-		rotation = null;
-		switch(this.direction) {
-			case 180:
-				rotation = 0.5;
-				break;
-			case 0:
-				rotation = 1.5;
-				break;
-			case 270:
-				rotation = 1.0;
-				break;
-		}
-		placeTile(frame, this.x, this.y, null, null, rotation);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-		
-		this.acDelta+=delta;
-	}
-});
-
-/**
- * Octorok BlueOctorok
- *******************************************
- * Same as regular Octorok but with double health
- */
-var BlueOctorok = new Class({
-	Extends: Octorok
-	,health: 1
-	,defaultPalette: 3
 });
 
 /**
@@ -531,7 +244,6 @@ var Tektite = new Class({
 				}
 			},this);
 		}
-		this.draw();
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
@@ -719,7 +431,6 @@ var Leever = new Class({
 			}
 			else this.palette = this.defaultPalette;
 		}
-		this.draw();
 		this.acDelta+=delta;
 		this.acPaletteDelta += delta;
 		this.acDirDelta += delta;
@@ -829,7 +540,6 @@ var RiverZora = new Class({
 				this.palette = 3;
 			}
 		}
-		this.draw();
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
@@ -880,7 +590,12 @@ var Peahat = new Class({
 	,move: function() {
 		var delta = Date.now() - this.lastUpdateTime;
 
-		if(this.acDirDelta > this.msPerFrame*Number.random(64,256)) {
+		if(this.isImmune && this.acPaletteDelta > this.msPerPalette) {
+			this.acPaletteDelta = 0;
+			if(++this.palette > 3) this.palette = 0;
+		}
+
+		if(this.acDirDelta > this.msPerFrame*Number.random(64,256)) { // @TODO: Random somewhere else
 			this.acDirDelta = 0;
 			this.randomDirection();
 		}
@@ -947,56 +662,49 @@ var Peahat = new Class({
 			}
 		},this);
 
-		this.draw();
 		this.stateFrame+=delta;
 		this.acDelta+=delta;
 		this.acDirDelta+=delta;
+		this.acPaletteDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		var delta = Date.now() - this.lastUpdateTime;
-
-		if(this.isImmune && this.acPaletteDelta > this.msPerPalette) {
-			this.acPaletteDelta = 0;
-			if(++this.palette > 3) this.palette = 0;
-		}
-
 		frame = this.frames[this.animFrame];
 		placeTile(frame, this.x, this.y);
 		if(this.isImmune)
 			this.changePalette(2);
 
-		this.acPaletteDelta+=delta;
 	}
 });
 
 /**
- * Enemy Moblin
- *******************************************
- * Moves just like Octorok
- * Shoots arrows
+ * Enemy RandomMob - Standard arguments 
  */
-var Moblin = new Class({
+var RandomMob = new Class({
 	Extends: Enemy
 	,animFrame: 0
 	,lastUpdateTime: 0
 	,msPerFrame: 110
 	,acDelta: 0
-	,damage: 0.5
-	,health: 1
 	,movementRate: 0.5
 	,dirDelta: 0
 	,rockDelta: 0
 	,defaultPalette: 0
 	,direction: 90
-	,frames: {
-		 0:		{sprites: [90,91], flip: ['x','x']}
-		,90:	{sprites: [92,92], flip: [null,'x']}
-		,180:	{sprites: [90,91], flip: [null,null]}
-		,270:	{sprites: [93,93], flip: [null,'x']}
-	}
-
 	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			if(++this.animFrame >= this.maxAnimFrames) this.animFrame=0;
+			if(this.isImmune) {
+				if(++this.palette > 3) this.palette = 0;
+			}
+			else 
+				this.palette = this.defaultPalette;
+
+		}
+
 		if(rooms.getCurrentRoom() != this.currentRoom) return;
 		var delta = Date.now() - this.lastUpdateTime;
 
@@ -1005,9 +713,9 @@ var Moblin = new Class({
 			this.randomDirection();
 		}
 		
-		if(this.rockDelta > this.msPerFrame*Number.random(32,64)) {
+		if(this.projectile && this.rockDelta > this.msPerFrame*Number.random(32,64)) {
 			this.rockDelta = 0;
-			new ArrowProjectile(this);
+			new this.projectile(this);
 		}
 
 		this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
@@ -1052,7 +760,7 @@ var Moblin = new Class({
 
 		this.dirDelta += delta;
 		this.rockDelta += delta;
-		this.draw();
+		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
 	,randomDirection: function() {
@@ -1060,25 +768,66 @@ var Moblin = new Class({
 		this.direction = directions[Number.random(0,3)];
 	}
 	,draw: function() {
-		var delta = Date.now() - this.lastUpdateTime;
+		frame = this.frames[this.animFrame];
+		placeTile(frame, this.x, this.y, null, null, (270+this.direction%360)/180);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	}
+});
 
-		if(this.acDelta > this.msPerFrame) {
-			this.acDelta = 0;
-			if(++this.animFrame > 1) this.animFrame=0;
-			if(this.isImmune) {
-				if(++this.palette > 3) this.palette = 0;
-			}
-			else 
-				this.palette = this.defaultPalette;
+/**
+ * Enemy Octorok
+ *******************************************
+ * Changes direction randomly or at tile collision. 
+ * Regular shield can stop theier RockProjectils
+ */
+var Octorok = new Class({
+	Extends: RandomMob
+	,damage: 0.5
+	,health: 0.5
+	,maxAnimFrames: 2
+	,frames: [61,62]
+	,projectile: RockProjectile
+	,draw: function() {
+		frame = this.frames[this.animFrame];
+		placeTile(frame, this.x, this.y, null, null, (270+this.direction%360)/180);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	}
+});
 
-		}
+/**
+ * Octorok BlueOctorok
+ *******************************************
+ * Same as regular Octorok but with double health
+ */
+var BlueOctorok = new Class({
+	Extends: Octorok
+	,health: 1
+	,defaultPalette: 3
+});
 
+/**
+ * Enemy Moblin
+ *******************************************
+ * Moves just like Octorok
+ * Shoots arrows
+ */
+var Moblin = new Class({
+	Extends: RandomMob
+	,maxAnimFrames: 2
+	,projectile: ArrowProjectile
+	,damage: 0.5
+	,health: 1
+	,frames: {
+		 0:		{sprites: [90,91], flip: ['x','x']}
+		,90:	{sprites: [92,92], flip: [null,'x']}
+		,180:	{sprites: [90,91], flip: [null,null]}
+		,270:	{sprites: [93,93], flip: [null,'x']}
+	}
+	,draw: function() {
 		frame = this.frames[this.direction]['sprites'][this.animFrame];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-		
-		this.acDelta+=delta;
 	}
 });
 
@@ -1100,108 +849,22 @@ var BlueMoblin= new Class({
  * Shoots swords
  */
 var Lynel = new Class({
-	Extends: Enemy
-	,animFrame: 0
-	,lastUpdateTime: 0
-	,msPerFrame: 110
-	,acDelta: 0
-	,health: 2
+	Extends: RandomMob
+	,maxAnimFrames: 2
+	,projectile: SwordProjectile
 	,damage: 1
-	,movementRate: 0.5
-	,dirDelta: 0
-	,rockDelta: 0
-	,defaultPalette: 0
-	,direction: 90
+	,health: 2
 	,frames: {
 		 0:		{sprites: [96,97], flip: ['x','x']}
 		,90:	{sprites: [98,98], flip: [null,'x']}
 		,180:	{sprites: [96,97], flip: [null,null]}
 		,270:	{sprites: [99,99], flip: [null,'x']}
 	}
-
-	,move: function() {
-		if(rooms.getCurrentRoom() != this.currentRoom) return;
-		var delta = Date.now() - this.lastUpdateTime;
-
-		if(this.dirDelta > this.msPerFrame*Number.random(16,32)) {
-			this.dirDelta = 0;
-			this.randomDirection();
-		}
-		
-		if(this.rockDelta > this.msPerFrame*Number.random(32,64)) {
-			this.rockDelta = 0;
-			new SwordProjectile(this);
-		}
-
-		this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
-		this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
-
-		var xTile = this.x/TILESIZE;
-		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
-		switch(this.direction) {
-			case 0: // right
-				xTile = Math.ceil(xTile);
-				yTile = Math.round(yTile)
-				break;
-			case 180: // left
-				xTile = Math.floor(xTile);
-				yTile = Math.round(yTile);
-				break;
-			case 90: // down
-				xTile = Math.round(xTile);
-				yTile = Math.ceil(yTile);
-				break;
-			case 270:
-			case -90: // up
-				xTile = Math.round(xTile);
-				yTile = Math.floor(yTile);
-				break;
-		}
-
-		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
-
-		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
-		|| yTile < 1 || yTile > this.currentRoom.roomHeight-2
-		|| this.currentRoom.getTile(yTile,xTile).isSolid) {
-			this.randomDirection();
-		}
-
-		Array.each(solidObjects, function(that){
-			if(that != this && that.isFriendly && this.collidesWith(that)) {
-				that.impact(this.damage, this.direction);
-			}
-		},this);
-
-		this.dirDelta += delta;
-		this.rockDelta += delta;
-		this.draw();
-		this.lastUpdateTime = Date.now();
-	}
-	,randomDirection: function() {
-		directions = [0, 90, 180, 270];
-		this.direction = directions[Number.random(0,3)];
-	}
 	,draw: function() {
-		var delta = Date.now() - this.lastUpdateTime;
-
-		if(this.acDelta > this.msPerFrame) {
-			this.acDelta = 0;
-			if(++this.animFrame > 1) this.animFrame=0;
-			if(this.isImmune) {
-				if(++this.palette > 3) this.palette = 0;
-			}
-			else 
-				this.palette = this.defaultPalette;
-
-		}
-
 		frame = this.frames[this.direction]['sprites'][this.animFrame];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-		
-		this.acDelta+=delta;
 	}
 });
 
@@ -1223,108 +886,21 @@ var BlueLynel= new Class({
  * Moves just like Octorok, Moblin, Lynel
  */
 var Ghini = new Class({
-	Extends: Enemy
-	,animFrame: 0
-	,lastUpdateTime: 0
-	,msPerFrame: 110
-	,acDelta: 0
-	,health: 4.5
-	,damage: 1
+	Extends: RandomMob
+	,maxAnimFrames: 1
 	,projectile: null
-	,movementRate: 0.5
-	,dirDelta: 0
-	,rockDelta: 0
-	,defaultPalette: 0
-	,direction: 90
+	,damage: 1
+	,health: 4.5
 	,frames: {
 		 0:		{sprites: [100], flip: ['x']}
 		,90:	{sprites: [100], flip: [null]}
 		,180:	{sprites: [100], flip: [null]}
 		,270:	{sprites: [101], flip: [null]}
 	}
-
-	,move: function() {
-		if(rooms.getCurrentRoom() != this.currentRoom) return;
-		var delta = Date.now() - this.lastUpdateTime;
-
-		if(this.dirDelta > this.msPerFrame*Number.random(16,32)) {
-			this.dirDelta = 0;
-			this.randomDirection();
-		}
-		
-		if(this.rockDelta > this.msPerFrame*Number.random(32,64)) {
-			this.rockDelta = 0;
-			if(this.projectile) {new this.projectile(this);}
-		}
-
-		this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
-		this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
-
-		var xTile = this.x/TILESIZE;
-		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
-		switch(this.direction) {
-			case 0: // right
-				xTile = Math.ceil(xTile);
-				yTile = Math.round(yTile)
-				break;
-			case 180: // left
-				xTile = Math.floor(xTile);
-				yTile = Math.round(yTile);
-				break;
-			case 90: // down
-				xTile = Math.round(xTile);
-				yTile = Math.ceil(yTile);
-				break;
-			case 270:
-			case -90: // up
-				xTile = Math.round(xTile);
-				yTile = Math.floor(yTile);
-				break;
-		}
-
-		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
-
-		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
-		|| yTile < 1 || yTile > this.currentRoom.roomHeight-2
-		|| this.currentRoom.getTile(yTile,xTile).isSolid) {
-			this.randomDirection();
-		}
-
-		Array.each(solidObjects, function(that){
-			if(that != this && that.isFriendly && this.collidesWith(that)) {
-				that.impact(this.damage, this.direction);
-			}
-		},this);
-
-		this.dirDelta += delta;
-		this.rockDelta += delta;
-		this.draw();
-		this.lastUpdateTime = Date.now();
-	}
-	,randomDirection: function() {
-		directions = [0, 90, 180, 270];
-		this.direction = directions[Number.random(0,3)];
-	}
 	,draw: function() {
-		var delta = Date.now() - this.lastUpdateTime;
-
-		if(this.acDelta > this.msPerFrame) {
-			this.acDelta = 0;
-			if(++this.animFrame > this.frames[this.direction]['sprites'].length-1) this.animFrame=0;
-			if(this.isImmune) {
-				if(++this.palette > 3) this.palette = 0;
-			}
-			else 
-				this.palette = this.defaultPalette;
-
-		}
-
-		frame = this.frames[this.direction]['sprites'][this.animFrame];
+		frame = this.frames[this.direction]['sprites'][0];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-		
-		this.acDelta+=delta;
 	}
 });

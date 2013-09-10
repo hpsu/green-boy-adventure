@@ -14,11 +14,15 @@ var Sword = new Class({
 	,isFriendly: true
 	,fullPower: false
 	,initialize: function(ancestor) {
+		this.name = 'Sword';
 		this.ancestor = ancestor;
-		this.x = ancestor.x;
-		this.y = ancestor.y;
 		this.parent(ancestor.x, ancestor.y);
-		this.fullPower = this.ancestor.health == this.ancestor.hearts;
+		this.fullPower = this.ancestor.health == this.ancestor.items.hearts;
+		this.rePosition();
+	}
+	,rePosition: function() {
+		this.x = this.ancestor.x;
+		this.y = this.ancestor.y;
 		this.direction = this.ancestor.direction;
 		switch(this.direction) {
 			case 0:
@@ -37,9 +41,6 @@ var Sword = new Class({
 		}
 	}
 	,move: function() {
-		this.draw();
-	}
-	,draw: function() {
 		Array.each(rooms.getCurrentRoom().MOBs, function(that){
 			if(that != this && this.collidesWith(that)) {
 				if(!that.isFriendly)
@@ -56,29 +57,16 @@ var Sword = new Class({
 			this.ancestor.usingItem = false;
 			this.destroy();
 		} 
-		
+		this.rePosition();
 		if (this.acDelta > this.msPerFrame) {
-				
-
 			//@TODO: Link should animate when subtracting the sword (walking frames from right to left)
 		}
-		rotation = null;
-		switch(this.direction) {
-			case 0:
-				rotation = 0.5;
-				break;
-			case 180:
-				rotation = 1.5;
-				break;
-			case 90:
-				rotation = 1.0;
-				break;
-		}
-		placeTile(this.sprite, this.x+xAdd, this.y, false, null, rotation);
-		
 		this.acDelta+=delta;
 		this.acTotalDelta+=delta;
 		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		placeTile(this.sprite, this.x+xAdd, this.y, false, null, (90 + this.direction % 360)/180);
 	}	
 });
 
@@ -86,9 +74,11 @@ var SwordRipplePart = new Class({
 	Extends: Mob
 	,sprite: 13
 	,angle: 0
-	,moveRate: 1
+	,moveRate: 1.3
 	,iterable:0
+	,isFriendly: true
 	,initialize: function(x,y,angle) {
+		this.name = 'SwordRipplePart';
 		this.parent(x,y);
 		this.angle=angle;
 	}
@@ -101,7 +91,6 @@ var SwordRipplePart = new Class({
 		this.y += Math.sin(this.angle * Math.PI/180) * this.moveRate;
 		if(++this.palette > env.palettes.length-1)
 			this.palette=0;
-		this.draw();
 	}
 	,draw: function() {
 		flip = null;
@@ -125,6 +114,7 @@ var SwordRipplePart = new Class({
 
 var SwordThrow = new Class({
 	Extends: Sword
+	,name: 'SwordThrow'
 	,damage: 0.5
 	,msPerFrame: 10
 	,palette: 0
@@ -133,7 +123,6 @@ var SwordThrow = new Class({
 	,movementRate:3
 	,destroy: function() {
 		(function(ancestor){ancestor.swordThrow = null;}).pass(this.ancestor).delay(300);
-		this.ancestor.swordThrow = false;
 		this.swordRipple();
 		this.parent();
 	}
@@ -169,16 +158,11 @@ var SwordThrow = new Class({
 				this.palette=0;
 		}
 		
-		
-
-		this.draw();
-
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
 
 	}
 	,draw: function() {
-		rotation = null;
 		placeTile(this.sprite, this.x, this.y, false, null, ((this.direction+90)/180%360));
 		this.changePalette();
 	}
@@ -189,6 +173,7 @@ var SwordThrow = new Class({
  ***************/
 var PickupSword = new Class({
 	Extends: Mob
+	,name: 'PickupSword'
 	,isFriendly: true
 	,pickup: function(that) {
 		console.log('picked up sword');
@@ -202,6 +187,7 @@ var PickupSword = new Class({
 
 var Fairy = new Class({
 	Extends: Mob
+	,name: 'Fairy'
 	,width: 16
 	,height: 16
 	,msPerFrame: 10
@@ -220,7 +206,7 @@ var Fairy = new Class({
 		(function(){this.destroy();}).delay(20000, this);
 	}
 	,pickup: function(that) {
-		that.health = that.hearts;
+		that.health = that.items.hearts;
 		this.destroy();
 	}
 	,randomDirection: function() {
@@ -253,19 +239,19 @@ var Fairy = new Class({
 				this.randomDirection();
 			}
 		}
-		this.draw();
 		this.acDelta+=delta;
 		this.acDirDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+this.spritePos, 0, HALFTILE, TILESIZE, this.x, this.y, HALFTILE, TILESIZE);
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+this.spritePos, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
 	}
 });
 
 
 var Rupee = new Class({
 	Extends: Mob
+	,name: 'Rupee'
 	,acDelta: 0
 	,palette: 2
 	,width: 16
@@ -282,7 +268,7 @@ var Rupee = new Class({
 		(function(){this.destroy();}).delay(10000, this);
 	}
 	,pickup: function(that) {
-		that.rupees += this.worth;
+		that.items.rupees += this.worth;
 		this.destroy();
 	}
 	,draw: function() {
@@ -304,12 +290,14 @@ var Rupee = new Class({
 
 var MidRupee = new Class({
 	Extends: Rupee
+	,name: 'MidRupee'
 	,paletteFrames: [3]
 	,worth: 5
 });
 
 var Heart = new Class({
 	Extends: Mob
+	,name: 'Heart'
 	,acDelta: 0
 	,palette: 2
 	,width: HALFTILE
@@ -324,12 +312,12 @@ var Heart = new Class({
 	}
 	,pickup: function(that) {
 		that.health += 1;
-		if(that.health > that.hearts) {
-			that.health = that.hearts;
+		if(that.health > that.items.hearts) {
+			that.health = that.items.hearts;
 		}
 		this.destroy();
 	}
-	,draw: function() {
+	,move: function() {
 		var delta = Date.now() - this.lastUpdateTime;
 	
 		if(this.acDelta > this.msPerFrame) {
@@ -337,18 +325,19 @@ var Heart = new Class({
 			this.palette = this.palette == 2 ? 3 : 2;
 		}
 
-		ctx.drawImage(env.spriteSheet, (22*TILESIZE), 0, HALFTILE, HALFTILE, this.x, this.y, HALFTILE, HALFTILE); // Heart
-
-		this.changePalette(2);
-		
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (22*TILESIZE), 0, HALFTILE, HALFTILE, this.x, this.y, HALFTILE, HALFTILE); // Heart
+		this.changePalette(2);
 	}
 	
 });
 
 var Bomb = new Class({
 	Extends: Mob
+	,name: 'Bomb'
 	,palette: 2
 	,width: 16
 	,height: 16

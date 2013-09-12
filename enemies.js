@@ -270,7 +270,6 @@ var Tektite = new Class({
  */
 var BlueTektite = new Class({
 	Extends: Tektite
-	,health: 1
 	,defaultPalette: 3
 });
 

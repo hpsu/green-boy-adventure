@@ -9,9 +9,11 @@ var ctx = null
 	,TILESIZE = 16
 	,HALFTILE = 8
 	,SPRITESIZE = 16
+	,YOFF = 0
 	,solidObjects = []
 	,env = {
 		keyStates: {}
+		,pauseScreen: null
 		,paused: false
 		,spriteSheet: new Image()
 		,palettes: [
@@ -102,6 +104,7 @@ var Mob = new Class({
 		this.moveToRandomNonSolidTile(x,y);
 	}
 	,isFriendly: false
+	,inSpaceTime: true
 	,moveToRandomNonSolidTile: function(x, y) {
 		if(x && y) {
 			this.x = x;
@@ -203,8 +206,70 @@ var Mob = new Class({
 		this.currentRoom.MOBs.erase(this);
 	}
 	,isActive: true
-	,move: function() {},draw: function() {}
+	,move: function() {}
+	,draw: function() {
+		placeTile(this.sprite, this.x, this.y);
+	}
 });
+
+var PauseScreen = new Class({
+	//@TODO: Animate pulldown
+	Extends:Mob
+	,width: 256
+	,height: 241-(4*TILESIZE)
+	,isFriendly: true
+	,inSpaceTime: false
+	,initialize: function(){
+		this.x=0;
+		this.y=-this.height;
+		env.paused = true;
+		solidObjects.push(this);
+
+		//this.parent(this.x, this.y);
+	}
+	,move: function() {
+		/*if(this.y < 0) {
+			this.y+=1.5;
+		}*/
+		if(YOFF < this.height) {
+			YOFF+=1.5;
+		}
+	}
+	,draw: function() {
+		filledRectangle(this.x, Math.ceil(YOFF+this.y), this.width, this.height, "#000");
+		writeText('inventory', this.x+(2*TILESIZE), YOFF+this.y+(1.5*TILESIZE), [216, 40, 0]);
+		writeText('use b button\n  for this', this.x+(1*TILESIZE), YOFF+this.y+(4.5*TILESIZE));
+		drawBorder(this.x+(3.5*TILESIZE), YOFF+this.y+(2.5*TILESIZE), 4, 4);
+		drawBorder(this.x+(7.5*TILESIZE), YOFF+this.y+(2.5*TILESIZE), 13, 6);
+		writeText('triforce', this.x+(6*TILESIZE), YOFF+this.y+(9*TILESIZE),[216, 40, 0]);
+
+		//if(env.player.items.bombs > 0) {
+			ctx.drawImage(env.spriteSheet, (69*TILESIZE)+(TILESIZE/4), 0, HALFTILE, TILESIZE, Math.floor(this.x+(10*TILESIZE)-(TILESIZE/4)), Math.floor(YOFF+this.y+(3*TILESIZE)), HALFTILE, TILESIZE);
+		//}
+		//if(env.player.items.candle == 1) {
+			ctx.drawImage(env.spriteSheet, (106*TILESIZE)+HALFTILE, 0, HALFTILE, TILESIZE, Math.floor(this.x+(13*TILESIZE)-(TILESIZE/4)), Math.floor(YOFF+this.y+(3*TILESIZE)), HALFTILE, TILESIZE);
+		//}
+		//if(env.player.items.potions > 0) {
+			ctx.drawImage(env.spriteSheet, (108*TILESIZE), 0, HALFTILE, TILESIZE, Math.floor(this.x+(11.5*TILESIZE)-(TILESIZE/4)), Math.floor(YOFF+this.y+(4*TILESIZE)), HALFTILE, TILESIZE);
+		//}
+
+
+
+			for(var io=0; io<10; io++) {
+				for(var i=0; i<16; i++) {
+					ctx.beginPath();
+					ctx.strokeStyle='#f0f';
+					ctx.rect(Math.floor(this.x+(i*TILESIZE)), Math.floor(YOFF+this.y+(io*TILESIZE)), TILESIZE, TILESIZE);
+					ctx.stroke();
+				}
+			}
+
+		paintRoom();
+		paintHeader();
+	}
+	
+});
+
 
 var DeathEvent = new Class({
 	Extends:Mob
@@ -484,6 +549,51 @@ var OldManGraveEvent = new Class({
 	}
 });
 
+var PotionShopEvent = new Class({
+	// @TODO: Finish actual potionshop. Need to have found letter from old man and shown to the old woman
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room);
+		//new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 103);
+		//new TextContainer(TILESIZE*4, (TILESIZE*6)+HALFTILE, room, "meet the old man\n  at the grave.");
+	}
+});
+
+var TakeOneEvent = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room);
+		
+		if(room.eventDone) return;
+		
+		room.killSprites = function(){
+			this.potion.destroy();
+			this.heart.destroy();
+			room.eventDone = true;
+		};
+
+		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
+		new TextContainer(TILESIZE*2+HALFTILE, (TILESIZE*6)+HALFTILE, room, "take any one you want.");
+	
+		room.potion = new puRedPotion((TILESIZE*6)-4, (TILESIZE*10)-HALFTILE, room);
+		room.heart = new puHeartContainer((TILESIZE*10)-4, (TILESIZE*10)-HALFTILE, room);
+
+		room.tmpPotFunc = room.potion.pickup;
+		room.potion.pickup = function(that) {
+			room.tmpPotFunc.bind(this).pass(that)();
+			this.currentRoom.killSprites();
+		};
+
+		room.tmpHeartFunc = room.heart.pickup;
+		room.heart.pickup = function(that) {
+			room.tmpHeartFunc.bind(this).pass(that)();
+			this.currentRoom.killSprites();
+		};
+
+	
+	}
+});
+
 var CandleShieldKeyStoreEvent = new Class({
 	Extends: Event
 	,initialize: function(room) {
@@ -648,6 +758,9 @@ var Link = new Class({
 	,impacted: false
 	,getRupees: function() {
 		return this.items.rupees;
+	}
+	,addHearts: function(worth) {
+		this.items.hearts+=worth;
 	}
 	,addRupees: function(worth) {
 		this.items.rupees+=worth;
@@ -829,6 +942,11 @@ var Link = new Class({
 					this.bomb = this.usingItem = new Bomb(this);
 				env.keyStates['z']=null;
 				break;
+			case env.keyStates['x'] && this.usingItem == false && this.candle == null:
+				if(this.items.candle == 1) 
+					this.candle = this.usingItem = new CandleFire(this);
+				env.keyStates['x']=null;
+				break;
 			case env.keyStates['space'] && this.usingItem == false:
 				if(this.items.sword > 0) {
 					this.usingItem = new Sword(this);
@@ -878,11 +996,11 @@ var Link = new Class({
  * */
 
 function paintHeader() {
-	var yOff = TILESIZE*1.5,
+	var yOff = YOFF+(TILESIZE*1.5),
 		xOff = TILESIZE;
 
 	// Background
-	filledRectangle(0, 0, 16*TILESIZE, 4*TILESIZE, "#000");
+	filledRectangle(0, YOFF, 16*TILESIZE, 4*TILESIZE, "#000");
 
 	if(window.spriteDebug) {
 		for(var io=0; io<2; io++) {
@@ -962,7 +1080,7 @@ function paintRoom(tintFrom, tintTo){
 				ctxBg.stroke();
 			}
 			if(tile.sprite) {
-				placeTile(tile.sprite, x*(TILESIZE/SCALE), y*(TILESIZE/SCALE), tintFrom ? tintFrom : tile.tintFrom, tintTo ? tintTo : tile.tintTo, null, null, ctxBg);
+				placeTile(tile.sprite, x*(TILESIZE/SCALE), YOFF+y*(TILESIZE/SCALE), tintFrom ? tintFrom : tile.tintFrom, tintTo ? tintTo : tile.tintTo, null, null, ctxBg);
 			}
 			x++;
 		});
@@ -1016,11 +1134,12 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 	}
 }
 
-function filledRectangle(x, y, w, h, c) {
-	ctx.beginPath();
-	ctx.fillStyle=c;
-	ctx.rect(x, y, w, h);
-	ctx.fill();
+function filledRectangle(x, y, w, h, c, tCtx) {
+	if(!tCtx) tCtx = ctx;
+	tCtx.beginPath();
+	tCtx.fillStyle=c;
+	tCtx.rect(x, y, w, h);
+	tCtx.fill();
 }
 
 function writeText(string, x, y, color, tCtx) {
@@ -1187,33 +1306,37 @@ function drawNumberedTiles() {
 	}
 }
 
+function isPaused(o) {
+	return env.paused && o.inSpaceTime;
+}
+
 /***********************
  * Main animation loop *
  ***********************/
 function animate() {
-	if(!env.paused) {
-		Array.each(solidObjects, function(o){
-			if(o.isActive)
-				o.move();
-		});
-		Array.each(rooms.getCurrentRoom().MOBs, function(o){
-			if(o.isActive)
-				o.move();
-		});
-		ctx.clearRect(0,0,WIDTH,HEIGHT);
-		paintHeader();
-		Array.each(rooms.getCurrentRoom().MOBs, function(o){
-			if(o.isActive) {
-				//if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
-				if(window.collisionDebug) filledRectangle(o.x, o.y, o.width, o.height, '#f00');
-				o.draw();
-			}
-		});
-		Array.each(solidObjects, function(o){
-			if(o.isActive)
-				o.draw();
-		});
-	}
+	//if(!env.paused) {
+	Array.each(solidObjects, function(o){
+		if(!isPaused(o) && o.isActive)
+			o.move();
+	});
+	Array.each(rooms.getCurrentRoom().MOBs, function(o){
+		if(!isPaused(o) && o.isActive)
+			o.move();
+	});
+	//}
+	ctx.clearRect(0,0,WIDTH,HEIGHT);
+	paintHeader();
+	Array.each(rooms.getCurrentRoom().MOBs, function(o){
+		if(o.isActive) {
+			//if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
+			if(window.collisionDebug) filledRectangle(o.x, o.y, o.width, o.height, '#f00');
+			o.draw();
+		}
+	});
+	Array.each(solidObjects, function(o){
+		if(o.isActive)
+			o.draw();
+	});
 
 	window.requestAnimationFrame(animate);
 }

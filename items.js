@@ -2,6 +2,70 @@
  * Weapon classes *
  ******************/
 
+var CandleFire = new Class({
+	Extends: Mob
+	,msShown: 2000
+	,flip: 0
+	,xAdd: 1
+	,msPerFrame: 50
+	,msPerOther: 20
+	,acShove:0
+	,acShown:0
+	,sprite: 84
+	,initialize: function(ancestor) {
+		this.name = 'CandleFire';
+		this.ancestor = ancestor;
+		this.parent(ancestor.x, ancestor.y);
+		this.rePosition();
+	}
+	,rePosition: function() {
+		this.x = this.ancestor.x;
+		this.y = this.ancestor.y;
+		this.direction = this.ancestor.direction;
+		switch(this.direction) {
+			case 0:
+				this.x += TILESIZE*this.xAdd;
+				break;
+			case 180:
+				this.x -= TILESIZE*this.xAdd;
+				break;
+			case 270:
+				this.y -= TILESIZE*this.xAdd;
+				break;
+			case 90:
+				this.y += TILESIZE*this.xAdd;
+				break;
+		}
+	}
+	,move: function() {
+		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+		if(this.acShown > this.msShown) {
+			this.ancestor.candle = null;
+			this.destroy();
+		}
+		if(this.acShove > this.msPerOther) {
+			this.acShove = 0;
+			if(this.xAdd <2) {
+				this.xAdd += 0.1;
+				this.rePosition();
+			}
+		}
+		if(this.acDelta > this.msPerFrame) {
+			this.ancestor.usingItem = false;
+			this.acDelta = 0;
+			this.flip = this.flip ? 0 : 1;
+		}
+		this.acShove+=delta;
+		this.acDelta+=delta;
+		this.acShown+=delta;
+		this.acTotalDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		placeTile(this.sprite, this.x, this.y, null, null, null, (this.flip ? 'x' : null));
+	}
+});
+
 var Bomb = new Class({
 	Extends: Mob
 	,msShown: 200
@@ -291,16 +355,44 @@ var SwordThrow = new Class({
 /***************
  * Pickupables *
  ***************/
+
+var puHeartContainer = new Class({
+	Extends: Mob
+	,name: 'puHeartContainer'
+	,sprite: 107
+	,isFriendly: true
+	,pickup: function(that) {
+		that.addHearts(1);
+		console.log('hearts');
+		this.destroy();
+	}
+
+});
+
+var puRedPotion = new Class({
+	Extends: Mob
+	,name: 'puRedPotionContainer'
+	,width:HALFTILE
+	,sprite: 108
+	,isFriendly: true
+	,pickup: function(that) {
+		that.items.potions =2;
+		this.destroy();
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE), 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
+	}
+});
+
+
 var puSword = new Class({
 	Extends: Mob
 	,name: 'puSword'
+	,sprite: 12
 	,isFriendly: true
 	,pickup: function(that) {
 		that.items.sword = 1;
 		this.destroy();
-	}
-	,draw: function() {
-		placeTile(12, this.x, this.y);
 	}
 });
 

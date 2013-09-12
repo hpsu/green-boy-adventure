@@ -230,6 +230,8 @@ var underworld = new RoomStorage(7,7,[
 	,new CaveRoom({row: 7, col: 5,scriptedEvent: OldManGraveEvent})
 	,new CaveRoom({row: 7, col: 6,scriptedEvent: MoneyMakingGameEvent})
 	,new CaveRoom({row: 7, col: 7,scriptedEvent: SwordEvent})
+	,new CaveRoom({row: 7, col: 8,scriptedEvent: PotionShopEvent})
+	,new CaveRoom({row: 7, col: 11,scriptedEvent: TakeOneEvent})
 ]);
 
 var overworld = new RoomStorage(7,7,[
@@ -1090,7 +1092,10 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[16,16,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-	], enemies: [Octorok, Octorok, Octorok, Octorok]})
+	], enemies: [Octorok, Octorok, Octorok, Octorok]
+	,eventTiles: [{row:6, col:4, event: function() {switchRoom(7,8,underworld);}}]
+	,bombableTiles:[ {row:6,col:4,tile:52} ]
+	})
 	,new Room({row: 7, col: 9, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
 		,[17,16,16,16,16,16,18,17,16,16,16,16,16,16,16,16]
@@ -1136,6 +1141,9 @@ var overworld = new RoomStorage(7,7,[
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 		,enemies: [Leever, Leever, RiverZora]
+		,eventTiles: [{row:1, col:9, event: function() {switchRoom(7,11,underworld);}}]
+		,bombableTiles:[ {row:1,col:9,tile:43} ]
+
 	})
 	,new Room({row: 7, col: 12, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]

@@ -4,6 +4,8 @@
  
 var rooms = null;
  
+var globalHollows = [43];
+ 
 function switchRoom(row,col,container) {
 	if(!container) container = rooms;
 	var cr = container.switchRoom(row,col);
@@ -82,8 +84,15 @@ var Room = new Class({
 
 				this.tiles[i][j] =new Tile({
 					sprite: sprite
+					,isSolid: !globalHollows.contains(sprite)
 				});
 			}
+		}
+
+		if(params.bombableTiles) {
+			Array.each(params.bombableTiles, function(td){
+				this.tiles[td.row][td.col].postBombSprite = td.tile;
+			},this);
 		}
 
 		if(params.tintData)	this.setTintData(params.tintData);
@@ -158,21 +167,54 @@ var Room = new Class({
 	}
 });
 
+var CaveRoom = new Class({
+	Extends: Room
+	,tileData: [
+		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
+		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
+		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
+		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
+		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
+		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
+		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
+		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
+		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
+		,[16,16,19,19,19,19,19,-1,-1,19,19,19,19,19,16,16]
+		,[16,16,16,16,16,16,16,-1,-1,16,16,16,16,16,16,16]
+	]
+	,initialize: function(params) {
+		params.tiles = this.tileData;
+		params.background = this.background;
+		params.tintData = this.tintData;
+		this.parent(params);
+	}
+	,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [124, 8, 0]}]
+	,background: '#000000'
+});
+	
 var Tile = new Class({
 	Implements: Events
 	,sprite: null
+	,postBombSprite: null
 	,isSolid: true
 	,tintFrom: null
 	,tintTo: null
 	,initialize: function(params) {
 		this.sprite = params.sprite;
+		if(typeof params.isSolid !== undefined) this.isSolid = params.isSolid;
 		if(!this.sprite) this.isSolid=false;
 		this.addEvent('enter', this.onEnter);
 	}
 	,onEnter: function() {
 		if(this.enter) this.enter();
 	}
-	
+	,bomb: function() {
+		if(this.postBombSprite) {
+			this.sprite = this.postBombSprite;
+			this.isSolid = false;
+			paintRoom();
+		}
+	}
 });
 
 
@@ -181,34 +223,13 @@ var Tile = new Class({
  *********************/
 
 var underworld = new RoomStorage(7,7,[
-	new Room({row: 7, col: 6, tiles: [
-		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,19,19,19,19,19,-1,-1,19,19,19,19,19,16,16]
-		,[16,16,16,16,16,16,16,-1,-1,16,16,16,16,16,16,16]
-	],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [124, 8, 0]}], background: '#000000', scriptedEvent: MoneyMakingGameEvent
-	})
-	,new Room({row: 7, col: 7, tiles: [
-		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		,[16,16,19,19,19,19,19,-1,-1,19,19,19,19,19,16,16]
-		,[16,16,16,16,16,16,16,-1,-1,16,16,16,16,16,16,16]
-	],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [124, 8, 0]}], background: '#000000', scriptedEvent: SwordEvent
-	})
+	new CaveRoom({row: 6, col: 6,scriptedEvent: CandleShieldKeyStoreEvent})
+	,new CaveRoom({row: 6, col: 7,scriptedEvent: SecretToEverybody})
+	,new CaveRoom({row: 7, col: 0,scriptedEvent: PayMeAndIllTalkEvent})
+	,new CaveRoom({row: 7, col: 1,scriptedEvent: SecretToEverybody})
+	,new CaveRoom({row: 7, col: 5,scriptedEvent: OldManGraveEvent})
+	,new CaveRoom({row: 7, col: 6,scriptedEvent: MoneyMakingGameEvent})
+	,new CaveRoom({row: 7, col: 7,scriptedEvent: SwordEvent})
 ]);
 
 var overworld = new RoomStorage(7,7,[
@@ -802,10 +823,11 @@ var overworld = new RoomStorage(7,7,[
 				,[7,3], [7,4], [7,5], [7,6]
 				], tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}
 		], enemies: [Octorok, Octorok, Octorok, Octorok]
+		,eventTiles: [{row:1, col:7, event: function() {switchRoom(6,6,underworld);}}]
 	})
 	,new Room({row: 6, col: 7, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		,[16,16,16,16,16,16,16,43,16,16,16,16,16,16,16,16] // The hole on this row should not be visible until bombed
+		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16] // The hole on this row should not be visible until bombed
 		,[16,18,-1,-1,-1,-1,-1,-1,-1,17,18,-1,-1,-1,17,16]
 		,[18,-1,-1,14,-1,14,-1,-1,-1,-1,-1,-1,14,-1,-1,17]
 		,[]
@@ -816,7 +838,10 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,19,19,19,19,19,-1,-1,16,16,19,19,19,16,16]
 		,[16,16,16,16,16,16,16,-1,-1,16,16,16,16,16,16,16]
 		
-	], enemies: [Octorok, Octorok, Octorok, Octorok]})
+	], enemies: [Octorok, Octorok, Octorok, Octorok]
+	,bombableTiles:[ {row:1,col:7,tile:43} ]
+	,eventTiles: [{row:1, col:7, event: function() {switchRoom(6,7,underworld);}}]
+	})
 	,new Room({row: 6, col: 8, tiles: [
 		 [16,16,44,-1,44,-1,44,-1,-1,44,-1,44,-1,44,-1,44]
 		,[16,16,44,-1,44,-1,44,-1,-1,44,-1,44,-1,44,-1,44]
@@ -943,10 +968,11 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
 		],enemies: [Peahat, Peahat, Peahat, Peahat]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		,eventTiles: [{row:1, col:11, event: function() {switchRoom(7,0,underworld);}}]
 	})
 	,new Room({row: 7, col: 1, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,-1,-1,16,16,16,16]
-		,[16,16,16,18,17,43,16,16,16,18,-1,-1,17,16,16,16]
+		,[16,16,16,18,17,16,16,16,16,18,-1,-1,17,16,16,16]
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,17,16,16]
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,17,18]
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
@@ -958,6 +984,8 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
 		],enemies: [BlueMoblin,BlueMoblin,BlueMoblin,BlueMoblin,BlueMoblin]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		,bombableTiles: [{row:1, col:5, tile:43}]
+		,eventTiles: [{row:1, col:5, event: function() {switchRoom(7,1,underworld);}}]
 	})
 	,new Room({row: 7, col: 2, tiles: [
 		 [44,44,44,44,44,44,-1,-1,44,44,44,44,44,44,44,44]
@@ -1016,10 +1044,11 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,19,19,20,41,41,15,19,19,19,19,19,19,19,19]
 		,[16,16,16,16,16,41,41,16,16,16,16,16,16,16,16,16]
 	], enemies: [RiverZora, Leever, BlueLeever, BlueLeever, Peahat, Peahat, Peahat]
+	, eventTiles: [{row:1, col:2, event: function() {switchRoom(7,5,underworld);}}]
 	})
 	,new Room({row: 7, col: 6, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,-1,-1,16,16]
-		,[16,16,16,16,16,16,43,16,16,16,16,18,-1,-1,16,16]
+		,[16,16,16,16,16,16,16,16,16,16,16,18,-1,-1,16,16]
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
 		,[-1,-1,-1,-1,-1,-1,-1,-1,14,-1,-1,-1,-1,-1,17,16]
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,14,-1,-1,-1,-1,17]
@@ -1030,8 +1059,9 @@ var overworld = new RoomStorage(7,7,[
 		,[19,19,19,19,19,19,19,19,19,19,19,19,19,19,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
 	], enemies: [Tektite, Tektite, Tektite, Tektite]
-	,hollowTiles: [[1,6]]
 	,eventTiles: [{row:1, col:6, event: function() {switchRoom(7,6,underworld);}}]
+	,bombableTiles:[ {row:1,col:6,tile:43} ]
+
 	})
 	,new Room({row: 7, col: 7, tiles: [ // level 7, room 7 (start)
 		 [16,16,16,16,16,16,16,-1,-1,16,16,16,16,16,16,16]
@@ -1045,7 +1075,9 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
 		,[16,16,19,19,19,19,19,19,19,19,19,19,19,19,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-	],hollowTiles: [[1,4]], eventTiles: [{row:1, col:4, event: function() {switchRoom(7,7,underworld);}}]})
+	]
+	, eventTiles: [{row:1, col:4, event: function() {switchRoom(7,7,underworld);}}]
+	})
 	,new Room({row: 7, col: 8, tiles: [
 		 [16,16,44,-1,44,-1,44,-1,-1,44,-1,44,-1,44,-1,44]
 		,[16,16,44,-1,44,-1,44,-1,-1,44,-1,44,-1,44,-1,44]

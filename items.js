@@ -13,9 +13,10 @@ var Bomb = new Class({
 		this.ancestor = ancestor;
 		this.parent(ancestor.x, ancestor.y);
 		this.rePosition();
+		ancestor.addBombs(-1);
 	}
 	,destroy: function() {
-		new Detonation(this.x, this.y);
+		new Detonation(this.x-12, this.y-12);
 		this.parent();
 	}
 	,rePosition: function() {
@@ -60,11 +61,31 @@ var Detonation = new Class({
 	Extends: Mob
 	,isFriendly: true
 	,frame: 0
+	,damage: 1
 	,msPerFrame: 20
+	,width:TILESIZE*2+12
+	,height:TILESIZE*2+12
 	,acTileSwitchDelta: 0
 	,tile: 66
 	,move: function() {
 		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+
+		Array.each(rooms.getCurrentRoom().MOBs, function(that){
+			if(that != this && !that.isFriendly && this.collidesWith(that)) {
+				that.impact(this.damage, (180+that.direction)%360);
+			}
+		},this);
+
+
+		var xTile = Math.round((this.x+12)/TILESIZE);
+		var yTile = Math.round((this.y+12)/TILESIZE)-4;
+
+		if(xTile < 0) xTile = 0;
+		if(yTile < 0) yTile = 0;
+		if(xTile > this.currentRoom.roomWidth-1) xTile=this.currentRoom.roomWidth-1;
+		if(yTile > this.currentRoom.roomHeight-1) yTile=this.currentRoom.roomHeight-1;
+
+		this.currentRoom.getTile(yTile,xTile).bomb();
 		if(this.acTileSwitchDelta > 600) {
 			this.destroy();
 		}
@@ -81,17 +102,17 @@ var Detonation = new Class({
 	}
 	,draw: function() {
 
-		placeTile(this.tile, this.x, this.y);
+		placeTile(this.tile, this.x+14, this.y+14);
 
 		if(this.frame == 0) {
-			placeTile(this.tile, this.x-8, this.y-14);
-			placeTile(this.tile, this.x+8, this.y+14);
-			placeTile(this.tile, this.x+14, this.y);
+			placeTile(this.tile, this.x-8+14, this.y-14+14);
+			placeTile(this.tile, this.x+8+14, this.y+14+14);
+			placeTile(this.tile, this.x+14+14, this.y+14);
 		}
 		else {
-			placeTile(this.tile, this.x+8, this.y-14);
-			placeTile(this.tile, this.x-8, this.y+14);
-			placeTile(this.tile, this.x-14, this.y);
+			placeTile(this.tile, this.x+8+14, this.y-14+14);
+			placeTile(this.tile, this.x-8+14, this.y+14+14);
+			placeTile(this.tile, this.x-14+14, this.y+14);
 		}
 
 
@@ -283,6 +304,55 @@ var puSword = new Class({
 	}
 });
 
+var puShield = new Class({
+	Extends: Mob
+	,name: 'puShield'
+	,price: 160
+	,width: 8
+	,isFriendly: true
+	,pickup: function(that) {
+		that.items.shield = 2;
+		this.currentRoom.killSprites();
+	}
+	,draw: function() {
+		placeTile(105, this.x, this.y);
+		writeText(String(this.price), this.x-TILESIZE+4, this.y+TILESIZE+HALFTILE);
+	}
+});
+
+var puKey = new Class({
+	Extends: Mob
+	,name: 'puKey'
+	,price: 100
+	,width: 8
+	,isFriendly: true
+	,pickup: function(that) {
+		that.items.keys++;
+		this.currentRoom.killSprites();
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (106*TILESIZE), 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
+		writeText(String(this.price), this.x-TILESIZE+4, this.y+TILESIZE+HALFTILE);
+	}
+});
+
+var puCandle = new Class({
+	Extends: Mob
+	,name: 'puCandle'
+	,price: 60
+	,width: 8
+	,isFriendly: true
+	,pickup: function(that) {
+		that.items.candle = 1;
+		this.currentRoom.killSprites();
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (106*TILESIZE)+HALFTILE, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
+		writeText(String(this.price), this.x-TILESIZE+4+HALFTILE, this.y+TILESIZE+HALFTILE);
+	}
+});
+
+
 var puFairy = new Class({
 	Extends: Mob
 	,name: 'Fairy'
@@ -390,23 +460,31 @@ var puRupee = new Class({
 var mmgRupee = new Class({
 	Extends: puRupee
 	,worth: 10
+	,cost: 10
 	,text: '-10'
 	,static: false
 	,expiry: null
-	,initialize: function(x,y,room,static){
+	,initialize: function(x,y,room,static,cost){
+		if(typeof cost != undefined) this.cost = cost;
 		if(static) {
 			this.static = true;
 			this.pickup = (function(){});
 			this.text = 'x';
 		}
+		else if(this.cost) {
+			this.text = '-'+Number(this.cost);
+		}
+		else this.text = '';
 		this.parent(x,y,room);
 	}
 	,reveal: function(){
-		this.text = (this.worth > 0 ? '+' : '') + String(this.worth);
+		this.text = '';
+		if (this.worth != 0)
+			this.text = (this.worth > 0 ? '+' : '') + String(this.worth);
 		this.pickup = (function(){});
 	}
 	,pickup: function(that) {
-		if(that.getRupees() < 10) return;
+		if(that.getRupees() < this.cost) return;
 		Array.each(this.currentRoom.rupees, function(o) {
 			o.reveal();
 		});
@@ -485,7 +563,7 @@ var puBomb = new Class({
 		(function(){this.destroy();}).delay(10000, this);
 	}
 	,pickup: function(that) {
-		that.bombs += 1;
+		that.addBombs(1);
 		this.destroy();
 	}
 	,draw: function() {

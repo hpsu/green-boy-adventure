@@ -8,6 +8,7 @@ var ctx = null
 	,SCALE = 1
 	,TILESIZE = 16
 	,HALFTILE = 8
+	,SPRITESIZE = 16
 	,solidObjects = []
 	,env = {
 		keyStates: {}
@@ -46,8 +47,40 @@ window.addEvent('load', function () {
 	env.player = new Link(WIDTH/2, HEIGHT/2);
 	
 	paintRoom();
+	
+	$('screen').addEventListener("touchstart", handleStart, false);
+	$('screen').addEventListener("touchend", handleEnd, false);
+	//$('screen').addEventListener("touchcancel", handleCancel, false);
+	//$('screen').addEventListener("touchleave", handleEnd, false);
+	//$('screen').addEventListener("touchmove", handleMove, false);	
+	
 	window.requestAnimationFrame(animate);
 });
+
+// Basic touch support
+function handleStart(evt) {
+	var touches = evt.changedTouches;	
+	for (var i=0; i < touches.length; i++) {
+		if(touches[i].pageY < (HEIGHT/2) && touches[i].pageY > 4*TILESIZE) {
+			env.keyStates['up'] = true;
+		}
+		else {
+			env.keyStates['down'] = true;
+		}
+	}
+}
+
+function handleEnd(evt) {
+	var touches = evt.changedTouches;	
+	for (var i=0; i < touches.length; i++) {
+		if(touches[i].pageY < (HEIGHT/2) && touches[i].pageY > 4*TILESIZE) {
+			env.keyStates['up'] = false;
+		}
+		else {
+			env.keyStates['down'] = false;
+		}
+	}	
+}
 
 // Record keypresses
 window.addEvent('keydown', function(e) { if(env.keyStates[e.key] !== null) env.keyStates[e.key] = true;});
@@ -350,7 +383,7 @@ var SwordEvent = new Class({
 		this.parent(room);
 		
 		if(env.player.items.sword == 0) {
-			new WiseMan((TILESIZE*7)+HALFTILE, TILESIZE*8, room);
+			new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
 			new puSword((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room);
 			new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "it's dangerous to go\n  alone! take this.");
 		}
@@ -363,7 +396,7 @@ var MoneyMakingGameEvent = new Class({
 		this.parent(room);
 		
 		new TextContainer(TILESIZE*3.5, (TILESIZE*6)+HALFTILE, room, "let's play money\nmaking game.");
-		new WiseMan((TILESIZE*7)+HALFTILE, TILESIZE*8, room);
+		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
 		room.rupees = [];
 		room.rupees[0] = new mmgRupee((TILESIZE*5)+HALFTILE, (TILESIZE*10)-HALFTILE, room);
 		room.rupees[1] = new mmgRupee((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room);
@@ -391,6 +424,102 @@ var MoneyMakingGameEvent = new Class({
 	}
 });
 
+var PayMeAndIllTalkEvent = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room);
+		
+		room.txtcnt = new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "pay me and i'll talk.");
+		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 103);
+
+		room.rupees = [
+			new mmgRupee((TILESIZE*5)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 10)
+			,new mmgRupee((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 30)
+			,new mmgRupee((TILESIZE*9)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 50)
+		];
+		
+		room.rupees[0].worth = 0;
+		room.rupees[1].worth = 0;
+		room.rupees[2].worth = 0;
+
+		room.rupees[0].pickup = function(that) {
+			if(that.getRupees() < this.cost) return;
+			Array.each(this.currentRoom.rupees, function(o) {
+				o.reveal();
+			});
+			that.addRupees(-this.cost);
+			room.txtcnt.destroy();
+			room.txtcnt = new TextContainer(TILESIZE*4-HALFTILE, (TILESIZE*6)+HALFTILE, room, "this ain't enough\n     to talk.");
+		};
+		room.rupees[1].pickup = function(that) {
+			if(that.getRupees() < this.cost) return;
+			Array.each(this.currentRoom.rupees, function(o) {
+				o.reveal();
+			});
+			that.addRupees(-this.cost);
+			room.txtcnt.destroy();
+			room.txtcnt = new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "go north,west,south,\nwest to the forest\nof maze.");
+		};
+		room.rupees[2].pickup = function(that) {
+			if(that.getRupees() < this.cost) return;
+			Array.each(this.currentRoom.rupees, function(o) {
+				o.reveal();
+			});
+			that.addRupees(-this.cost);
+			room.txtcnt.destroy();
+			room.txtcnt = new TextContainer(TILESIZE*4, (TILESIZE*6)+HALFTILE, room, "boy, you're rich!");
+		};
+
+	}
+	
+});
+
+var OldManGraveEvent = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room);
+		
+		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 103);
+		new TextContainer(TILESIZE*4, (TILESIZE*6)+HALFTILE, room, "meet the old man\n  at the grave.");
+	}
+});
+
+var CandleShieldKeyStoreEvent = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room);
+		
+		room.killSprites = function(){
+			this.guy.destroy();
+			this.txtNode.destroy();
+			this.rupee.destroy();
+			this.shield.destroy();
+			this.key.destroy();
+			this.candle.destroy();
+		};
+		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 104);
+		room.txtNode = new TextContainer(TILESIZE*2+HALFTILE, (TILESIZE*6)+HALFTILE, room, "buy somethin' will ya!");
+		
+
+		room.rupee = new mmgRupee((TILESIZE*3), (TILESIZE*11)-4, room, true);
+		room.shield = new puShield((TILESIZE*6)-4, (TILESIZE*10)-HALFTILE, room);
+		room.key = new puKey((TILESIZE*8)-4, (TILESIZE*10)-HALFTILE, room);
+		room.candle = new puCandle((TILESIZE*10)-4, (TILESIZE*10)-HALFTILE, room);
+	}
+});
+
+
+var SecretToEverybody = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room);
+		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 92);
+		room.txtNode = new TextContainer(TILESIZE*4+HALFTILE, (TILESIZE*6)+HALFTILE, room, "it's a secret\nto everybody.");
+		
+		room.rupees = [new mmgRupee((TILESIZE*8)-HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 0)];
+		room.rupees[0].worth=30;
+	}
+});
 
 var TextContainer = new Class({
 	Extends: Mob
@@ -431,10 +560,14 @@ var Fire = new Class({
 	}
 });
 
-var WiseMan = new Class({
+var StaticSprite = new Class({
 	Extends: Mob
+	,initialize: function(x,y,room,sprite) {
+		this.sprite = sprite;
+		this.parent(x,y,room);
+	}
 	,draw: function() {
-		placeTile(85, this.x, this.y);
+		placeTile(this.sprite, this.x, this.y);
 	}
 });
 
@@ -521,8 +654,14 @@ var Link = new Class({
 		if(this.items.rupees <0) this.items.rupees = 0;
 		else if(this.items.rupees >255) this.items.rupees = 255;			
 	}
+	,addBombs: function(worth) {
+		this.items.bombs+=worth;
+		if(this.items.bombs <0) this.items.bombs = 0;
+		else if(this.items.bombs >255) this.items.bombs = 255;			
+	}
 	,items: {
 		 sword: 0
+		,shield: 1
 		,boomerang: 0
 		,bow: 0
 		,keys: 0
@@ -686,7 +825,8 @@ var Link = new Class({
 			case this.usingItem != false:
 				break;
 			case env.keyStates['z'] && this.usingItem == false && this.bomb == null:
-				this.bomb = this.usingItem = new Bomb(this);
+				if(this.items.bombs >0) 
+					this.bomb = this.usingItem = new Bomb(this);
 				env.keyStates['z']=null;
 				break;
 			case env.keyStates['space'] && this.usingItem == false:
@@ -810,7 +950,7 @@ function paintHeader() {
 
 function paintRoom(tintFrom, tintTo){
 	var room = rooms.getCurrentRoom();
-	ctxBg.clearRect(0,0,WIDTH*SCALE,HEIGHT*SCALE);
+	ctxBg.clearRect(0,0,WIDTH,HEIGHT);
 	y = 4, x = 0;
 	Array.each(room.getTiles(), function(row) {
 		x = 0;
@@ -822,7 +962,7 @@ function paintRoom(tintFrom, tintTo){
 				ctxBg.stroke();
 			}
 			if(tile.sprite) {
-				placeTile(tile.sprite, x*TILESIZE, y*TILESIZE, tintFrom ? tintFrom : tile.tintFrom, tintTo ? tintTo : tile.tintTo, null, null, ctxBg);
+				placeTile(tile.sprite, x*(TILESIZE/SCALE), y*(TILESIZE/SCALE), tintFrom ? tintFrom : tile.tintFrom, tintTo ? tintTo : tile.tintTo, null, null, ctxBg);
 			}
 			x++;
 		});
@@ -832,8 +972,8 @@ function paintRoom(tintFrom, tintTo){
 
 function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 	if(!tCtx) tCtx = ctx;
-	x = Math.round(x);
-	y = Math.round(y);
+	x = Math.round(x*SCALE);
+	y = Math.round(y*SCALE);
 	tmpX = x; tmpY = y;
 	if(tintTo && TintCache.get(tintTo, frame)) {
 		return tCtx.putImageData(TintCache.get(tintTo, frame), x, y);
@@ -850,15 +990,15 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 			tCtx.scale((flip.contains('x') ? -1 : 1), (flip.contains('y') ? -1 : 1));
 	}
 	tCtx.drawImage(env.spriteSheet
-		,(frame*TILESIZE)
+		,(frame*SPRITESIZE)
 		,0
-		,TILESIZE, TILESIZE, tmpX*SCALE, tmpY*SCALE, TILESIZE*SCALE, TILESIZE*SCALE);
+		,SPRITESIZE, SPRITESIZE, tmpX, tmpY, TILESIZE, TILESIZE);
 	if(rotate || flip) {
 		tCtx.restore();
 	}
 
 	if(tintTo) {
-		map = tCtx.getImageData(x*SCALE, y*SCALE, TILESIZE*SCALE, TILESIZE*SCALE);
+		map = tCtx.getImageData(x, y, TILESIZE, TILESIZE);
 		imdata = map.data;
 		for(var p = 0, len = imdata.length; p < len; p+=4) {
 			r = imdata[p]
@@ -879,7 +1019,7 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 function filledRectangle(x, y, w, h, c) {
 	ctx.beginPath();
 	ctx.fillStyle=c;
-	ctx.rect(x*SCALE, y*SCALE, w*SCALE, h*SCALE);
+	ctx.rect(x, y, w, h);
 	ctx.fill();
 }
 
@@ -900,10 +1040,10 @@ function writeText(string, x, y, color, tCtx) {
 				char[1]*HALFTILE, 
 				HALFTILE, 
 				HALFTILE, 
-				(x+(xOff*HALFTILE))*SCALE, 
-				y*SCALE, 
-				HALFTILE*SCALE, 
-				HALFTILE*SCALE);
+				(x+(xOff*HALFTILE)), 
+				y, 
+				HALFTILE, 
+				HALFTILE);
 			if(color) {
 				map = tCtx.getImageData(x+(xOff*HALFTILE), y, HALFTILE, HALFTILE);
 				imdata = map.data;
@@ -1060,18 +1200,18 @@ function animate() {
 			if(o.isActive)
 				o.move();
 		});
-		ctx.clearRect(0,0,WIDTH*SCALE,HEIGHT*SCALE);
+		ctx.clearRect(0,0,WIDTH,HEIGHT);
 		paintHeader();
-		Array.each(solidObjects, function(o){
-			if(o.isActive)
-				o.draw();
-		});
 		Array.each(rooms.getCurrentRoom().MOBs, function(o){
 			if(o.isActive) {
 				//if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
 				if(window.collisionDebug) filledRectangle(o.x, o.y, o.width, o.height, '#f00');
 				o.draw();
 			}
+		});
+		Array.each(solidObjects, function(o){
+			if(o.isActive)
+				o.draw();
 		});
 	}
 
@@ -1086,6 +1226,10 @@ function changeScale(scale) {
 	ctx = $('screen').getContext('2d');
 	ctx.webkitImageSmoothingEnabled=false;
 	SCALE = scale
+	TILESIZE = 16*SCALE;
+	HALFTILE = TILESIZE/2;
+	WIDTH = 256*SCALE;
+	HEIGHT = 240*SCALE;
 	paintRoom();
 	paintHeader();
 }
@@ -1101,6 +1245,14 @@ function continueGame() {
 	console.log(save);
 	env.player = new Link(WIDTH/2, HEIGHT/2);
 	env.player.items = save;
+}
+
+function loadGame() {
+	if(localStorage['items_bombs']) env.player.items.bombs = Number(localStorage['items_bombs']);
+	if(localStorage['items_rupees']) env.player.items.rupees = Number(localStorage['items_rupees']);
+	if(localStorage['items_keys']) env.player.items.keys = Number(localStorage['items_keys']);
+	if(localStorage['items_hearts']) env.player.items.hearts = Number(localStorage['items_hearts']);
+	if(localStorage['items_sword']) env.player.items.sword = Number(localStorage['items_sword']);
 }
 
 function tintWorld() {

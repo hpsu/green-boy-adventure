@@ -379,11 +379,20 @@ var SecretToEverybody = new Class({
 	Extends: Event
 	,initialize: function(room) {
 		this.parent(room);
+
+		if(room.eventDone) return;
 		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 92);
 		room.txtNode = new TextContainer(TILESIZE*4+HALFTILE, (TILESIZE*6)+HALFTILE, room, "it's a secret\nto everybody.");
 		
 		room.rupees = [new mmgRupee((TILESIZE*8)-HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 0)];
 		room.rupees[0].worth=30;
+	
+		room.tmpRupeeFunc = room.rupees[0].pickup;
+		room.rupees[0].pickup = function(that) {
+			room.tmpRupeeFunc.bind(this).pass(that)();
+			room.eventDone=true;
+		};
+	
 	}
 });
 
@@ -391,10 +400,13 @@ var DoorRepairEvent = new Class({
 	Extends: Event
 	,initialize: function(room) {
 		this.parent(room);
+		if(room.eventDone) return;
+
 		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
 		room.txtNode = new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "pay me for the door\n   repair charge.");
 		
-		env.player.addRupees(-30);
+		env.player.addRupees(-20);
+		room.eventDone=true;
 		//@TODO: Animate countdown of rupees
 	}
 });

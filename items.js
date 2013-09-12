@@ -363,7 +363,8 @@ var puHeartContainer = new Class({
 	,isFriendly: true
 	,pickup: function(that) {
 		that.addHearts(1);
-		console.log('hearts');
+		that.addHealth(1);
+		new LinkGainItem(this.sprite);
 		this.destroy();
 	}
 
@@ -377,6 +378,7 @@ var puRedPotion = new Class({
 	,isFriendly: true
 	,pickup: function(that) {
 		that.items.potions =2;
+		new LinkGainItem(this.sprite);
 		this.destroy();
 	}
 	,draw: function() {

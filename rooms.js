@@ -232,6 +232,8 @@ var underworld = new RoomStorage(7,7,[
 	,new CaveRoom({row: 7, col: 7,scriptedEvent: SwordEvent})
 	,new CaveRoom({row: 7, col: 8,scriptedEvent: PotionShopEvent})
 	,new CaveRoom({row: 7, col: 11,scriptedEvent: TakeOneEvent})
+	,new CaveRoom({row: 7, col: 12,scriptedEvent: MoneyMakingGameEvent})
+	,new CaveRoom({row: 7, col: 13,scriptedEvent: DoorRepairEvent})
 ]);
 
 var overworld = new RoomStorage(7,7,[
@@ -1128,7 +1130,7 @@ var overworld = new RoomStorage(7,7,[
 	})
 	,new Room({row: 7, col: 11, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,-1,-1,-1,16,16]
-		,[16,16,16,16,16,16,16,16,16,43,16,-1,-1,-1,16,16]
+		,[16,16,16,16,16,16,16,16,16,16,16,-1,-1,-1,16,16]
 		,[16,16,16,16,16,16,18,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,16,16,16,18,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,18,17,16,18,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
@@ -1147,7 +1149,7 @@ var overworld = new RoomStorage(7,7,[
 	})
 	,new Room({row: 7, col: 12, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		,[16,16,16,16,16,16,43,16,16,16,16,16,16,16,16,16]
+		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
 		,[]
 		,[]
 		,[]
@@ -1160,10 +1162,12 @@ var overworld = new RoomStorage(7,7,[
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 		,enemies: [Leever, Leever, RiverZora]
+		,eventTiles: [{row:1, col:6, event: function() {switchRoom(7,12,underworld);}}]
+		,bombableTiles:[ {row:1,col:6,tile:43} ]
 	})
 	,new Room({row: 7, col: 13, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		,[16,16,16,16,16,16,43,16,16,16,16,16,16,16,16,16]
+		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
 		,[]
 		,[]
 		,[]
@@ -1176,6 +1180,8 @@ var overworld = new RoomStorage(7,7,[
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 		,enemies: [BlueOctorok, BlueOctorok, BlueOctorok, BlueOctorok, RiverZora]
+		,eventTiles: [{row:1, col:6, event: function() {switchRoom(7,12,underworld);}}]
+		,bombableTiles:[ {row:1,col:6,tile:43} ]
 	})
 	,new Room({row: 7, col: 14, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]

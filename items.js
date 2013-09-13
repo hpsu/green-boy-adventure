@@ -394,6 +394,7 @@ var puSword = new Class({
 	,isFriendly: true
 	,pickup: function(that) {
 		that.items.sword = 1;
+		new LinkGainItem(this.sprite);
 		this.destroy();
 	}
 });
@@ -403,13 +404,15 @@ var puShield = new Class({
 	,name: 'puShield'
 	,price: 160
 	,width: 8
+	,sprite: 105
 	,isFriendly: true
 	,pickup: function(that) {
 		that.items.shield = 2;
+		new LinkGainItem(this.sprite);
 		this.currentRoom.killSprites();
 	}
 	,draw: function() {
-		placeTile(105, this.x, this.y);
+		placeTile(this.sprite, this.x, this.y);
 		writeText(String(this.price), this.x-TILESIZE+4, this.y+TILESIZE+HALFTILE);
 	}
 });
@@ -650,20 +653,71 @@ var puBomb = new Class({
 	,palette: 2
 	,width: 16
 	,height: 16
+	,worth: 1
+	,price: null
+	,expire: 10000
 	,isFriendly: true
-	,initialize: function(x,y) {
-		this.parent(x,y);
-		this.isFriendly = true;
-		(function(){this.destroy();}).delay(10000, this);
+	,initialize: function(x,y,room,expire, worth, price) {
+		this.parent(x,y,room);
+		if(expire != undefined) this.expire = expire
+		if(worth != undefined) this.worth = worth
+		if(price != undefined) this.price = price
+		
+		if(this.expire)
+			(function(){this.destroy();}).delay(this.expire, this);
 	}
 	,pickup: function(that) {
-		that.addBombs(1);
+		if(this.price) {
+			if(that.getRupees() < this.price) return false;
+			that.addRupees(-this.price);
+		}
+		that.addBombs(this.worth);
 		this.destroy();
+		return true;
 	}
 	,draw: function() {
 		placeTile(69, this.x, this.y);
+		if(this.price) {
+			writeText(' '+String(this.price), this.x-HALFTILE, this.y+TILESIZE+HALFTILE);
+		}
 	}
 });
+
+var puArrow = new Class({
+	Extends: Mob
+	,name: 'Bomb'
+
+	,palette: 0
+	,width: 16
+	,height: 16
+	,worth: 1
+	,price: 80
+	,expire: null
+	,isFriendly: true
+	,initialize: function(x,y,room,expire, worth, price) {
+		this.parent(x,y,room);
+		if(expire != undefined) this.expire = expire
+		if(worth != undefined) this.worth = worth
+		if(price != undefined) this.price = price
+		
+		if(this.expire)
+			(function(){this.destroy();}).delay(this.expire, this);
+	}
+	,pickup: function(that) {
+		if(this.price) {
+			if(that.getRupees() < this.price) return;
+			that.addRupees(-this.price);
+		}
+		that.items.arrow=1;
+		this.destroy();
+	}
+	,draw: function() {
+		placeTile(94, this.x, this.y);
+		writeText(' '+String(this.price), this.x-HALFTILE, this.y+TILESIZE+HALFTILE);
+		this.changePalette(2);
+	}
+});
+
 
 var font = {
 	 a: [ 0, 0],b: [ 1, 0],e: [ 2, 0],f: [ 3, 0],i: [ 4, 0],j: [ 5, 0],m: [ 6, 0],n: [ 7, 0],q: [ 8, 0],r: [ 9, 0],u: [10, 0],v: [11, 0],  y: [12, 0],  z: [13, 0],',': [14, 0],'!': [15, 0],'.': [16, 0],0: [17, 0],3: [18, 0],4: [19, 0],7: [20, 0],8: [21, 0]

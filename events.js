@@ -350,7 +350,7 @@ var TakeOneEvent = new Class({
 	}
 });
 
-var CandleShieldKeyStoreEvent = new Class({
+var StoreEvent = new Class({
 	Extends: Event
 	,initialize: function(room) {
 		this.parent(room);
@@ -359,18 +359,44 @@ var CandleShieldKeyStoreEvent = new Class({
 			this.guy.destroy();
 			this.txtNode.destroy();
 			this.rupee.destroy();
-			this.shield.destroy();
-			this.key.destroy();
-			this.candle.destroy();
+			this.item1.destroy();
+			this.item2.destroy();
+			this.item3.destroy();
 		};
 		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 104);
 		room.txtNode = new TextContainer(TILESIZE*2+HALFTILE, (TILESIZE*6)+HALFTILE, room, "buy somethin' will ya!");
 		
-
 		room.rupee = new mmgRupee((TILESIZE*3), (TILESIZE*11)-4, room, true);
-		room.shield = new puShield((TILESIZE*6)-4, (TILESIZE*10)-HALFTILE, room);
-		room.key = new puKey((TILESIZE*8)-4, (TILESIZE*10)-HALFTILE, room);
-		room.candle = new puCandle((TILESIZE*10)-4, (TILESIZE*10)-HALFTILE, room);
+	}
+});
+
+var CandleShieldKeyStoreEvent = new Class({
+	Extends: StoreEvent
+	,initialize: function(room) {
+		this.parent(room);
+		
+		room.item1 = new puShield((TILESIZE*6)-4, (TILESIZE*10)-HALFTILE, room);
+		room.item2 = new puKey((TILESIZE*8)-4, (TILESIZE*10)-HALFTILE, room);
+		room.item3 = new puCandle((TILESIZE*10)-4, (TILESIZE*10)-HALFTILE, room);
+	}
+});
+
+var ShieldBombArrowEvent = new Class({
+	Extends: StoreEvent
+	,initialize: function(room) {
+		this.parent(room);
+		
+		room.item1 = new puShield((TILESIZE*6)-4, (TILESIZE*10)-HALFTILE, room);
+		room.item2 = new puBomb((TILESIZE*8)-4, (TILESIZE*10)-HALFTILE, room, 0, 4, 20);
+		room.item3 = new puArrow((TILESIZE*10)-4, (TILESIZE*10)-HALFTILE, room);
+		room.item1.price = 130;
+
+		room.tmpBombFunc = room.item2.pickup;
+		room.item2.pickup = function(that) {
+			if(room.tmpBombFunc.bind(this).pass(that)())
+				room.killSprites();
+		};
+
 	}
 });
 

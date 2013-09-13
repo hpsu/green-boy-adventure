@@ -213,7 +213,6 @@ var Mob = new Class({
 });
 
 var PauseScreen = new Class({
-	//@TODO: Animate pulldown
 	Extends:Mob
 	,width: 256
 	,height: 241-(4*TILESIZE)
@@ -241,7 +240,7 @@ var PauseScreen = new Class({
 		writeText('use b button\n  for this', this.x+(1*TILESIZE), YOFF+this.y+(4.5*TILESIZE));
 		drawBorder(this.x+(3.5*TILESIZE), YOFF+this.y+(2.5*TILESIZE), 4, 4);
 		drawBorder(this.x+(7.5*TILESIZE), YOFF+this.y+(2.5*TILESIZE), 13, 6);
-		writeText('triforce', this.x+(6*TILESIZE), YOFF+this.y+(9*TILESIZE),[216, 40, 0]);
+		writeText('triforce', this.x+(6*TILESIZE), YOFF+this.y+(10*TILESIZE),[216, 40, 0]);
 
 		//if(env.player.items.bombs > 0) {
 			ctx.drawImage(env.spriteSheet, (69*TILESIZE)+(TILESIZE/4), 0, HALFTILE, TILESIZE, Math.floor(this.x+(10*TILESIZE)-(TILESIZE/4)), Math.floor(YOFF+this.y+(3*TILESIZE)), HALFTILE, TILESIZE);
@@ -254,8 +253,10 @@ var PauseScreen = new Class({
 		//}
 
 
+		
 
-			for(var io=0; io<10; io++) {
+
+/*			for(var io=0; io<10; io++) {
 				for(var i=0; i<16; i++) {
 					ctx.beginPath();
 					ctx.strokeStyle='#f0f';
@@ -263,6 +264,21 @@ var PauseScreen = new Class({
 					ctx.stroke();
 				}
 			}
+*/
+		ctx.beginPath();
+		ctx.strokeStyle="#fcbcb0";
+		ctx.moveTo((5*TILESIZE), YOFF+this.y+(9.5*TILESIZE));
+		ctx.lineTo((11*TILESIZE), YOFF+this.y+(9.5*TILESIZE));
+		ctx.lineTo((8*TILESIZE), YOFF+this.y+(6.5*TILESIZE));
+		ctx.lineTo((5*TILESIZE), YOFF+this.y+(9.5*TILESIZE));
+
+		ctx.moveTo((6*TILESIZE), YOFF+this.y+(9*TILESIZE));
+		ctx.lineTo((10*TILESIZE), YOFF+this.y+(9*TILESIZE));
+		ctx.lineTo((8*TILESIZE), YOFF+this.y+(7*TILESIZE));
+		ctx.lineTo((6*TILESIZE), YOFF+this.y+(9*TILESIZE));
+
+
+		ctx.stroke();
 
 		paintRoom();
 		paintHeader();
@@ -302,7 +318,7 @@ var Link = new Class({
 	,addBombs: function(worth) {
 		this.items.bombs+=worth;
 		if(this.items.bombs <0) this.items.bombs = 0;
-		else if(this.items.bombs >255) this.items.bombs = 255;			
+		else if(this.items.bombs >8) this.items.bombs = 8;
 	}
 	,items: {
 		 sword: 0
@@ -577,6 +593,8 @@ function paintHeader() {
 	writeText('-LIFE-', xOff+(10*TILESIZE)+HALFTILE, yOff, [216, 40, 0]); 
 	
 	tmpLife = env.player.health;
+	var yPos = (TILESIZE*1.5);
+	var xPos = 0;
 	for(var i=0; i < env.player.items.hearts; i++) {
 		if(tmpLife >= 1) {
 			xAdd = 0;
@@ -589,7 +607,13 @@ function paintHeader() {
 			xAdd = 0;
 			yAdd = 1;
 		}
-		ctx.drawImage(env.spriteSheet, (22*TILESIZE)+(xAdd*HALFTILE), yAdd*HALFTILE, HALFTILE, HALFTILE, xOff+(10*TILESIZE)+(i*HALFTILE), yOff+(TILESIZE*1.5), HALFTILE, HALFTILE); // Heart
+		
+		if(xPos==8) {
+			yPos -= 0.5*TILESIZE;
+			xPos = 0;
+		}
+		
+		ctx.drawImage(env.spriteSheet, (22*TILESIZE)+(xAdd*HALFTILE), yAdd*HALFTILE, HALFTILE, HALFTILE, xOff+(10*TILESIZE)+(xPos++*HALFTILE), yOff+yPos, HALFTILE, HALFTILE); // Heart
 		tmpLife--;
 	}
 }
@@ -601,6 +625,13 @@ function paintHeader() {
 function paintRoom(tintFrom, tintTo){
 	var room = rooms.getCurrentRoom();
 	ctxBg.clearRect(0,0,WIDTH,HEIGHT);
+
+	if(room.bgRect) {
+		console.log(room.bgRect);
+		filledRectangle(room.bgRect[0]*TILESIZE, (room.bgRect[1]*TILESIZE)+4*TILESIZE, room.bgRect[2]*TILESIZE, room.bgRect[3]*TILESIZE,room.bgRect[4],ctxBg);
+
+	}
+
 	y = 4, x = 0;
 	Array.each(room.getTiles(), function(row) {
 		x = 0;
@@ -824,13 +855,13 @@ function drawPalettes() {
 
 function drawNumberedTiles() {
 	for(var i = 0; i < Math.ceil(env.spriteSheet.width/TILESIZE); i++) {
-		var x = new Element('canvas', {width: 16, height: 24, styles: {border:'1px dotted magenta',margin:'1px'}}).inject(document.body);
+		var x = new Element('canvas', {width: 24, height: 24, styles: {border:'1px dotted magenta',margin:'1px'}}).inject(document.body);
 		tCtx = x.getContext('2d');
 		tCtx.drawImage(env.spriteSheet
 			,(i*TILESIZE)
 			,0
 			,TILESIZE, TILESIZE
-			,0
+			,4
 			,0
 			,TILESIZE, TILESIZE);
 		t = i.toString();

@@ -121,7 +121,7 @@ var FireBall = new Class({
 var RockProjectile = new Class({
 	Extends: Projectile
 	,damage: 0.5
-	,tile: 63
+	,tile: 115
 	,tileBlock: true
 });
 
@@ -823,7 +823,7 @@ var Octorok = new Class({
 	,damage: 0.5
 	,health: 0.5
 	,maxAnimFrames: 2
-	,frames: [61,62]
+	,frames: [113,114]
 	,projectile: RockProjectile
 	,draw: function() {
 		frame = this.frames[this.animFrame];

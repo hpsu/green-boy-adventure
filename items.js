@@ -41,6 +41,17 @@ var CandleFire = new Class({
 		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
 		if(this.acShown > this.msShown) {
 			this.ancestor.candle = null;
+			var xTile = Math.round((this.x)/TILESIZE);
+			var yTile = Math.round((this.y)/TILESIZE)-4;
+
+			if(xTile < 0) xTile = 0;
+			if(yTile < 0) yTile = 0;
+			if(xTile > this.currentRoom.roomWidth-1) xTile=this.currentRoom.roomWidth-1;
+			if(yTile > this.currentRoom.roomHeight-1) yTile=this.currentRoom.roomHeight-1;
+
+			this.currentRoom.getTile(yTile,xTile).fire();
+
+			//bomb()
 			this.destroy();
 		}
 		if(this.acShove > this.msPerOther) {
@@ -71,7 +82,7 @@ var Bomb = new Class({
 	,msShown: 200
 	,msBlowup: 2000
 	,isFriendly: true
-	,sprite: 69
+	,sprite: 122
 	,initialize: function(ancestor) {
 		this.name = 'Sword';
 		this.ancestor = ancestor;
@@ -130,7 +141,7 @@ var Detonation = new Class({
 	,width:TILESIZE*2+12
 	,height:TILESIZE*2+12
 	,acTileSwitchDelta: 0
-	,tile: 66
+	,tile: 110
 	,move: function() {
 		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
 
@@ -154,7 +165,7 @@ var Detonation = new Class({
 			this.destroy();
 		}
 		else if(this.acTileSwitchDelta > 300) {
-			this.tile = 67;
+			this.tile = 111;
 		}
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta=0;
@@ -386,6 +397,20 @@ var puRedPotion = new Class({
 	}
 });
 
+var puBracelet = new Class({
+	Extends: Mob
+	,name: 'puBracelet'
+	,width:HALFTILE
+	,sprite: 132
+	,isFriendly: true
+	,pickup: function(that) {
+		that.items.bracelet = 1;
+		this.destroy();
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE), 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
+	}
+});
 
 var puSword = new Class({
 	Extends: Mob
@@ -407,53 +432,208 @@ var puShield = new Class({
 	,sprite: 105
 	,isFriendly: true
 	,pickup: function(that) {
+		if(this.price) {
+			if(that.getRupees() < this.price) return false;
+			that.addRupees(-this.price);
+		}
 		that.items.shield = 2;
 		new LinkGainItem(this.sprite);
 		this.currentRoom.killSprites();
 	}
 	,draw: function() {
 		placeTile(this.sprite, this.x, this.y);
-		writeText(String(this.price), this.x-TILESIZE+4, this.y+TILESIZE+HALFTILE);
+		writeText((String(this.price).length < 3 ? ' ' : '') + String(this.price), this.x-TILESIZE+4, this.y+TILESIZE+HALFTILE);
+
 	}
 });
 
+var puCompass = new Class({
+	Extends: Mob
+	,sprite: 127
+	,isFriendly: true
+	
+});
+var puWhiteSword = new Class({
+	Extends: Mob
+	,sprite: 128
+	,isFriendly: true
+});
 var puKey = new Class({
 	Extends: Mob
 	,name: 'puKey'
 	,price: 100
 	,width: 8
+	,sprite: 106
 	,isFriendly: true
+	,initialize: function(x,y,room,price) {
+		this.parent(x,y,room);
+		if(typeof price != undefined) this.price = price;
+	}
 	,pickup: function(that) {
+		if(this.price) {
+			if(that.getRupees() < this.price) return false;
+			that.addRupees(-this.price);
+		}
 		that.items.keys++;
-		this.currentRoom.killSprites();
+		
+		this.destroy();
+		if(this.price) {
+			new LinkGainItem(this.sprite,0);
+			this.currentRoom.killSprites();
+		}
 	}
 	,draw: function() {
 		ctx.drawImage(env.spriteSheet, (106*TILESIZE), 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
+		if(this.price) writeText(String(this.price), this.x-TILESIZE+4, this.y+TILESIZE+HALFTILE);
+	}
+});
+
+var puBone = new Class({
+	Extends: Mob
+	,name: 'puBone'
+	,width:HALFTILE
+	,sprite: 108
+	,price: 100
+	,width: 8
+	,isFriendly: true
+	,pickup: function(that) {
+		if(this.price) {
+			if(that.getRupees() < this.price) return false;
+			that.addRupees(-this.price);
+		}
+		that.items.bone = 1;
+		this.currentRoom.killSprites();
+		new LinkGainItem(this.sprite, 1);
+		this.destroy();
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+HALFTILE, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
 		writeText(String(this.price), this.x-TILESIZE+4, this.y+TILESIZE+HALFTILE);
 	}
 });
+
 
 var puCandle = new Class({
 	Extends: Mob
 	,name: 'puCandle'
 	,price: 60
 	,width: 8
+	,sprite: 106
 	,isFriendly: true
 	,pickup: function(that) {
+		if(this.price) {
+			if(that.getRupees() < this.price) return false;
+			that.addRupees(-this.price);
+		}
 		that.items.candle = 1;
+		new LinkGainItem(this.sprite, 1);
 		this.currentRoom.killSprites();
 	}
 	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (106*TILESIZE)+HALFTILE, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+HALFTILE, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
 		writeText(String(this.price), this.x-TILESIZE+4+HALFTILE, this.y+TILESIZE+HALFTILE);
+	}
+
+});
+
+
+var LakeFairy = new Class({
+	Extends: Mob
+	,name: 'LakeFairy'
+	,sprite: 60
+	,spritePos: 0
+	,width: 8
+	,height: 8
+	,isFriendly:true
+	,msPerFrame: 50
+	,heartCount: 0
+	,msPerHeart: 250
+	,acHeartDelta: 0
+	,hearts: []
+	,healthMode: false
+	,initialize: function(x, y, room) {
+		this.parent(x,y,room);
+		this.centerY = Math.floor(this.y-(3.25*TILESIZE));
+		this.centerX = Math.floor(this.x);
+	}
+	,move: function() {
+		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			this.spritePos = this.spritePos ? 0 : HALFTILE;
+		}
+		if(this.healthMode && this.acHeartDelta >= this.msPerHeart) {
+			this.acHeartDelta = 0;
+			env.player.addHealth(0.5);
+			if(this.heartCount == 16) {
+				Array.each(this.hearts, function(x){
+					x.destroy();
+				});
+			}
+			if(this.heartCount++ <8)
+				this.hearts.push(new LakeHeart(this.centerX, this.centerY+(2*TILESIZE)));
+		}
+		this.acDelta+=delta;
+		this.acHeartDelta += delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,pickup: function() {
+		this.healthMode=true;
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+this.spritePos, 0, HALFTILE, TILESIZE, this.centerX, this.centerY, HALFTILE, TILESIZE);
 	}
 });
 
+var LakeHeart = new Class({
+	Extends: Mob
+	,sprite: 22
+	,radius: 3.5*TILESIZE
+	,angle: 180
+	,ocX: 0
+	,ocY: 0
+	,initialize: function(x,y,room) {
+		this.ocY = this.radius*Math.cos(this.angle) + this.y;
+		this.ocX = this.radius*Math.sin(this.angle) + this.x;
+		this.parent(x,y,room);
+	}
+	,move: function() {
+		this.ocY = this.radius*Math.cos(this.angle) + this.y;
+		this.ocX = this.radius*Math.sin(this.angle) + this.x;
+		this.angle+=0.05;
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (22*TILESIZE), 0, HALFTILE, HALFTILE, this.ocX, this.ocY, HALFTILE, HALFTILE); // Heart
+	}
+});
+
+var LakeFairyTrigger = new Class({
+	Extends: Mob
+	,name: 'LakeFairy'
+	,sprite: 60
+	,spritePos: 0
+	,width: 8
+	,height:8
+	,msPerFrame: 50
+
+	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			this.spritePos = this.spritePos ? 0 : HALFTILE;
+		}
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+this.spritePos, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), this.width, this.height);
+	}
+});
 
 var puFairy = new Class({
 	Extends: Mob
 	,name: 'Fairy'
-	,width: 16
+	,width: 8
 	,height: 16
 	,msPerFrame: 10
 	,isFriendly: true
@@ -509,7 +689,7 @@ var puFairy = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+this.spritePos, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+this.spritePos, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), this.width, this.height);
 	}
 });
 
@@ -546,7 +726,7 @@ var puRupee = new Class({
 			this.palette = this.paletteFrames[this.palettePosition++];
 		}
 
-		placeTile(70, this.x, this.y);
+		placeTile(123, this.x, this.y);
 		this.changePalette();
 		
 		this.acDelta+=delta;
@@ -615,19 +795,28 @@ var puHeart = new Class({
 	,width: HALFTILE
 	,height: HALFTILE
 	,msPerFrame: 150
+	,sprite:22
 	,isFriendly: true
+	,price: null
+	,expire: 10000
 	,lastUpdateTime: 0
-	,initialize: function(x,y) {
-		this.parent(x,y);
+	,initialize: function(x,y,room,expire,price) {
+		this.parent(x,y,room);
+		if(typeof expire != undefined) this.expire = expire;
+		if(typeof price != undefined) this.price = price;
 		this.isFriendly = true;
-		(function(){this.destroy();}).delay(10000, this);
+		console.log(this.expire, expire, typeof expire == undefined);
+		if(this.expire) (function(){this.destroy();}).delay(this.expire, this);
 	}
 	,pickup: function(that) {
-		that.health += 1;
-		if(that.health > that.items.hearts) {
-			that.health = that.items.hearts;
+		if(this.price) {
+			if(that.getRupees() < this.price) return false;
+			that.addRupees(-this.price);
 		}
+
+		that.addHealth(1);
 		this.destroy();
+		return true;
 	}
 	,move: function() {
 		var delta = Date.now() - this.lastUpdateTime;
@@ -641,8 +830,11 @@ var puHeart = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (22*TILESIZE), 0, HALFTILE, HALFTILE, this.x, this.y, HALFTILE, HALFTILE); // Heart
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE), 0, HALFTILE, HALFTILE, this.x, this.y, HALFTILE, HALFTILE); // Heart
 		this.changePalette(2);
+		if(this.price) {
+			writeText(String(this.price), this.x-(HALFTILE/2), this.y+TILESIZE+HALFTILE);
+		}
 	}
 	
 });
@@ -676,7 +868,7 @@ var puBomb = new Class({
 		return true;
 	}
 	,draw: function() {
-		placeTile(69, this.x, this.y);
+		placeTile(122, this.x, this.y);
 		if(this.price) {
 			writeText(' '+String(this.price), this.x-HALFTILE, this.y+TILESIZE+HALFTILE);
 		}

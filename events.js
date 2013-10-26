@@ -80,10 +80,10 @@ var DeathEvent = new Class({
 					frame = null;
 				}
 				else if(this.acDelta > 600) {
-					frame = 65;
+					frame = 121;
 				}
 				else if(this.acDelta > 300) {
-					frame = 64;
+					frame = 120;
 				}
 				this.palettes = this.deathPalette;
 				break;
@@ -146,7 +146,6 @@ var Event = new Class({
 		room.addEvent('leave', function() {
 			env.player.y = this.tmpY;
 			env.player.x = this.tmpX;
-			console.log(this);
 			for(var i=0; i < this.MOBs.length; i++) {
 				var mob = this.MOBs[i];
 				this.MOBs.splice(i);
@@ -218,6 +217,13 @@ var MoneyMakingGameEvent = new Class({
 
 var PayMeAndIllTalkEvent = new Class({
 	Extends: Event
+	,prices: [10, 30, 50]
+	,texts: [
+		"this ain't enough\n     to talk."
+		,"go north,west,south,\nwest to the forest\nof maze."
+		,"boy, you're rich!"
+	]
+	,xoff: [3.5, 3, 4]
 	,initialize: function(room) {
 		this.parent(room);
 		
@@ -225,46 +231,44 @@ var PayMeAndIllTalkEvent = new Class({
 		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 103);
 
 		room.rupees = [
-			new mmgRupee((TILESIZE*5)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 10)
-			,new mmgRupee((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 30)
-			,new mmgRupee((TILESIZE*9)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 50)
+			new mmgRupee((TILESIZE*5)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, this.prices[0])
+			,new mmgRupee((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, this.prices[1])
+			,new mmgRupee((TILESIZE*9)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, this.prices[2])
 		];
 		
-		room.rupees[0].worth = 0;
-		room.rupees[1].worth = 0;
-		room.rupees[2].worth = 0;
-
-		room.rupees[0].pickup = function(that) {
-			if(that.getRupees() < this.cost) return;
-			Array.each(this.currentRoom.rupees, function(o) {
-				o.reveal();
-			});
-			that.addRupees(-this.cost);
-			room.txtcnt.destroy();
-			room.txtcnt = new TextContainer(TILESIZE*4-HALFTILE, (TILESIZE*6)+HALFTILE, room, "this ain't enough\n     to talk.");
-		};
-		room.rupees[1].pickup = function(that) {
-			if(that.getRupees() < this.cost) return;
-			Array.each(this.currentRoom.rupees, function(o) {
-				o.reveal();
-			});
-			that.addRupees(-this.cost);
-			room.txtcnt.destroy();
-			room.txtcnt = new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "go north,west,south,\nwest to the forest\nof maze.");
-		};
-		room.rupees[2].pickup = function(that) {
-			if(that.getRupees() < this.cost) return;
-			Array.each(this.currentRoom.rupees, function(o) {
-				o.reveal();
-			});
-			that.addRupees(-this.cost);
-			room.txtcnt.destroy();
-			room.txtcnt = new TextContainer(TILESIZE*4, (TILESIZE*6)+HALFTILE, room, "boy, you're rich!");
-		};
-
+		
+		for(var i=0; i<3; i++) {
+			room.rupees[i].worth = 0;
+			room.rupees[i].id = i;
+			room.rupees[i].msg = this.texts[i];
+			room.rupees[i].xoff = this.xoff[i];
+			room.rupees[i].pickup = function(that) {
+				if(that.getRupees() < this.cost) return;
+				Array.each(this.currentRoom.rupees, function(o) {
+					o.reveal();
+				});
+				that.addRupees(-this.cost);
+				room.txtcnt.destroy();
+				room.txtcnt = new TextContainer(TILESIZE*this.xoff, (TILESIZE*6)+HALFTILE, room, this.msg);
+			};
+			
+		}
 	}
 	
 });
+
+var PayMeAndIllTalkEvent2 = new Class({
+	Extends: PayMeAndIllTalkEvent
+	,prices: [5, 10, 20]
+	,texts: [
+		"this ain't enough\n     to talk."
+		,"this ain't enough\n     to talk."
+		,"    go up,up,\nthe mountain ahead."
+
+	]
+	,xoff: [3.5, 3.5, 3.5]
+});
+
 
 var OldManGraveEvent = new Class({
 	Extends: Event
@@ -290,8 +294,10 @@ var LinkGainItem = new Class({
 	Extends: Mob
 	,shownMs: 2000
 	,acDelta: 0
-	,initialize: function(itemsprite){
+	,initialize: function(itemsprite, halfspritepos, quarterspritepos){
 		this.itemsprite = itemsprite
+		this.halfspritepos = halfspritepos
+		this.quarterspritepos = quarterspritepos
 		env.player.isActive=false;
 		this.x = env.player.x;
 		this.y = env.player.y;
@@ -311,7 +317,12 @@ var LinkGainItem = new Class({
 	}
 	,draw: function() {
 		placeTile(109, this.x, this.y);
-		placeTile(this.itemsprite, this.x, this.y-TILESIZE);
+		if(this.halfspritepos != undefined) {
+			ctx.drawImage(env.spriteSheet, (this.itemsprite*TILESIZE)+(this.halfspritepos*HALFTILE), (this.quarterspritepos != undefined ? this.quarterspritepos : 0), HALFTILE, (this.quarterspritepos != undefined ? HALFTILE : TILESIZE), Math.floor(this.x), Math.floor(this.y-TILESIZE), HALFTILE, (this.quarterspritepos != undefined ? HALFTILE : TILESIZE));
+		}
+		else {
+			placeTile(this.itemsprite, this.x, this.y-TILESIZE);
+		}
 	}
 });
 
@@ -352,7 +363,7 @@ var TakeOneEvent = new Class({
 
 var StoreEvent = new Class({
 	Extends: Event
-	,initialize: function(room) {
+	,initialize: function(room,text) {
 		this.parent(room);
 		
 		room.killSprites = function(){
@@ -364,7 +375,7 @@ var StoreEvent = new Class({
 			this.item3.destroy();
 		};
 		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 104);
-		room.txtNode = new TextContainer(TILESIZE*2+HALFTILE, (TILESIZE*6)+HALFTILE, room, "buy somethin' will ya!");
+		room.txtNode = new TextContainer(TILESIZE*2+HALFTILE, (TILESIZE*6)+HALFTILE, room, text ? text : "buy somethin' will ya!");
 		
 		room.rupee = new mmgRupee((TILESIZE*3), (TILESIZE*11)-4, room, true);
 	}
@@ -400,6 +411,50 @@ var ShieldBombArrowEvent = new Class({
 	}
 });
 
+var ShieldBoneHeartStore = new Class({
+	Extends: StoreEvent
+	,initialize: function(room) {
+		this.parent(room,"    boy, this is\n  really expensive!");
+		
+		room.item1 = new puShield((TILESIZE*6)-4, (TILESIZE*10)-HALFTILE, room);
+		room.item1.price = 90;
+		room.item2 = new puBone((TILESIZE*8)-4, (TILESIZE*10)-HALFTILE, room);
+		room.item3 = new puHeart((TILESIZE*10)-4, (TILESIZE*10)-HALFTILE, room, null, 10);
+
+		room.tmpHeartFunc = room.item3.pickup;
+		room.item3.pickup = function(that) {
+			if(room.tmpHeartFunc.bind(this).pass(that)()){
+				room.killSprites();
+				new LinkGainItem(this.sprite, 0, 0);
+			}
+		};
+
+	}
+});
+
+
+var HeartContainerEvent515 = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		if(!room.heartContainer)
+			room.heartContainer = new puHeartContainer(12*TILESIZE,9*TILESIZE,room);
+	}
+	
+});
+
+var LakeFairyEvent = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		if(!room.fairy) {
+			room.fairy = new LakeFairy(8*TILESIZE-(HALFTILE/2),11*TILESIZE,room);
+			//new LakeFairyTrigger(8*TILESIZE-(HALFTILE/2),11*TILESIZE,room)
+		}
+			
+	}
+	
+});
+
+
 
 var SecretToEverybody = new Class({
 	Extends: Event
@@ -434,6 +489,30 @@ var DoorRepairEvent = new Class({
 		env.player.addRupees(-20);
 		room.eventDone=true;
 		//@TODO: Animate countdown of rupees
+	}
+});
+
+var WhiteSwordEvent = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room);
+		if(room.eventDone) return;
+
+		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
+		room.txtNode = new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "master using it and\n you can have this.");
+
+		room.whiteSword = new puWhiteSword(TILESIZE*7.5, TILESIZE*9.5, room);
+		room.whiteSword.pickup = function(that){
+			if(that.items.hearts < 5)
+				return;
+			that.items.sword=2;
+			this.destroy();
+			room.guy.destroy();
+			room.txtNode.destroy();
+			new LinkGainItem(this.sprite);
+			room.eventDone=true;
+		};
+		
 	}
 });
 
@@ -493,7 +572,7 @@ var EnemyDeath = new Class({
 	,lastUpdateTime: 0
 	,animFrame: 0
 	,msPerFrame: 30
-	,frames: [64, 64, 64, 65, 65, 65, 64, 64, 64, 64]
+	,frames: [120, 120, 120, 121, 121, 121, 120, 120, 120, 120]
 	,palette: 0
 	,changePalette: function() {
 		if(this.palette > 0) {
@@ -548,3 +627,104 @@ var EnemyDeath = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 });
+
+var d1r7_6 = new Class({
+	initialize: function(room) {
+		// spawn key when all mobs are destroyed
+		Array.each(room.MOBs, function(mob){
+			if(mob.name != 'Keese' || mob.tmpFunc) return;
+			mob.tmpFunc = mob.destroy;
+			mob.destroy = function() {
+				this.tmpFunc();
+				var keeseCnt = 0;
+				Array.each(room.MOBs, function(mab) {
+					if(mab.name == 'Keese')
+						keeseCnt++;
+				});
+				if(keeseCnt == 0) {
+					new puKey(10*TILESIZE,12*TILESIZE,room,0);
+				}
+			};
+			
+		}, this);
+	}
+	
+});
+
+var d1r7_8 = new Class({
+	initialize: function(room) {
+		// spawn key on one staflos and make it follow him
+		if(!room.keystaflos) {
+			console.log('creating keystaflos');
+			room.keystaflos = new KeyStaflos(null,null,room);
+		}
+	}
+});
+
+var d1r5_6 = new Class({
+	initialize: function(room) {
+		room.doorOpened = false;
+		
+		room.tiles[5][14].sprite=295;
+		
+		room.tiles[1][7].touch = room.tiles[1][8].touch = function() {
+			if(env.player.items.keys < 1 || room.doorOpened) return;
+			room.tiles[1][7].sprite=291;
+			room.tiles[1][8].sprite=292;
+			room.tiles[1][7].isSolid = false;
+			room.tiles[1][8].isSolid = false;
+			env.player.addKeys(-1);
+			room.doorOpened = true;
+			paintRoom();
+		};
+	}
+});
+
+var DungeonBombHole = new Class({
+	Extends: Mob
+	,sprite: 297
+	
+});
+var d1r5_7 = new Class({
+	initialize: function(room) {
+		// spawn key when all mobs are destroyed
+		new DungeonBombHole(7.5*TILESIZE, 5*TILESIZE,room);
+		Array.each(room.MOBs, function(mob){
+			mob.tmpFunc = mob.destroy;
+			mob.destroy = function() {
+				this.tmpFunc();
+				var staflosCnt = 0;
+				Array.each(room.MOBs, function(mab) {
+					if(mab.name == 'Staflos')
+						staflosCnt++;
+				});
+				if(staflosCnt == 0) {
+					new puKey(8*TILESIZE,7*TILESIZE,room,0);
+				}
+			};
+			
+		}, this);
+	}
+});
+var d1r5_8 = new Class({
+	initialize: function(room) {
+		new puCompass(12*TILESIZE, 9*TILESIZE,room);
+	}
+});
+
+var d1r7_7 = new Class({
+	initialize: function(room) {
+		room.doorOpened = false;
+		room.tiles[1][7].touch = room.tiles[1][8].touch = function() {
+			if(env.player.items.keys < 1 || room.doorOpened) return;
+			room.tiles[1][7].sprite=291;
+			room.tiles[1][8].sprite=292;
+			room.tiles[1][7].isSolid = false;
+			room.tiles[1][8].isSolid = false;
+			env.player.addKeys(-1);
+			room.doorOpened = true;
+			paintRoom();
+		};
+	}	
+});
+

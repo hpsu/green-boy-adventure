@@ -99,6 +99,7 @@ var Mob = new Class({
 			this.currentRoom = room
 		else
 			this.currentRoom = rooms.getCurrentRoom();
+
 		this.currentRoom.MOBs.unshift(this);
 		
 		this.moveToRandomNonSolidTile(x,y);
@@ -253,6 +254,11 @@ var PauseScreen = new Class({
 		//}
 
 
+
+
+		//if(env.player.items.bracelet > 0) {
+			ctx.drawImage(env.spriteSheet, (132*TILESIZE), 0, HALFTILE, TILESIZE, Math.floor(this.x+(13*TILESIZE)), Math.floor(YOFF+this.y+(1.5*TILESIZE)), HALFTILE, TILESIZE);
+		//}
 		
 
 
@@ -309,6 +315,11 @@ var Link = new Class({
 		this.health+=worth;
 		if(this.health > this.items.hearts)
 			this.health = this.items.hearts;
+	}
+	,addKeys: function(worth) {
+		this.items.keys+=worth;
+		if(this.items.keys < 0)
+			this.items.keys = 0;
 	}
 	,addRupees: function(worth) {
 		this.items.rupees+=worth;
@@ -430,6 +441,7 @@ var Link = new Class({
 				}
 				return;
 			case this.currentRoom.getTile(yTile,xTile).isSolid && !window.godMode:
+				this.currentRoom.getTile(yTile,xTile).touch();
 				return;
 				
 		}
@@ -627,23 +639,24 @@ function paintRoom(tintFrom, tintTo){
 	ctxBg.clearRect(0,0,WIDTH,HEIGHT);
 
 	if(room.bgRect) {
-		console.log(room.bgRect);
 		filledRectangle(room.bgRect[0]*TILESIZE, (room.bgRect[1]*TILESIZE)+4*TILESIZE, room.bgRect[2]*TILESIZE, room.bgRect[3]*TILESIZE,room.bgRect[4],ctxBg);
 
 	}
 
 	y = 4, x = 0;
+	var tileset = room.tileset;
+	
 	Array.each(room.getTiles(), function(row) {
 		x = 0;
 		Array.each(row, function(tile) {
+			if(tile.sprite) {
+				placeTile(tile.sprite, x*(TILESIZE/SCALE), YOFF+y*(TILESIZE/SCALE), tintFrom ? tintFrom : tile.tintFrom, tintTo ? tintTo : tile.tintTo, null, tile.flip, ctxBg);
+			}
 			if(window.spriteDebug) {
 				ctxBg.beginPath();
-				ctxBg.strokeStyle="#f0f";;
+				ctxBg.strokeStyle="#f0f";
 				ctxBg.rect(x*TILESIZE, y*TILESIZE, TILESIZE, TILESIZE);
 				ctxBg.stroke();
-			}
-			if(tile.sprite) {
-				placeTile(tile.sprite, x*(TILESIZE/SCALE), YOFF+y*(TILESIZE/SCALE), tintFrom ? tintFrom : tile.tintFrom, tintTo ? tintTo : tile.tintTo, null, null, ctxBg);
 			}
 			x++;
 		});
@@ -686,10 +699,21 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 			g = imdata[p+1];
 			b = imdata[p+2];
 			
-			if(r == tintFrom[0] && g == tintFrom[1] && b == tintFrom[2]) {
-				imdata[p] = tintTo[0];
-				imdata[p+1] = tintTo[1];
-				imdata[p+2] = tintTo[2];
+			if(tintFrom[0] instanceof Array) {
+				for(var i=0;i<tintFrom.length;i++) {
+					if(r == tintFrom[i][0] && g == tintFrom[i][1] && b == tintFrom[i][2]) {
+						imdata[p] = tintTo[i][0];
+						imdata[p+1] = tintTo[i][1];
+						imdata[p+2] = tintTo[i][2];
+					}
+				}
+			}
+			else {
+				if(r == tintFrom[0] && g == tintFrom[1] && b == tintFrom[2]) {
+					imdata[p] = tintTo[0];
+					imdata[p+1] = tintTo[1];
+					imdata[p+2] = tintTo[2];
+				}
 			}
 		}
 		TintCache.set(tintTo, frame, map);

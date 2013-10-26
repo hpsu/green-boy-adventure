@@ -1,7 +1,7 @@
 var Enemy = new Class({
 	Extends: Mob
-	,initialize: function(x,y) {
-		this.parent(x,y);
+	,initialize: function(x,y,room) {
+		this.parent(x,y,room);
 	}
 	,die: function() {
 		new EnemyDeath(this.x, this.y);
@@ -123,6 +123,13 @@ var RockProjectile = new Class({
 	,damage: 0.5
 	,tile: 115
 	,tileBlock: true
+});
+
+var MagicProjectile = new Class({
+	Extends: Projectile
+	,damage: 3
+	,tile: 131
+	,rotatePalette: true
 });
 
 /**
@@ -572,6 +579,7 @@ var Peahat = new Class({
 	,damage:0.5
 	,frames: [88,89]
 	,msPerPalette: 50
+	,killableOnMove: false
 	,acPaletteDelta: 0
 	,acDirDelta: 0
 	,direction: 0
@@ -581,12 +589,12 @@ var Peahat = new Class({
 	,msSpeed:0
 	,accelAdd: 1.5
 	,state: 0 // Acceleration, flight, deceleration, rest
-	,initialize: function(x,y) {
-		this.parent(x,y);
+	,initialize: function(x,y,room) {
+		this.parent(x,y,room);
 		this.randomDirection();
 	}
 	,impact: function(damage, direction) {
-		if(this.state == 3) {
+		if(this.state == 3 || this.killableOnMove) {
 			this.parent(damage,direction);
 		}
 	}
@@ -612,7 +620,6 @@ var Peahat = new Class({
 			switch(this.state) {
 				case 0:
 					if(this.msSpeed >= 90) {
-						console.log('entering state 1');
 						this.state = 1;
 						this.stateFrame = 0;
 						this.stateTime = Number.random(0, 5000)
@@ -623,14 +630,12 @@ var Peahat = new Class({
 					break;
 				case 1:
 					if(this.stateFrame >= this.stateTime) {
-						console.log('entering state 2');
 						this.state = 2;
 						this.stateFrame = 0;
 					}
 					break;
 				case 2:
 					if(this.msSpeed < 0) {
-						console.log('entering state 3');
 						this.state = 3;
 						this.stateFrame = 0
 						this.stateTime = Number.random(0, 5000)
@@ -641,7 +646,6 @@ var Peahat = new Class({
 					break;
 				case 3:
 					if(this.stateFrame >= this.stateTime) {
-						console.log('entering state 0');
 						this.state = 0;
 						this.stateFrame = 0;
 					}
@@ -695,6 +699,7 @@ var RandomMob = new Class({
 	,msPerPalette: 20
 	,acPaletteDelta: 0
 	,acDelta: 0
+	,projectile: null
 	,movementRate: 0.5
 	,dirDelta: 0
 	,passive: false
@@ -942,5 +947,199 @@ var Ghini = new Class({
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(3);
+	}
+});
+
+/**
+ * Enemy Armos
+ *******************************************
+ * Solid statue that turns alive when touched
+ * Randomly spawns with faster movement rate
+ */
+var Armos = new Class({
+	Extends: RandomMob
+	,initialize: function(x,y,room) {
+		if(Number.random(0,3) == 3) {
+			this.movementRate = 1.5;
+
+		}
+		this.parent(x,y,room);
+	}
+	,maxAnimFrames: 2
+	,projectile: null
+	,damage: 1
+	,health: 1.5
+	,frames: {
+		 0:		{sprites: [116,117], flip: [null,null]}
+		,90:	{sprites: [116,117], flip: [null,null]}
+		,180:	{sprites: [116,117], flip: [null,null]}
+		,270:	{sprites: [118,119], flip: [null,null]}
+	}
+	,draw: function() {
+		frame = this.frames[this.direction]['sprites'][this.animFrame];
+		flip = this.frames[this.direction]['flip'][this.animFrame];
+		placeTile(frame, this.x, this.y, null, null, null, flip);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	}
+});
+
+/**
+ * Enemy Staflos
+ *******************************************
+ */
+var Staflos = new Class({
+	Extends: RandomMob
+	,maxAnimFrames: 2
+	,projectile: null
+	,damage: 0.5
+	,name: "Staflos"
+	,width:8
+	,health: 1
+	,frames: {
+		 0:		{sprites: [124,124], flip: [null,'x']}
+		,90:	{sprites: [124,124], flip: [null,'x']}
+		,180:	{sprites: [124,124], flip: [null,'x']}
+		,270:	{sprites: [124,124], flip: [null,'x']}
+	}
+	,draw: function() {
+		frame = this.frames[this.direction]['sprites'][this.animFrame];
+		flip = this.frames[this.direction]['flip'][this.animFrame];
+		placeTile(frame, this.x, this.y, null, null, null, flip);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	}
+});
+
+/**
+ * Enemy KeyStaflos
+ *******************************************
+ * Variant of the Staflos that carries a visible key
+ * @TODO: Make key (all drops) immune for a while so that the sword does not instantly pick it up
+ */
+var KeyStaflos = new Class({
+	Extends: Staflos
+	,name: "KeyStaflos"
+	,destroy: function() {
+		this.parent();
+		new puKey(Math.round(this.x+(HALFTILE/2)), Math.round(this.y),0);
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (106*TILESIZE), 0, this.width, this.height, Math.round(this.x+(HALFTILE/2)), Math.round(this.y), this.width, this.height);
+		this.parent();
+	}
+});
+
+var Keese = new Class({ 
+	Extends: Peahat
+	,name: "Keese"
+	,health: 0.5
+	,killableOnMove: true
+	,frames: [125,126]
+});
+
+var Wizzrobe = new Class({
+	Extends: RandomMob
+	,damage: 1
+	,health: 1.5
+	,projectile: MagicProjectile
+	,name: "Wizzrobe"
+	,frames: {
+		 0:		{sprites: 129, flip: 'x'}
+		,90:	{sprites: 129, flip: 'x'}
+		,180:	{sprites: 129, flip: null}
+		,270:	{sprites: 130, flip: null}
+	}
+	//,move: @TODO: Spawns like Red Leever but blinks instead of dive. Does not move
+	,draw: function() {
+		frame = this.frames[this.direction]['sprites'];
+		flip = this.frames[this.direction]['flip'];
+		placeTile(frame, this.x, this.y, null, null, null, flip);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	}
+});
+
+var Zol = new Class({
+	//@TODO: slight movement pause between tiles
+	//@TODO: Splits to two Gel() on 0.5 health
+	Extends: RandomMob
+	,damage: 1
+	,health: 1
+	,name: 'Zol'
+	,maxAnimFrames: 2
+	,frames: [133,134]
+	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+
+			if(++this.animFrame >= this.maxAnimFrames) this.animFrame=0;
+		}
+
+		if(this.isImmune) {
+			if(this.acPaletteDelta > this.msPerPalette) {
+				this.acPaletteDelta = 0;
+				if(++this.palette > 3) this.palette = 0;
+			}
+		}
+		else 
+			this.palette = this.defaultPalette;
+
+
+		if(this.dirDelta > this.msPerFrame*Number.random(16,32)) {
+			this.dirDelta = 0;
+			this.randomDirection();
+		}
+		
+		if(this.projectile && this.rockDelta > this.msPerFrame*Number.random(32,64)) {
+			this.rockDelta = 0;
+			this.passive=true;
+			(function(o){o.passive=false}).pass(this).delay(500);
+			new this.projectile(this);
+		}
+
+		//skuffa
+		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 4*HALFTILE) {
+			if(!isNaN(this.impactDirection)) {
+				for(var i=0; i<6; i++) {
+					this.flytta(this.impactDirection);
+					this.acImpactMove += this.movementRate;
+				}
+			}
+			else {
+				console.log('Failed to skuffa', this.impactDirection);
+			}
+		}
+
+		if(!this.passive)
+		this.flytta(this.direction);
+
+		this.dirDelta += delta;
+		this.rockDelta += delta;
+		this.acDelta+=delta;
+		this.acPaletteDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		frame = this.frames[this.animFrame];
+		placeTile(frame, this.x, this.y);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	}
+});
+
+var Gel = new Class({
+	//@TODO: slight movement pause between tiles
+	Extends: Zol
+	,health: 0.5
+	,damage: 0.5
+	,msPerFrame: 55
+	,name: 'Gel'
+	,width: HALFTILE
+	,height: 9
+	,sprite: 135
+	,frames: [0,8]
+	,draw: function() {
+		frame = this.frames[this.animFrame];
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+frame, 0, this.width, this.height, Math.round(this.x+(HALFTILE/2)), Math.round(this.y), this.width, this.height);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
 	}
 });

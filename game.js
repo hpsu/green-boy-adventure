@@ -92,7 +92,22 @@ window.addEvent('keyup', function(e) { env.keyStates[e.key] = false; });
  * Base skeleton class for all Mobile OBjects
  */
 var Mob = new Class({
-	initialize: function(x,y,room){
+	acDelta: 0
+	,acImpactMove: 0
+	,frames: []
+	,health: 0.5
+	,height: TILESIZE
+	,inSpaceTime: true
+	,isActive: true
+	,isFriendly: false
+	,isImmune: false
+	,lastUpdatedTime: 0
+	,lastUpdateTime: 0
+	,msPerFrame: 100
+	,palette: 0
+	,spawning: true
+	,width: TILESIZE
+	,initialize: function(x,y,room){
 		x = sc(x);
 		y = sc(y);
 		if(room)
@@ -104,8 +119,6 @@ var Mob = new Class({
 		
 		this.moveToRandomNonSolidTile(x,y);
 	}
-	,isFriendly: false
-	,inSpaceTime: true
 	,moveToRandomNonSolidTile: function(x, y) {
 		if(x && y) {
 			this.x = x;
@@ -138,17 +151,6 @@ var Mob = new Class({
 			return true;
 		}
 	}
-	,msPerFrame: 100
-	,lastUpdateTime: 0
-	,isImmune: false
-	,width: TILESIZE
-	,height: TILESIZE
-	,health: 0.5
-	,palette: 0
-	,frames: []
-	,acDelta: 0
-	,acImpactMove: 0
-	,lastUpdatedTime: 0
 	,changePalette: function(fromPalette, palettes) {
 		if(!palettes) palettes = env.palettes;
 		if(!fromPalette) fromPalette = 0;
@@ -206,7 +208,6 @@ var Mob = new Class({
 		this.isActive = false;
 		this.currentRoom.MOBs.erase(this);
 	}
-	,isActive: true
 	,move: function() {}
 	,draw: function() {
 		placeTile(this.sprite, this.x, this.y);

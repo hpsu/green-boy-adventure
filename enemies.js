@@ -1,5 +1,9 @@
 var Enemy = new Class({
 	Extends: Mob
+	,spawnFrames: [110, 111, 112]
+	,spawnFrame: 0
+	,acDelta: 0
+	,lastUpdateTime:0
 	,initialize: function(x,y,room) {
 		this.parent(x,y,room);
 	}
@@ -7,7 +11,29 @@ var Enemy = new Class({
 		new EnemyDeath(this.x, this.y);
 		this.destroy();
 	}
-	,draw: function() {}
+	,move: function() {
+		if(this.spawning) {
+			var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+			if(this.acDelta > (this.spawnFrame == 0 ? 800 : 100)) {
+				if(++this.spawnFrame >= this.spawnFrames.length) {
+					this.spawning = false; 
+				}
+				this.acDelta = 0;
+
+			}
+			this.acDelta+=delta;
+			this.lastUpdateTime = Date.now();
+			return true;
+		}
+		return false;
+	}
+	,draw: function() {
+		if(this.spawning) {
+			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
+			return true;
+		}
+		return false;
+	}
 });
 
 /**
@@ -234,6 +260,7 @@ var Tektite = new Class({
 		(function(ob){ob.jump();}).pass(this).delay(Number.random(100,1000));
 	}
 	,move: function() {
+		if(this.parent()) return;
 		var delta = Date.now() - this.lastUpdateTime;
 		if(this.isJumping && this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
@@ -263,6 +290,7 @@ var Tektite = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
+		if(this.parent()) return;
 		placeTile(this.sprite, this.x, this.y);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
 
@@ -335,8 +363,8 @@ var Leever = new Class({
 		}
 	}
 	,move: function() {
+		if(this.parent()) return;
 		var delta = Date.now() - this.lastUpdateTime;
-
 
 		if(this.state == 'normal') {
 			if(this.mode=='random') {
@@ -452,6 +480,7 @@ var Leever = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
+		if(this.parent()) return;
 		if(!this.state) return;
 		frame = this.frames[this.state][this.animFrame];
 		placeTile(frame, this.x, this.y);
@@ -524,6 +553,7 @@ var RiverZora = new Class({
 		this.y = (yTile+4)*TILESIZE;
 	}
 	,move: function() {
+
 		var delta = Date.now() - this.lastUpdateTime;
 
 		if(this.acDelta > this.msPerFrame) {
@@ -603,6 +633,7 @@ var Peahat = new Class({
 		this.direction = directions[Number.random(0,directions.length-1)];
 	}
 	,move: function() {
+		if(this.parent()) return;
 		var delta = Date.now() - this.lastUpdateTime;
 
 		if(this.isImmune && this.acPaletteDelta > this.msPerPalette) {
@@ -680,6 +711,7 @@ var Peahat = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
+		if(this.parent()) return;
 		frame = this.frames[this.animFrame];
 		placeTile(frame, this.x, this.y);
 		if(this.isImmune)
@@ -754,6 +786,7 @@ var RandomMob = new Class({
 
 	}
 	,move: function() {
+		if(this.parent()) return;
 		var delta = Date.now() - this.lastUpdateTime;
 
 		if(this.acDelta > this.msPerFrame) {
@@ -811,6 +844,7 @@ var RandomMob = new Class({
 		this.direction = directions[Number.random(0,3)];
 	}
 	,draw: function() {
+		if(this.parent()) return;
 		frame = this.frames[this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, (270+this.direction%360)/180);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
@@ -830,13 +864,6 @@ var Octorok = new Class({
 	,maxAnimFrames: 2
 	,frames: [113,114]
 	,projectile: RockProjectile
-	,draw: function() {
-		frame = this.frames[this.animFrame];
-		placeTile(frame, this.x, this.y, null, null, (270+this.direction%360)/180);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-		//if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-//		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
-	}
 });
 
 /**

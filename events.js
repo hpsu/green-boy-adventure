@@ -387,7 +387,7 @@ var CandleShieldKeyStoreEvent = new Class({
 		this.parent(room);
 		
 		room.item1 = new puShield((TILESIZE*6)-4, (TILESIZE*10)-HALFTILE, room);
-		room.item2 = new puKey((TILESIZE*8)-4, (TILESIZE*10)-HALFTILE, room);
+		room.item2 = new puKey((TILESIZE*8)-4, (TILESIZE*10)-HALFTILE, room, 100);
 		room.item3 = new puCandle((TILESIZE*10)-4, (TILESIZE*10)-HALFTILE, room);
 	}
 });

@@ -715,7 +715,7 @@ var d1r5_8 = new Class({
 var d1r7_7 = new Class({
 	initialize: function(room) {
 		room.doorOpened = false;
-		room.tiles[1][7].touch = room.tiles[1][8].touch = function() {
+		/*room.tiles[1][7].touch = room.tiles[1][8].touch = function() {
 			if(env.player.items.keys < 1 || room.doorOpened) return;
 			room.tiles[1][7].sprite=291;
 			room.tiles[1][8].sprite=292;
@@ -724,7 +724,7 @@ var d1r7_7 = new Class({
 			env.player.addKeys(-1);
 			room.doorOpened = true;
 			paintRoom();
-		};
+		};*/
 	}	
 });
 

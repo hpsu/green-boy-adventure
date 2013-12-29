@@ -399,6 +399,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,277]
 		]
 		,scriptedEvent: d1r7_7
+		,enemies: [LockedDoorNorth]
 	})
 	,new Room({row: 7, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]

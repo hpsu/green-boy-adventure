@@ -178,11 +178,13 @@ var Mob = new Class({
 			ctx.putImageData(map, this.x, this.y);
 		}
 	}
-	,collidesWith: function(that) {
-		var  ax1 = this.x
-			,ax2 = this.x+this.width
-			,ay1 = this.y
-			,ay2 = this.y+this.height
+	,collidesWith: function(that, tx, ty) {
+		if(typeof tx == 'undefined') tx = this.x;
+		if(typeof ty == 'undefined') ty = this.y;
+		var  ax1 = tx
+			,ax2 = tx+this.width
+			,ay1 = ty
+			,ay2 = ty+this.height
 			,bx1 = that.x
 			,bx2 = that.x+that.width
 			,by1 = that.y
@@ -442,8 +444,14 @@ var Link = new Class({
 				}
 				return;
 			case this.currentRoom.getTile(yTile,xTile).isSolid && !window.godMode:
+				pass = false;
+				Array.each(rooms.getCurrentRoom().MOBs, function(that){
+					if(that != this && that.isFriendly && that.canPassThru && that.canPassThru(this, tx, ty)) {
+						pass = true;
+					}
+				},this);
 				this.currentRoom.getTile(yTile,xTile).touch();
-				return;
+				if(!pass) return;
 				
 		}
 

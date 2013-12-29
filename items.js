@@ -915,3 +915,30 @@ var font = {
 	 a: [ 0, 0],b: [ 1, 0],e: [ 2, 0],f: [ 3, 0],i: [ 4, 0],j: [ 5, 0],m: [ 6, 0],n: [ 7, 0],q: [ 8, 0],r: [ 9, 0],u: [10, 0],v: [11, 0],  y: [12, 0],  z: [13, 0],',': [14, 0],'!': [15, 0],'.': [16, 0],0: [17, 0],3: [18, 0],4: [19, 0],7: [20, 0],8: [21, 0]
 	,c: [ 0, 1],d: [ 1, 1],g: [ 2, 1],h: [ 3, 1],k: [ 4, 1],l: [ 5, 1],o: [ 6, 1],p: [ 7, 1],s: [ 8, 1],t: [ 9, 1],w: [10, 1],x: [11, 1],'-': [12, 1],'.': [13, 1],"'": [14, 1],'&': [15, 1],  1: [16, 1],2: [17, 1],5: [18, 1],6: [19, 1],9: [20, 1],'+': [21, 1]
 };
+
+var LockedDoorNorth = new Class({
+	Extends: Mob
+	,isFriendly: true
+	,x: 7.5*TILESIZE
+	,y: 5*TILESIZE
+	,sprite: 298
+	,lockedSprite: 298
+	,isLocked: true
+	,openSprite: 299
+	,initialize: function(x,y,room) {
+		this.parent(this.x,this.y,room);
+	}
+	,canPassThru: function(that, tx, ty) {
+		if(!that.collidesWith(this, tx, ty)) return false;
+		if(tx < this.x-5 || tx+that.width > this.x+this.width+5) return false;
+		if(this.isLocked && that.items.keys > 0) {
+			that.items.keys -= 1; 
+			this.isLocked = false;
+		}
+		return !this.isLocked;
+	}
+	,draw: function() {
+		placeTile(this.isLocked ? this.lockedSprite : this.openSprite, this.x, this.y);
+	}
+
+});

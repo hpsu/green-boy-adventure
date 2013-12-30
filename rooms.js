@@ -4,7 +4,7 @@
  
 var rooms = null;
  
-var globalHollows = [43, 71, 49, 63, 227, 240, 241, 239, 242, 245, 205, 260, 261, 273, 291, 292];
+var globalHollows = [43, 71, 49, 63, 227, 245];
  
 function switchRoom(row,col,container) {
 	if(!container) container = rooms;
@@ -368,7 +368,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,260,261,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,277]
-		],enemies: [Staflos, Staflos, Staflos]
+		],enemies: [DoorSouth, DoorNorth, Staflos, Staflos, Staflos]
 	})
 	,new Room({row: 7, col: 6, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -382,7 +382,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		], enemies: [Keese, Keese, Keese]
+		], enemies: [DoorEast, Keese, Keese, Keese]
 		,scriptedEvent: d1r7_6
 	})
 	,new Room({row: 7, col: 7, tileset: 1, tiles: [
@@ -399,7 +399,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,277]
 		]
 		,scriptedEvent: d1r7_7
-		,enemies: [LockedDoorNorth]
+		,enemies: [LockedDoorNorth, DoorWest, DoorEast, DoorSouth]
 	})
 	,new Room({row: 7, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -414,7 +414,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
 		]
-		,enemies: [Staflos, Staflos, Staflos, Staflos]
+		,enemies: [DoorWest, Staflos, Staflos, Staflos, Staflos]
 		,scriptedEvent: d1r7_8
 	})
 ]);

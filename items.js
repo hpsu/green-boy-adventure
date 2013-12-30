@@ -916,29 +916,134 @@ var font = {
 	,c: [ 0, 1],d: [ 1, 1],g: [ 2, 1],h: [ 3, 1],k: [ 4, 1],l: [ 5, 1],o: [ 6, 1],p: [ 7, 1],s: [ 8, 1],t: [ 9, 1],w: [10, 1],x: [11, 1],'-': [12, 1],'.': [13, 1],"'": [14, 1],'&': [15, 1],  1: [16, 1],2: [17, 1],5: [18, 1],6: [19, 1],9: [20, 1],'+': [21, 1]
 };
 
-var LockedDoorNorth = new Class({
+var Door = new Class({
 	Extends: Mob
 	,isFriendly: true
-	,x: 7.5*TILESIZE
-	,y: 5*TILESIZE
+	,x: 0
+	,y: 0
+	,direction: 0
 	,sprite: 298
 	,lockedSprite: 298
-	,isLocked: true
+	,sprites: {
+		open: {0: 241, 90: 299, 180: 240, 270: 299}
+		,locked: {0: 294, 90: 298, 180: 293, 270: 298}
+	}
+	,isLocked: false
 	,openSprite: 299
 	,initialize: function(x,y,room) {
+		var xPost = {0: 14*TILESIZE, 90: 7.5*TILESIZE, 180: 1*TILESIZE, 270: 7.5*TILESIZE}
+			,yPost = {0: 9*TILESIZE, 90: 13*TILESIZE, 180: 9*TILESIZE, 270: 5*TILESIZE};
+		this.x = xPost[this.direction];
+		this.y = yPost[this.direction];
+
 		this.parent(this.x,this.y,room);
 	}
 	,canPassThru: function(that, tx, ty) {
 		if(!that.collidesWith(this, tx, ty)) return false;
-		if(tx < this.x-5 || tx+that.width > this.x+this.width+5) return false;
+		this.unlock(that);
+		return !this.isLocked;
+	}
+	,unlock: function(that) {
 		if(this.isLocked && that.items.keys > 0) {
 			that.items.keys -= 1; 
 			this.isLocked = false;
 		}
-		return !this.isLocked;
 	}
 	,draw: function() {
-		placeTile(this.isLocked ? this.lockedSprite : this.openSprite, this.x, this.y);
+		var state = this.isLocked ? 'locked' : 'open';
+		placeTile(this.sprites[state][this.direction], this.x, this.y);
 	}
+});
 
+var DoorEast = new Class({
+	Extends: Door
+	,direction: 0
+	,canPassThru: function(that, tx, ty) {
+		if(!this.parent(that, tx, ty)) return false;
+
+		if(ty < this.y-5 || ty+that.height > this.y+this.height+5) return false;
+		if(tx > this.x) {
+			if(!rooms.exists(that.currentRoom.row, that.currentRoom.col+1)) {console.log('Room not found');return false;}
+			that.currentRoom = switchRoom(that.currentRoom.row, that.currentRoom.col+1);
+			that.x = TILESIZE;
+			return false;
+
+		}
+		
+		return !this.isLocked;
+	}
+});
+
+var LockedDoorEast = new Class({
+	Extends: DoorEast
+	,isLocked: true
+});
+
+var DoorSouth = new Class({
+	Extends: Door
+	,direction: 90
+	,canPassThru: function(that, tx, ty) {
+		if(!this.parent(that, tx, ty)) return false;
+
+		if(tx < this.x-5 || tx+that.width > this.x+this.width+5) return false;
+		if(ty > this.y) {
+			if(!rooms.exists(that.currentRoom.row+1, that.currentRoom.col)) {console.log('Room not found');return false;}
+			that.currentRoom = switchRoom(that.currentRoom.row+1, that.currentRoom.col);
+			that.y = 5*TILESIZE;
+			return false;
+		}
+
+		return !this.isLocked;
+	}
+});
+
+var LockedDoorSouth = new Class({
+	Extends: DoorSouth
+	,isLocked: true
+});
+
+var DoorWest = new Class({
+	Extends: Door
+	,direction: 180
+	,canPassThru: function(that, tx, ty) {
+		if(!this.parent(that, tx, ty)) return false;
+
+		if(ty < this.y-5 || ty+that.height > this.y+this.height+5) return false;
+		if(tx < this.x) {
+			if(!rooms.exists(that.currentRoom.row, that.currentRoom.col-1)) {console.log('Room not found');return false;}
+			that.currentRoom = switchRoom(that.currentRoom.row, that.currentRoom.col-1);
+			that.x = (that.currentRoom.roomWidth-1)*TILESIZE-TILESIZE;
+			return false;
+
+		}
+		return !this.isLocked;
+	}
+});
+
+var LockedDoorWest = new Class({
+	Extends: DoorWest
+	,isLocked: true
+});
+
+
+var DoorNorth = new Class({
+	Extends: Door
+	,direction: 270
+	,canPassThru: function(that, tx, ty) {
+		if(!this.parent(that, tx, ty)) return false;
+
+		if(tx < this.x-5 || tx+that.width > this.x+this.width+5) return false;
+		if(ty < this.y) {
+			if(!rooms.exists(that.currentRoom.row-1, that.currentRoom.col)) {console.log('Room not found');return false;}
+			that.currentRoom = switchRoom(that.currentRoom.row-1, that.currentRoom.col);
+			that.y = (that.currentRoom.roomHeight+4-1)*TILESIZE-TILESIZE;
+			return false;
+		}
+
+		return !this.isLocked;
+	}
+});
+var LockedDoorNorth = new Class({
+	Extends: DoorNorth
+	,isLocked: true
 });

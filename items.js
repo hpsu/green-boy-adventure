@@ -925,7 +925,7 @@ var Door = new Class({
 	,sprite: 298
 	,lockedSprite: 298
 	,sprites: {
-		open: {0: 241, 90: 299, 180: 240, 270: 299}
+		open: {0: 241, 90: 300, 180: 240, 270: 299}
 		,locked: {0: 294, 90: 298, 180: 293, 270: 298}
 	}
 	,isLocked: false

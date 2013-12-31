@@ -672,6 +672,11 @@ var d1r4_8 = new Class({
 	}
 });
 
+var d1r4_9 = new Class({
+	initialize: function(room) {
+		new puKey(10*TILESIZE+4, 12*TILESIZE,room);
+	}
+});
 
 var d1r5_6 = new Class({
 	initialize: function(room) {

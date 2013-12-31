@@ -323,7 +323,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		]
+		],enemies: [LockedDoorNorth]
 		,scriptedEvent: d1r5_6
 	})//295
 	,new Room({row: 5, col: 7, tileset: 1, tiles: [
@@ -338,7 +338,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,260,261,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,277]
-		],enemies: [DoorWest, DoorEast, DoorSouth, Staflos, Staflos, Staflos, Staflos, Staflos]
+		],enemies: [DoorWest, DoorEast, DoorSouth, BombHoleNorth, Staflos, Staflos, Staflos, Staflos, Staflos]
 		,scriptedEvent: d1r5_7
 	})
 	,new Room({row: 5, col: 8, tileset: 1, tiles: [

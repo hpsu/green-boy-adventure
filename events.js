@@ -663,32 +663,14 @@ var d1r7_8 = new Class({
 
 var d1r5_6 = new Class({
 	initialize: function(room) {
-		room.doorOpened = false;
-		
 		room.tiles[5][14].sprite=295;
-		
-		room.tiles[1][7].touch = room.tiles[1][8].touch = function() {
-			if(env.player.items.keys < 1 || room.doorOpened) return;
-			room.tiles[1][7].sprite=291;
-			room.tiles[1][8].sprite=292;
-			room.tiles[1][7].isSolid = false;
-			room.tiles[1][8].isSolid = false;
-			env.player.addKeys(-1);
-			room.doorOpened = true;
-			paintRoom();
-		};
 	}
 });
 
-var DungeonBombHole = new Class({
-	Extends: Mob
-	,sprite: 297
-	
-});
 var d1r5_7 = new Class({
 	initialize: function(room) {
 		// spawn key when all mobs are destroyed
-		new DungeonBombHole(7.5*TILESIZE, 5*TILESIZE,room);
+		//new DungeonBombHole(7.5*TILESIZE, 5*TILESIZE,room);
 		Array.each(room.MOBs, function(mob){
 			mob.tmpFunc = mob.destroy;
 			mob.destroy = function() {

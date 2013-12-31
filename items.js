@@ -451,8 +451,21 @@ var puCompass = new Class({
 	Extends: Mob
 	,sprite: 127
 	,isFriendly: true
-	
 });
+
+var puMap = new Class({
+	Extends: Mob
+	,sprite: 136
+	,isFriendly: true
+});
+
+var puBoomerang = new Class({
+	Extends: Mob
+	,sprite: 141
+	,isFriendly: true
+});
+
+
 var puWhiteSword = new Class({
 	Extends: Mob
 	,sprite: 128
@@ -1075,7 +1088,7 @@ var BombHole = new Class({
 	,x: 0
 	,y: 0
 	,direction: 0
-	,sprites: {270: 297}
+	,sprites: {90: 301, 270: 297}
 	,hasBeenBombed: false
 	,initialize: function(x,y,room) {
 		var xPost = {0: 14*TILESIZE, 90: 7.5*TILESIZE, 180: 1*TILESIZE, 270: 7.5*TILESIZE}
@@ -1110,6 +1123,24 @@ var BombHoleNorth = new Class({
 			if(!rooms.exists(that.currentRoom.row-1, that.currentRoom.col)) {console.log('Room not found');return false;}
 			that.currentRoom = switchRoom(that.currentRoom.row-1, that.currentRoom.col);
 			that.y = (that.currentRoom.roomHeight+4-1)*TILESIZE-TILESIZE;
+			return false;
+		}
+
+		return this.hasBeenBombed;
+	}
+});
+
+var BombHoleSouth = new Class({
+	Extends: BombHole
+	,direction: 90
+	,canPassThru: function(that, tx, ty) {
+		if(!this.parent(that, tx, ty)) return false;
+
+		if(tx < this.x-5 || tx+that.width > this.x+this.width+5) return false;
+		if(ty > this.y) {
+			if(!rooms.exists(that.currentRoom.row+1, that.currentRoom.col)) {console.log('Room not found');return false;}
+			that.currentRoom = switchRoom(that.currentRoom.row+1, that.currentRoom.col);
+			that.y = 5*TILESIZE;
 			return false;
 		}
 

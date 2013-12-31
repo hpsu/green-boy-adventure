@@ -645,6 +645,33 @@ var d1r4_5 = new Class({
 	}
 });
 
+var d1r4_7 = new Class({
+	initialize: function(room) {
+		new puMap(12*TILESIZE, 9*TILESIZE+1,room);
+	}
+});
+
+var d1r4_8 = new Class({
+	initialize: function(room) {
+		// spawn key when all mobs are destroyed
+		Array.each(room.MOBs, function(mob){
+			mob.tmpFunc = mob.destroy;
+			mob.destroy = function() {
+				this.tmpFunc();
+				var mobCnt = 0;
+				Array.each(room.MOBs, function(mab) {
+					if(mab.name == 'Goriya')
+						mobCnt++;
+				});
+				if(mobCnt == 0) {
+					new puBoomerang(8*TILESIZE,7*TILESIZE,room,0);
+				}
+			};
+			
+		}, this);
+	}
+});
+
 
 var d1r5_6 = new Class({
 	initialize: function(room) {

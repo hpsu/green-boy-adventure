@@ -175,6 +175,50 @@ var ArrowProjectile = new Class({
 	}
 });
 
+var BoomerangProjectile = new Class({
+	Extends: Projectile
+	,movementRate: 2
+	,damage: 1
+	,tile: 141
+	,acDelta: 0
+	,boomrot: 0
+	,turnCount: 0
+	,tileBlock: false
+	,destroy: function() {
+		if(this.turnCount) {
+			this.ancestor.passive=false;
+			this.parent();
+		}
+		else {
+			new ArrowWake(this.x, this.y);
+			this.direction = 180 + this.direction % 360;
+			this.turnCount++;
+		}
+	 }
+	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+		this.parent();
+		if(this.turnCount && this.collidesWith(this.ancestor)) this.destroy();
+		else if(!this.turnCount && Math.sqrt(Math.pow(this.x-this.ancestor.x,2) + Math.pow(this.y-this.ancestor.y,2)) > TILESIZE*5 ) {
+			this.direction = 180 + this.direction % 360;
+			this.turnCount++;
+		}
+		if(this.acDelta > 50) {
+			this.acDelta = 0;
+			this.boomrot = (30 + this.boomrot % 360);
+		}
+
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+
+	}
+	,draw: function() {
+		placeTile(this.tile, this.x, this.y, null, null, this.rotate ? (90+this.direction+this.boomrot%360)/180 : null);
+		if(this.rotatePalette) this.changePalette();
+	}	
+});
+
+
 /**
  * Mob SwordProjectile - Sword thrown by Lynel
  ********************************************
@@ -733,6 +777,7 @@ var RandomMob = new Class({
 	,acDelta: 0
 	,projectile: null
 	,movementRate: 0.5
+	,passiveToProjectileDeath: false
 	,dirDelta: 0
 	,passive: false
 	,rockDelta: 0
@@ -805,7 +850,7 @@ var RandomMob = new Class({
 			this.palette = this.defaultPalette;
 
 
-		if(this.dirDelta > this.msPerFrame*Number.random(16,32)) {
+		if(!this.passive && this.dirDelta > this.msPerFrame*Number.random(16,32)) {
 			this.dirDelta = 0;
 			this.randomDirection();
 		}
@@ -813,7 +858,8 @@ var RandomMob = new Class({
 		if(this.projectile && this.rockDelta > this.msPerFrame*Number.random(32,64)) {
 			this.rockDelta = 0;
 			this.passive=true;
-			(function(o){o.passive=false}).pass(this).delay(500);
+			if(!this.passiveToProjectileDeath)
+				(function(o){o.passive=false}).pass(this).delay(500);
 			new this.projectile(this);
 		}
 
@@ -1167,6 +1213,31 @@ var Gel = new Class({
 	,draw: function() {
 		frame = this.frames[this.animFrame];
 		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+frame, 0, this.width, this.height, Math.round(this.x+(HALFTILE/2)), Math.round(this.y), this.width, this.height);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	}
+});
+
+/**
+ *
+ */
+var Goriya = new Class({
+	Extends: RandomMob
+	,maxAnimFrames: 2
+	,projectile: BoomerangProjectile
+	,passiveToProjectileDeath: true
+	,name: 'Goriya'
+	,damage: 0.5
+	,health: 1.5
+	,frames: {
+		 0:		{sprites: [137,138], flip: ['x','x']}
+		,90:	{sprites: [139,139], flip: [null,'x']}
+		,180:	{sprites: [137,138], flip: [null,null]}
+		,270:	{sprites: [140,140], flip: [null,'x']}
+	}
+	,draw: function() {
+		frame = this.frames[this.direction]['sprites'][this.animFrame];
+		flip = this.frames[this.direction]['flip'][this.animFrame];
+		placeTile(frame, this.x, this.y, null, null, null, flip);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
 	}
 });

@@ -927,12 +927,16 @@ var Door = new Class({
 	,sprites: {
 		open: {0: 241, 90: 300, 180: 240, 270: 299}
 		,locked: {0: 294, 90: 298, 180: 293, 270: 298}
+		,shut: {0: 295}
 	}
-	,isLocked: false
+	,state: 'open'
 	,openSprite: 299
 	,initialize: function(x,y,room) {
 		var xPost = {0: 14*TILESIZE, 90: 7.5*TILESIZE, 180: 1*TILESIZE, 270: 7.5*TILESIZE}
 			,yPost = {0: 9*TILESIZE, 90: 13*TILESIZE, 180: 9*TILESIZE, 270: 5*TILESIZE};
+
+		if(!room.doors) room.doors = {};
+		room.doors[this.direction] = this;
 		this.x = xPost[this.direction];
 		this.y = yPost[this.direction];
 
@@ -941,17 +945,16 @@ var Door = new Class({
 	,canPassThru: function(that, tx, ty) {
 		if(!that.collidesWith(this, tx, ty)) return false;
 		this.unlock(that);
-		return !this.isLocked;
+		return this.state == 'open';
 	}
 	,unlock: function(that) {
-		if(this.isLocked && that.items.keys > 0) {
+		if(this.state == 'locked' && that.items.keys > 0) {
 			that.items.keys -= 1; 
-			this.isLocked = false;
+			this.state = 'open';
 		}
 	}
 	,draw: function() {
-		var state = this.isLocked ? 'locked' : 'open';
-		placeTile(this.sprites[state][this.direction], this.x, this.y);
+		placeTile(this.sprites[this.state][this.direction], this.x, this.y);
 	}
 });
 
@@ -969,14 +972,18 @@ var DoorEast = new Class({
 			return false;
 
 		}
-		
-		return !this.isLocked;
+		return this.state == 'open';
 	}
 });
 
 var LockedDoorEast = new Class({
 	Extends: DoorEast
-	,isLocked: true
+	,state: 'locked'
+});
+
+var ShutDoorEast = new Class({
+	Extends: DoorEast
+	,state: 'shut'
 });
 
 var DoorSouth = new Class({
@@ -993,13 +1000,13 @@ var DoorSouth = new Class({
 			return false;
 		}
 
-		return !this.isLocked;
+		return this.state == 'open';
 	}
 });
 
 var LockedDoorSouth = new Class({
 	Extends: DoorSouth
-	,isLocked: true
+	,state: 'locked'
 });
 
 var DoorWest = new Class({
@@ -1016,13 +1023,13 @@ var DoorWest = new Class({
 			return false;
 
 		}
-		return !this.isLocked;
+		return this.state == 'open';
 	}
 });
 
 var LockedDoorWest = new Class({
 	Extends: DoorWest
-	,isLocked: true
+	,state: 'locked'
 });
 
 
@@ -1040,12 +1047,12 @@ var DoorNorth = new Class({
 			return false;
 		}
 
-		return !this.isLocked;
+		return this.state == 'open';
 	}
 });
 var LockedDoorNorth = new Class({
 	Extends: DoorNorth
-	,isLocked: true
+	,state: 'locked'
 });
 
 var BombHole = new Class({

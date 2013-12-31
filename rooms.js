@@ -323,7 +323,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		],enemies: [LockedDoorNorth]
+		],enemies: [LockedDoorNorth, ShutDoorEast, Keese, Keese, Keese, Keese, Keese, Keese]
 		,scriptedEvent: d1r5_6
 	})//295
 	,new Room({row: 5, col: 7, tileset: 1, tiles: [
@@ -353,7 +353,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		],enemies: [DoorWest, Keese, Keese, Keese, Keese, Keese, Keese, Keese, Keese]
+		],enemies: [DoorWest, BombHoleNorth, Keese, Keese, Keese, Keese, Keese, Keese, Keese, Keese]
 		,scriptedEvent: d1r5_8
 	})
 	,new Room({row: 6, col: 7, tileset: 1, tiles: [

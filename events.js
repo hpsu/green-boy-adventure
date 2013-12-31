@@ -628,49 +628,41 @@ var EnemyDeath = new Class({
 	}
 });
 
-var d1r7_6 = new Class({
+var d1r5_6 = new Class({
 	initialize: function(room) {
-		// spawn key when all mobs are destroyed
+		// Open east door when all mobs are destroyed
+		room.doors[0].state = 'shut';
+
+		var staflosCnt = 0;
+		Array.each(room.MOBs, function(mab) {
+			if(mab.name == 'Keese')
+				staflosCnt++;
+		});
+		if(staflosCnt == 0) {
+			room.doors[0].state = 'open';
+		}
+
 		Array.each(room.MOBs, function(mob){
-			if(mob.name != 'Keese' || mob.tmpFunc) return;
 			mob.tmpFunc = mob.destroy;
 			mob.destroy = function() {
 				this.tmpFunc();
-				var keeseCnt = 0;
+				var staflosCnt = 0;
 				Array.each(room.MOBs, function(mab) {
 					if(mab.name == 'Keese')
-						keeseCnt++;
+						staflosCnt++;
 				});
-				if(keeseCnt == 0) {
-					new puKey(10*TILESIZE,12*TILESIZE,room,0);
+				if(staflosCnt == 0) {
+					room.doors[0].state = 'open';
 				}
 			};
 			
 		}, this);
-	}
-	
-});
-
-var d1r7_8 = new Class({
-	initialize: function(room) {
-		// spawn key on one staflos and make it follow him
-		if(!room.keystaflos) {
-			console.log('creating keystaflos');
-			room.keystaflos = new KeyStaflos(null,null,room);
-		}
-	}
-});
-
-var d1r5_6 = new Class({
-	initialize: function(room) {
-		room.tiles[5][14].sprite=295;
 	}
 });
 
 var d1r5_7 = new Class({
 	initialize: function(room) {
 		// spawn key when all mobs are destroyed
-		//new DungeonBombHole(7.5*TILESIZE, 5*TILESIZE,room);
 		Array.each(room.MOBs, function(mob){
 			mob.tmpFunc = mob.destroy;
 			mob.destroy = function() {
@@ -694,19 +686,41 @@ var d1r5_8 = new Class({
 	}
 });
 
+var d1r7_6 = new Class({
+	initialize: function(room) {
+		// spawn key when all mobs are destroyed
+		Array.each(room.MOBs, function(mob){
+			if(mob.name != 'Keese' || mob.tmpFunc) return;
+			mob.tmpFunc = mob.destroy;
+			mob.destroy = function() {
+				this.tmpFunc();
+				var keeseCnt = 0;
+				Array.each(room.MOBs, function(mab) {
+					if(mab.name == 'Keese')
+						keeseCnt++;
+				});
+				if(keeseCnt == 0) {
+					new puKey(10*TILESIZE,12*TILESIZE,room,0);
+				}
+			};
+			
+		}, this);
+	}
+	
+});
+
 var d1r7_7 = new Class({
 	initialize: function(room) {
 		room.doorOpened = false;
-		/*room.tiles[1][7].touch = room.tiles[1][8].touch = function() {
-			if(env.player.items.keys < 1 || room.doorOpened) return;
-			room.tiles[1][7].sprite=291;
-			room.tiles[1][8].sprite=292;
-			room.tiles[1][7].isSolid = false;
-			room.tiles[1][8].isSolid = false;
-			env.player.addKeys(-1);
-			room.doorOpened = true;
-			paintRoom();
-		};*/
 	}	
 });
 
+var d1r7_8 = new Class({
+	initialize: function(room) {
+		// spawn key on one staflos and make it follow him
+		if(!room.keystaflos) {
+			console.log('creating keystaflos');
+			room.keystaflos = new KeyStaflos(null,null,room);
+		}
+	}
+});

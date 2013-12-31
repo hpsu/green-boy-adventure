@@ -208,7 +208,13 @@ var Mob = new Class({
 	}
 	,destroy: function() {
 		this.isActive = false;
-		this.currentRoom.MOBs.erase(this);
+		for(var i=0; i < this.currentRoom.MOBs.length; i++) {
+			if(this.currentRoom.MOBs[i] == this)	{
+				this.currentRoom.MOBs.splice(i,1);
+				delete this;
+				break;
+			}
+		}
 	}
 	,move: function() {}
 	,draw: function() {

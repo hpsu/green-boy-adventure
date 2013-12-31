@@ -919,6 +919,7 @@ var font = {
 var Door = new Class({
 	Extends: Mob
 	,isFriendly: true
+	,name: 'Door'
 	,x: 0
 	,y: 0
 	,direction: 0
@@ -927,7 +928,7 @@ var Door = new Class({
 	,sprites: {
 		open: {0: 241, 90: 300, 180: 240, 270: 299}
 		,locked: {0: 294, 90: 298, 180: 293, 270: 298}
-		,shut: {0: 295}
+		,shut: {0: 295, 90: -1, 180: 295, 270: -1}
 	}
 	,state: 'open'
 	,openSprite: 299
@@ -1009,6 +1010,11 @@ var LockedDoorSouth = new Class({
 	,state: 'locked'
 });
 
+var ShutDoorSouth = new Class({
+	Extends: DoorSouth
+	,state: 'shut'
+});
+
 var DoorWest = new Class({
 	Extends: Door
 	,direction: 180
@@ -1030,6 +1036,10 @@ var DoorWest = new Class({
 var LockedDoorWest = new Class({
 	Extends: DoorWest
 	,state: 'locked'
+});
+var ShutDoorWest = new Class({
+	Extends: DoorWest
+	,state: 'shut'
 });
 
 
@@ -1053,6 +1063,10 @@ var DoorNorth = new Class({
 var LockedDoorNorth = new Class({
 	Extends: DoorNorth
 	,state: 'locked'
+});
+var ShutDoorNorth = new Class({
+	Extends: DoorNorth
+	,state: 'shut'
 });
 
 var BombHole = new Class({

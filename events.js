@@ -139,24 +139,31 @@ var DeathEvent = new Class({
 });
 
 var Event = new Class({
-	initialize: function(room) {
+	initialize: function(room, noMovingPlayer) {
 		//@TODO: Freeze player movement during event
 		room.tmpX = env.player.x;
 		room.tmpY = env.player.y;
 		room.addEvent('leave', function() {
-			env.player.y = this.tmpY;
-			env.player.x = this.tmpX;
+			if(!noMovingPlayer) {
+				env.player.y = this.tmpY;
+				env.player.x = this.tmpX;
+			}
 			for(var i=0; i < this.MOBs.length; i++) {
 				var mob = this.MOBs[i];
-				this.MOBs.splice(i);
-				mob.destroy();
+				if(mob.name !== 'Door'){
+					room.MOBs.splice(i--,1);
+					mob.destroy();
+				}
 			}
 			room.removeEvents('leave');
 			room.addEvent('leave',  room.onLeave);
 		});
-		env.player.y = (11+4-1)*TILESIZE;
-		env.player.x = TILESIZE*7;
-		env.player.direction=270;
+		
+		if(!noMovingPlayer) {
+			env.player.y = (11+4-1)*TILESIZE;
+			env.player.x = TILESIZE*7;
+			env.player.direction=270;
+		}
 		new Fire((TILESIZE*5)-HALFTILE, TILESIZE*8, room);
 		new Fire((TILESIZE*10)+HALFTILE, TILESIZE*8, room);
 		
@@ -627,6 +634,17 @@ var EnemyDeath = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 });
+
+var d1r4_5 = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room, true);
+		
+		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
+		new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "eastmost penninsula\n   is the secret.");
+	}
+});
+
 
 var d1r5_6 = new Class({
 	initialize: function(room) {

@@ -678,6 +678,12 @@ var d1r4_9 = new Class({
 	}
 });
 
+var d1r3_10 = new Class({
+	initialize: function(room) {
+		new puTriforce(7.5*TILESIZE, 9*TILESIZE,room);
+	}
+});
+
 var d1r5_6 = new Class({
 	initialize: function(room) {
 		// Open east door when all mobs are destroyed

@@ -465,6 +465,27 @@ var puBoomerang = new Class({
 	,isFriendly: true
 });
 
+var puTriforce = new Class({
+	Extends: Mob
+	,sprite: 144
+	,isFriendly: true
+	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+	
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			this.palette = this.palette == 2 ? 3 : 2;
+		}
+
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE), 0, TILESIZE, TILESIZE, this.x, this.y, TILESIZE, TILESIZE); // Heart
+		this.changePalette(2);
+	}
+});
+
 
 var puWhiteSword = new Class({
 	Extends: Mob

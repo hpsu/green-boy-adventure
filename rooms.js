@@ -18,10 +18,13 @@ var RoomStorage = new Class({
 	 rooms: []
 	,row: 0
 	,col: 0
-	,initialize: function(defRow, defCol, rooms) {
+	,name: ''
+	,initialize: function(defRow, defCol, rooms, props) {
 		this.row = defRow;
 		this.col = defCol;
 		this.addRooms(rooms);
+		if(props && props.name)
+			this.name = props.name;
 	}
 	,addRoom: function(room) {
 		if(!this.rooms[room.row]) this.rooms[room.row] = [];
@@ -62,6 +65,7 @@ var Room = new Class({
 	,roomHeight: 11
 	,initialized: false
 	,background: null
+	,triforceRoom: false
 	,row: null
 	,col: null
 	,tiles: []
@@ -75,6 +79,7 @@ var Room = new Class({
 		if(params.background) this.background = params.background;
 		if(params.scriptedEvent) this.scriptedEvent = params.scriptedEvent;
 		if(params.tileset) this.tileset = params.tileset;
+		if(params.triforceRoom) this.triforceRoom = true;
 		
 		if(params.bgRect) this.bgRect = params.bgRect;
 		
@@ -385,6 +390,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
 		],enemies: [DoorWest]
 		,scriptedEvent: d1r3_10
+		,triforceRoom: true
 	})
 	,new Room({row: 4, col: 5, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -571,7 +577,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,enemies: [DoorWest, Staflos, Staflos, Staflos, Staflos]
 		,scriptedEvent: d1r7_8
 	})
-]);
+], {name:'level-1'});
 
 var dungeon3 = new RoomStorage(7,7,[
 	new Room({row: 7, col: 6, tileset: 1, tiles: [

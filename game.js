@@ -565,6 +565,29 @@ var Link = new Class({
 	
 });
 
+function drawMapFromRooms(rooms, xOff, yOff) {
+	sizeX = (4*TILESIZE)/16; // Total levels 8
+	sizeY = (2*TILESIZE)/8; // Total rooms 16
+	sizeX = sizeX*2;
+	currentRoom = rooms.getCurrentRoom();
+
+	for(var i = 0; i < rooms.rooms.length; i++) {
+		if(typeof rooms.rooms[i] !== 'undefined') {
+			for(var j = 0; j < rooms.rooms[i].length; j++) {
+				if(typeof rooms.rooms[i][j] !== 'undefined') {
+					var thisRoom = rooms.rooms[i][j];
+					filledRectangle((xOff+(sizeX*thisRoom.col))-(TILESIZE*2), yOff+(sizeY*thisRoom.row), sizeX-1, sizeY-1, "#2038ec");
+					if(rooms.rooms[i][j].triforceRoom)
+						filledRectangle(xOff+(sizeX*thisRoom.col)-(TILESIZE*2)+(sizeX/4), yOff+(sizeY*thisRoom.row), sizeX/2-1, sizeY-1, "#d82800");
+				}
+			}
+		}
+	}
+	filledRectangle(xOff+(sizeX*currentRoom.col)-(TILESIZE*2)+(sizeX/4), yOff+(sizeY*currentRoom.row), sizeX/2-1, sizeY-1, "#80d010");
+
+	writeText(rooms.name, TILESIZE, yOff-HALFTILE);
+}
+
 /* 
  * Header related code
  * 
@@ -589,12 +612,18 @@ function paintHeader() {
 	}
 	
 	// Map
-	filledRectangle(xOff, yOff, 4*TILESIZE, 2*TILESIZE, "#747474");
 	
-	sizeX = (4*TILESIZE)/16; // Total levels 8
-	sizeY = (2*TILESIZE)/8; // Total rooms 16
-	currentRoom = rooms.getCurrentRoom();
-	filledRectangle(xOff+(sizeX*currentRoom.col), yOff+(sizeY*currentRoom.row), sizeX, sizeY, "#80d010");
+	if(rooms == overworld) { // Overworld map
+		filledRectangle(xOff, yOff, 4*TILESIZE, 2*TILESIZE, "#747474");
+		
+		sizeX = (4*TILESIZE)/16; // Total levels 8
+		sizeY = (2*TILESIZE)/8; // Total rooms 16
+		currentRoom = rooms.getCurrentRoom();
+		filledRectangle(xOff+(sizeX*currentRoom.col), yOff+(sizeY*currentRoom.row), sizeX, sizeY, "#80d010");
+	}
+	else {
+		drawMapFromRooms(rooms, xOff, yOff);
+	}
 	
 	
 	// Rupees

@@ -451,12 +451,20 @@ var puCompass = new Class({
 	Extends: Mob
 	,sprite: 127
 	,isFriendly: true
+	,pickup: function(that) {
+		rooms.hasCompass=true;
+		this.destroy();
+	}
 });
 
 var puMap = new Class({
 	Extends: Mob
 	,sprite: 136
 	,isFriendly: true
+	,pickup: function(that) {
+		rooms.hasMap=true;
+		this.destroy();
+	}
 });
 
 var puBoomerang = new Class({

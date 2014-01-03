@@ -576,8 +576,8 @@ function drawMapFromRooms(rooms, xOff, yOff) {
 			for(var j = 0; j < rooms.rooms[i].length; j++) {
 				if(typeof rooms.rooms[i][j] !== 'undefined') {
 					var thisRoom = rooms.rooms[i][j];
-					filledRectangle((xOff+(sizeX*thisRoom.col))-(TILESIZE*2), yOff+(sizeY*thisRoom.row), sizeX-1, sizeY-1, "#2038ec");
-					if(rooms.rooms[i][j].triforceRoom)
+					if(rooms.hasMap) filledRectangle((xOff+(sizeX*thisRoom.col))-(TILESIZE*2), yOff+(sizeY*thisRoom.row), sizeX-1, sizeY-1, "#2038ec");
+					if(rooms.hasCompass && rooms.rooms[i][j].triforceRoom)
 						filledRectangle(xOff+(sizeX*thisRoom.col)-(TILESIZE*2)+(sizeX/4), yOff+(sizeY*thisRoom.row), sizeX/2-1, sizeY-1, "#d82800");
 				}
 			}

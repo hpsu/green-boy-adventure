@@ -413,7 +413,16 @@ var Link = new Class({
 				console.log('unknown angle'+direction);
 				xTile = Math.round(xTile);
 				yTile = Math.round(yTile);
+
 		}
+		var pass 		= false
+			hasPtObj 	= false;
+		Array.each(rooms.getCurrentRoom().MOBs, function(that){
+			if(that != this && this.collidesWith(that, tx, ty) && that.isFriendly && that.canPassThru) {
+				hasPtObj = true;
+				if(that.canPassThru(this, tx, ty)) 	pass = true;
+			}
+		},this);
 
 		switch(true) {
 			case xTile < 0:
@@ -449,16 +458,12 @@ var Link = new Class({
 					}
 				}
 				return;
-			case this.currentRoom.getTile(yTile,xTile).isSolid && !window.godMode:
-				pass = false;
-				Array.each(rooms.getCurrentRoom().MOBs, function(that){
-					if(that != this && that.isFriendly && that.canPassThru && that.canPassThru(this, tx, ty)) {
-						pass = true;
-					}
-				},this);
+			case hasPtObj && !pass: // Stop moving through "solid" MOBs
+				return false;
+			case !pass && this.currentRoom.getTile(yTile,xTile).isSolid && !window.godMode:
 				this.currentRoom.getTile(yTile,xTile).touch();
-				if(!pass) return;
-				
+				return false;
+
 		}
 
 		// No obstacles found, move along

@@ -635,6 +635,14 @@ var EnemyDeath = new Class({
 	}
 });
 
+var d1r2_6 = new Class({
+	initialize: function(room) {
+		block = new movableBlock(6*TILESIZE, 9*TILESIZE, room);
+		block.direction=90;
+
+	}	
+});
+
 var d1r4_5 = new Class({
 	Extends: Event
 	,initialize: function(room) {
@@ -643,6 +651,17 @@ var d1r4_5 = new Class({
 		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
 		new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "eastmost penninsula\n   is the secret.");
 	}
+});
+
+var d1r4_6 = new Class({
+	initialize: function(room) {
+		block = new movableBlock(7*TILESIZE, 9*TILESIZE, room);
+		block.direction=90;
+		block.onMove = function() {
+			room.doors[180].state = 'open';
+		}
+
+	}	
 });
 
 var d1r4_7 = new Class({

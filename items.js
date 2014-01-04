@@ -958,6 +958,31 @@ var font = {
 	,c: [ 0, 1],d: [ 1, 1],g: [ 2, 1],h: [ 3, 1],k: [ 4, 1],l: [ 5, 1],o: [ 6, 1],p: [ 7, 1],s: [ 8, 1],t: [ 9, 1],w: [10, 1],x: [11, 1],'-': [12, 1],'.': [13, 1],"'": [14, 1],'&': [15, 1],  1: [16, 1],2: [17, 1],5: [18, 1],6: [19, 1],9: [20, 1],'+': [21, 1]
 };
 
+var movableBlock = new Class({
+	Extends: Mob
+	,sprite: 284
+	,direction: 0
+	,isFriendly: true
+	,wasMoved: false
+	,canPassThru: function(that, tx, ty) {
+		var curDistance = Math.sqrt(Math.pow(this.x-that.x,2) + Math.pow(this.y-that.y,2))
+			newDistance = Math.sqrt(Math.pow(this.x-tx,2) + Math.pow(this.y-ty,2));
+		if(this.collidesWith(that) && newDistance < curDistance-1) {
+			if(!this.wasMoved && this.direction == that.direction) {
+				this.x += Math.cos(that.direction * Math.PI/180)*TILESIZE;
+				this.y += Math.sin(that.direction * Math.PI/180)*TILESIZE;
+				this.wasMoved = true;
+				this.onMove();
+			}
+			return false;
+		}
+		return true;
+	}
+	,onMove: function(){
+
+	}
+});
+
 var Door = new Class({
 	Extends: Mob
 	,isFriendly: true
@@ -986,7 +1011,6 @@ var Door = new Class({
 		this.parent(this.x,this.y,room);
 	}
 	,canPassThru: function(that, tx, ty) {
-		if(!that.collidesWith(this, tx, ty)) return false;
 		this.unlock(that);
 		return this.state == 'open';
 	}
@@ -1005,7 +1029,10 @@ var DoorEast = new Class({
 	Extends: Door
 	,direction: 0
 	,canPassThru: function(that, tx, ty) {
+		if(tx < this.x-that.width+1 || tx < that.x) return true;
+
 		if(!this.parent(that, tx, ty)) return false;
+
 
 		if(ty < this.y-5 || ty+that.height > this.y+this.height+5) return false;
 		if(tx > this.x) {
@@ -1033,6 +1060,8 @@ var DoorSouth = new Class({
 	Extends: Door
 	,direction: 90
 	,canPassThru: function(that, tx, ty) {
+		if(ty < this.y-that.height+1 || ty < that.y) return true;
+
 		if(!this.parent(that, tx, ty)) return false;
 
 		if(tx < this.x-5 || tx+that.width > this.x+this.width+5) return false;
@@ -1061,9 +1090,12 @@ var DoorWest = new Class({
 	Extends: Door
 	,direction: 180
 	,canPassThru: function(that, tx, ty) {
+		if(tx > this.x + this.width-1 || tx > that.x) return true;
+
 		if(!this.parent(that, tx, ty)) return false;
 
 		if(ty < this.y-5 || ty+that.height > this.y+this.height+5) return false;
+
 		if(tx < this.x) {
 			if(!rooms.exists(that.currentRoom.row, that.currentRoom.col-1)) {console.log('Room not found');return false;}
 			that.currentRoom = switchRoom(that.currentRoom.row, that.currentRoom.col-1);
@@ -1089,6 +1121,8 @@ var DoorNorth = new Class({
 	Extends: Door
 	,direction: 270
 	,canPassThru: function(that, tx, ty) {
+		if(ty > this.y + this.height-1 || ty > that.y) return true;
+
 		if(!this.parent(that, tx, ty)) return false;
 
 		if(tx < this.x-5 || tx+that.width > this.x+this.width+5) return false;

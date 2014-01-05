@@ -968,7 +968,7 @@ var movableBlock = new Class({
 		var curDistance = Math.sqrt(Math.pow(this.x-that.x,2) + Math.pow(this.y-that.y,2))
 			newDistance = Math.sqrt(Math.pow(this.x-tx,2) + Math.pow(this.y-ty,2));
 		if(this.collidesWith(that) && newDistance < curDistance-1) {
-			if(!this.wasMoved && this.direction == that.direction) {
+			if(!this.wasMoved && (this.direction == '*' || this.direction == that.direction)) {
 				this.x += Math.cos(that.direction * Math.PI/180)*TILESIZE;
 				this.y += Math.sin(that.direction * Math.PI/180)*TILESIZE;
 				this.wasMoved = true;

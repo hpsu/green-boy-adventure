@@ -638,7 +638,12 @@ var EnemyDeath = new Class({
 var d1r2_6 = new Class({
 	initialize: function(room) {
 		block = new movableBlock(6*TILESIZE, 9*TILESIZE, room);
-		block.direction=90;
+		block.direction='*';
+		room.addEvent('leave', function() {
+			block.destroy();
+			room.removeEvents('leave');
+			room.addEvent('leave',  room.onLeave);
+		});
 
 	}	
 });
@@ -656,10 +661,16 @@ var d1r4_5 = new Class({
 var d1r4_6 = new Class({
 	initialize: function(room) {
 		block = new movableBlock(7*TILESIZE, 9*TILESIZE, room);
-		block.direction=90;
+		block.direction = '*';
+		room.doors[180].state = 'shut';
 		block.onMove = function() {
 			room.doors[180].state = 'open';
 		}
+		room.addEvent('leave', function() {
+			block.destroy();
+			room.removeEvents('leave');
+			room.addEvent('leave',  room.onLeave);
+		});
 
 	}	
 });

@@ -1263,3 +1263,11 @@ var Wallmaster = new Class({
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
 	}
 });
+
+var BladeTrap = new Class({
+	Extends: Enemy
+	,sprite: 145
+	,draw: function() {
+		placeTile(this.sprite, this.x, this.y);
+	}
+});

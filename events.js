@@ -639,6 +639,15 @@ var d1r2_6 = new Class({
 	initialize: function(room) {
 		block = new movableBlock(6*TILESIZE, 9*TILESIZE, room);
 		block.direction='*';
+		if(!room.isInitialized) {
+			new BladeTrap(2*TILESIZE,6*TILESIZE,room);
+			new BladeTrap(13*TILESIZE,6*TILESIZE,room);
+
+			new BladeTrap(2*TILESIZE,12*TILESIZE,room);
+			new BladeTrap(13*TILESIZE,12*TILESIZE,room);
+			room.isInitialized = true;
+		}
+
 		room.addEvent('leave', function() {
 			block.destroy();
 			room.removeEvents('leave');

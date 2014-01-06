@@ -1267,6 +1267,66 @@ var Wallmaster = new Class({
 var BladeTrap = new Class({
 	Extends: Enemy
 	,sprite: 145
+	,movementRate: 2
+	,damage: 1
+	,direction: null
+	,maxDistX: 5*TILESIZE
+	,maxDistY: 3*TILESIZE
+	,turnCount: 0
+	,accuDistX: 0
+	,accuDistY: 0
+	,origX: 0
+	,origY: 0
+	,initialize: function(x,y,room){
+		this.parent(x,y,room);
+		this.origX = this.x;
+		this.origY = this.y;
+	}
+	,move: function() {
+		if(this.direction !== null){
+			this.accuDistX += Math.cos(this.direction * Math.PI/180) * this.movementRate;
+			this.accuDistY += Math.sin(this.direction * Math.PI/180) * this.movementRate;
+			
+			if(
+				Math.abs(this.accuDistY) >= this.maxDistY 
+				|| Math.abs(this.accuDistX) >= this.maxDistX
+			) {
+				this.accuDistX = 0;
+				this.accuDistY = 0;
+				if(this.turnCount++ == 0) {
+					this.direction = (180 + this.direction) % 360;
+					this.movementRate = 1;
+				}
+				else if(this.turnCount > 0) {
+					this.direction = null;
+					this.turnCount = 0;
+					this.movementRate = 2;
+				}
+			} else {
+				this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
+				this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
+				Array.each(solidObjects, function(that){
+					if(that != this && that.isFriendly && this.collidesWith(that)) {
+						that.impact(this.damage, this.direction);
+					}
+				},this);
+
+			}
+		} else {
+			if(Math.round(this.x/10) == Math.round(env.player.x/10)) {
+				if(this.y < env.player.y)
+					this.direction = 90;
+				else
+					this.direction = 270;
+			}
+			else if (Math.round(this.y/10) == Math.round(env.player.y/10)){
+				if(this.x < env.player.x)
+					this.direction = 0;
+				else
+					this.direction = 180;
+			}
+		}
+	}
 	,draw: function() {
 		placeTile(this.sprite, this.x, this.y);
 	}

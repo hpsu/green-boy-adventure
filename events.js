@@ -630,8 +630,26 @@ var EnemyDeath = new Class({
 		placeTile(this.frames[this.animFrame-1], this.x, this.y, null, null);
 		this.changePalette();
 
-		this.acDelta+=delta;
+		this.acDelta+=delta; 
 		this.lastUpdateTime = Date.now();
+	}
+});
+
+var d1r0_0 = new Class({
+	initialize: function(room) {
+		Array.each([[4,7],[4,8],[4,9],[4,10],[4,11],[4,12],[4,13],[7,2],[7,4],[7,5],[7,6],[7,7],[7,8],[7,9],[7,10],[7,12],[7,13]], function(tile) {
+			room.tiles[tile[0]][tile[1]].isSolid=true;
+		});
+		new puBow(8*TILESIZE, 9*TILESIZE, room);
+		env.player.x = 3*TILESIZE;
+		env.player.y = 5*TILESIZE;
+		env.player.direction = 90;
+		room.tiles[0][3].enter = function() {
+			switchRoom(2,6,dungeon1);
+			env.player.x=6*TILESIZE;
+			env.player.y=11*TILESIZE;
+			env.player.direction = 90;
+		};
 	}
 });
 

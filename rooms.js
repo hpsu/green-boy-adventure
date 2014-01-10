@@ -640,6 +640,7 @@ var dungeon2 = new RoomStorage(7,7,[
 		,enemies: [DoorNorth, DoorEast, DoorSouth]
 	})
 	,new Room({row: 7, col: 8, tileset: 1, tiles: [
+		//@TODO: When all Ropes die, key in the middle of the room
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
 		,[210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225]
 		,[210,226,227,227,227,227,227,227,227,227,227,227,227,227,228,225]

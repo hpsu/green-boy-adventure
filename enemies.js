@@ -1333,6 +1333,7 @@ var BladeTrap = new Class({
 });
 
 var Rope = new Class({
+	//@TODO: Move faster when in same x or y lane as Link
 	Extends: RandomMob
 	,maxAnimFrames: 2
 	,msPerFrame: 200

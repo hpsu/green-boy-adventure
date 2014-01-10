@@ -838,6 +838,11 @@ var d1r7_8 = new Class({
 	}
 });
 
+var d2r5_9 = Class({
+	initialize: function(room) {
+		new puMap(8*TILESIZE, 9*TILESIZE,room);
+	}
+});
 var d2r6_9 = Class({
 	initialize: function(room) {
 		new puCompass(13*TILESIZE, 6*TILESIZE,room);

@@ -1331,3 +1331,24 @@ var BladeTrap = new Class({
 		placeTile(this.sprite, this.x, this.y);
 	}
 });
+
+var Rope = new Class({
+	Extends: RandomMob
+	,maxAnimFrames: 2
+	,msPerFrame: 200
+	,name: 'Rope'
+	,damage: 0.5
+	,health: 0.5
+	,frames: {
+		 0:		{sprites: [147,148], flip: ['x','x']}
+		,90:	{sprites: [147,148], flip: ['x','x']}
+		,180:	{sprites: [147,148], flip: [null,null]}
+		,270:	{sprites: [147,148], flip: [null,null]}
+	}
+	,draw: function() {
+		frame = this.frames[this.direction]['sprites'][this.animFrame];
+		flip = this.frames[this.direction]['flip'][this.animFrame];
+		placeTile(frame, this.x, this.y, null, null, null, flip);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	}
+});

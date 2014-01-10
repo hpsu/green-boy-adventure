@@ -843,6 +843,36 @@ var d2r5_9 = Class({
 		new puMap(8*TILESIZE, 9*TILESIZE,room);
 	}
 });
+var d2r6_7 = Class({
+	initialize: function(room) {
+		room.doors[180].state = 'shut';
+
+		var staflosCnt = 0;
+		Array.each(room.MOBs, function(mab) {
+			if(mab.name == 'Rope')
+				staflosCnt++;
+		});
+		if(staflosCnt == 0) {
+			room.doors[180].state = 'open';
+		}
+
+		Array.each(room.MOBs, function(mob){
+			mob.tmpFunc = mob.destroy;
+			mob.destroy = function() {
+				this.tmpFunc();
+				var staflosCnt = 0;
+				Array.each(room.MOBs, function(mab) {
+					if(mab.name == 'Rope')
+						staflosCnt++;
+				});
+				if(staflosCnt == 0) {
+					room.doors[180].state = 'open';
+				}
+			};
+			
+		}, this);
+	}
+});
 var d2r6_9 = Class({
 	initialize: function(room) {
 		new puCompass(13*TILESIZE, 6*TILESIZE,room);

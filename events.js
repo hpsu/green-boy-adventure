@@ -843,6 +843,11 @@ var d2r5_9 = Class({
 		new puMap(8*TILESIZE, 9*TILESIZE,room);
 	}
 });
+var d2r6_6 = Class({
+	initialize: function(room) {
+		new puKey(8*TILESIZE, 9*TILESIZE,room);
+	}
+});
 var d2r6_7 = Class({
 	initialize: function(room) {
 		room.doors[180].state = 'shut';

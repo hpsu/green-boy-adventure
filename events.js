@@ -635,6 +635,27 @@ var EnemyDeath = new Class({
 	}
 });
 
+function doStuffOnKilledMOBs(room, mobName, item, door){
+	// spawn key when all mobs are destroyed
+	Array.each(room.MOBs, function(mob){
+		if(mob.name != mobName || mob.tmpFunc) return;
+		mob.tmpFunc = mob.destroy;
+		mob.destroy = function() {
+			this.tmpFunc();
+			var mobCnt = 0;
+			Array.each(room.MOBs, function(mab) {
+				if(mab.name == mobName)
+					mobCnt++;
+			});
+			if(mobCnt == 0) {
+				if(typeof item !== 'undefined') new item(8*TILESIZE,9*TILESIZE,room,0);
+				if(typeof door !== 'undefined') room.doors[door].state = 'open';
+
+			}
+		};
+	}, room);
+}
+
 var d1r0_0 = new Class({
 	initialize: function(room) {
 		Array.each([[4,7],[4,8],[4,9],[4,10],[4,11],[4,12],[4,13],[7,2],[7,4],[7,5],[7,6],[7,7],[7,8],[7,9],[7,10],[7,12],[7,13]], function(tile) {
@@ -838,6 +859,11 @@ var d1r7_8 = new Class({
 	}
 });
 
+var d2r4_8 = Class({
+	initialize: function(room) {
+		doStuffOnKilledMOBs(room, 'Rope', puKey, 90);
+	}
+});
 var d2r5_9 = Class({
 	initialize: function(room) {
 		new puMap(8*TILESIZE, 9*TILESIZE,room);

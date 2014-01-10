@@ -1242,6 +1242,15 @@ var Goriya = new Class({
 	}
 });
 
+var BlueGoriya = new Class({
+	Extends: Goriya
+	,name: 'BlueGoriya'
+	,health: 2.5
+	,damage: 1
+	,defaultPalette: 3
+});
+
+
 var Wallmaster = new Class({
 	// @TODO: Only swawn when near walls
 	// @TODO: Can swallow you and bring your to start dungeon room
@@ -1352,4 +1361,21 @@ var Rope = new Class({
 		placeTile(frame, this.x, this.y, null, null, null, flip);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
 	}
+});
+
+var StoneStatue = new Class({
+	Extends: Mob
+	,acDelta: 0
+	,lastUpdateTime:0
+	,msBetweenShots: 4000
+	,move: function() {
+		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+		if(this.acDelta > this.msBetweenShots) {
+			new FireBall(this);
+			this.acDelta = 0;
+		}
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function(){}
 });

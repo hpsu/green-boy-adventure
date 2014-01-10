@@ -473,6 +473,15 @@ var puBoomerang = new Class({
 	,isFriendly: true
 });
 
+var puBlueBoomerang = new Class({
+	Extends: puBoomerang
+	,palette:3
+	,draw: function() {
+		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE), 0, TILESIZE, TILESIZE, this.x, this.y, TILESIZE, TILESIZE); // Heart
+		this.changePalette(0);
+	}
+});
+
 var puTriforce = new Class({
 	Extends: Mob
 	,sprite: 144

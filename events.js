@@ -864,6 +864,18 @@ var d2r4_8 = Class({
 		doStuffOnKilledMOBs(room, 'Rope', puKey, 90);
 	}
 });
+var d2r4_9 = Class({
+	initialize: function(room) {
+		if(room.roomInitialized) return;
+		doStuffOnKilledMOBs(room, 'BlueGoriya', puBlueBoomerang);
+		new StoneStatue(2*TILESIZE, 6*TILESIZE, room);
+		new StoneStatue(13*TILESIZE, 6*TILESIZE, room);
+
+		new StoneStatue(2*TILESIZE, 12*TILESIZE, room);
+		new StoneStatue(13*TILESIZE, 12*TILESIZE, room);
+		room.roomInitialized=true;
+	}
+});
 var d2r5_9 = Class({
 	initialize: function(room) {
 		new puMap(8*TILESIZE, 9*TILESIZE,room);

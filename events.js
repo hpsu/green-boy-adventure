@@ -883,3 +883,25 @@ var d2r6_9 = Class({
 		new puCompass(13*TILESIZE, 6*TILESIZE,room);
 	}
 });
+
+var d2r7_8 = Class({
+	initialize: function(room) {
+		// spawn key when all mobs are destroyed
+		Array.each(room.MOBs, function(mob){
+			if(mob.name != 'Rope' || mob.tmpFunc) return;
+			mob.tmpFunc = mob.destroy;
+			mob.destroy = function() {
+				this.tmpFunc();
+				var keeseCnt = 0;
+				Array.each(room.MOBs, function(mab) {
+					if(mab.name == 'Rope')
+						keeseCnt++;
+				});
+				if(keeseCnt == 0) {
+					new puKey(8*TILESIZE,9*TILESIZE,room,0);
+				}
+			};
+			
+		}, this);
+	}
+});

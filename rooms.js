@@ -733,6 +733,7 @@ var dungeon2 = new RoomStorage(7,7,[
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
 		,enemies: [DoorWest, DoorNorth, Rope, Rope, Rope, Rope, Rope]
+		,scriptedEvent: d2r7_8
 	})
 ], {name:'level-2'});
 

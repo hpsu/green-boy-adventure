@@ -859,6 +859,21 @@ var d1r7_8 = new Class({
 	}
 });
 
+var d2r3_9 = Class({
+	initialize: function(room) {
+		if(!room.isInitialized) {
+			new BladeTrap(2*TILESIZE,6*TILESIZE,room);
+			new BladeTrap(13*TILESIZE,6*TILESIZE,room);
+
+			new BladeTrap(2*TILESIZE,12*TILESIZE,room);
+			new BladeTrap(13*TILESIZE,12*TILESIZE,room);
+			var bomb = new puBomb(8*TILESIZE, 9*TILESIZE,room);
+			bomb.worth = 4;
+			room.isInitialized = true;
+		}
+	}
+});
+
 var d2r4_8 = Class({
 	initialize: function(room) {
 		doStuffOnKilledMOBs(room, 'Rope', puKey, 90);

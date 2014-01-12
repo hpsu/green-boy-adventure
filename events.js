@@ -674,6 +674,12 @@ var d1r0_0 = new Class({
 	}
 });
 
+var d2r0_7 = new Class({
+	initialize: function(room) {
+		new puTriforce(7.5*TILESIZE, 9*TILESIZE,room);
+	}
+});
+
 var d1r2_6 = new Class({
 	initialize: function(room) {
 		block = new movableBlock(6*TILESIZE, 9*TILESIZE, room);

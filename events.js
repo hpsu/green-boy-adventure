@@ -150,7 +150,7 @@ var Event = new Class({
 			}
 			for(var i=0; i < this.MOBs.length; i++) {
 				var mob = this.MOBs[i];
-				if(mob.name !== 'Door'){
+				if(mob.name !== 'Door' && mob.name !== 'BombHole'){
 					room.MOBs.splice(i--,1);
 					mob.destroy();
 				}
@@ -856,6 +856,17 @@ var d1r7_8 = new Class({
 			console.log('creating keystaflos');
 			room.keystaflos = new KeyStaflos(null,null,room);
 		}
+	}
+});
+
+
+var d2r1_9 = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room, true);
+		
+		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
+		new TextContainer(TILESIZE*2.5, (TILESIZE*6)+HALFTILE, room, "dodongo dislikes smoke.");
 	}
 });
 

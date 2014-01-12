@@ -1162,11 +1162,12 @@ var ShutDoorNorth = new Class({
 
 var BombHole = new Class({
 	Extends: Mob
+	,name: 'BombHole'
 	,isFriendly: false
 	,x: 0
 	,y: 0
 	,direction: 0
-	,sprites: {90: 301, 270: 297}
+	,sprites: {90: 301, 270: 297, 0: 306, 180: 306}
 	,hasBeenBombed: false
 	,initialize: function(x,y,room) {
 		var xPost = {0: 14*TILESIZE, 90: 7.5*TILESIZE, 180: 1*TILESIZE, 270: 7.5*TILESIZE}
@@ -1222,6 +1223,53 @@ var BombHoleSouth = new Class({
 			return false;
 		}
 
+		return this.hasBeenBombed;
+	}
+});
+
+var BombHoleEast = new Class({
+	Extends: BombHole
+	,direction: 0
+	,canPassThru: function(that, tx, ty) {
+		if(tx < this.x-that.width+1 || tx < that.x) return true;
+
+		if(!this.parent(that, tx, ty)) return false;
+
+
+		if(ty < this.y-5 || ty+that.height > this.y+this.height+5) return false;
+		if(tx > this.x) {
+			if(!rooms.exists(that.currentRoom.row, that.currentRoom.col+1)) {console.log('Room not found');return false;}
+			that.currentRoom = switchRoom(that.currentRoom.row, that.currentRoom.col+1);
+			that.x = TILESIZE;
+			return false;
+
+		}
+		return this.hasBeenBombed;
+	}
+	,draw: function() {
+		if(this.hasBeenBombed) {
+			placeTile(this.sprites[this.direction], this.x, this.y, null, null, null, 'x');
+		}
+	}
+});
+
+var BombHoleWest = new Class({
+	Extends: BombHole
+	,direction: 180
+	,canPassThru: function(that, tx, ty) {
+		if(tx > this.x + this.width-1 || tx > that.x) return true;
+
+		if(!this.parent(that, tx, ty)) return false;
+
+		if(ty < this.y-5 || ty+that.height > this.y+this.height+5) return false;
+
+		if(tx < this.x) {
+			if(!rooms.exists(that.currentRoom.row, that.currentRoom.col-1)) {console.log('Room not found');return false;}
+			that.currentRoom = switchRoom(that.currentRoom.row, that.currentRoom.col-1);
+			that.x = (that.currentRoom.roomWidth-1)*TILESIZE-TILESIZE;
+			return false;
+
+		}
 		return this.hasBeenBombed;
 	}
 });

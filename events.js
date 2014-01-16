@@ -762,6 +762,12 @@ var d1r4_9 = new Class({
 	}
 });
 
+var d1r3_9 = new Class({
+	initialize: function(room) {
+		new Aquamentus(10*TILESIZE, 8*TILESIZE, room);
+	}
+});
+
 var d1r3_10 = new Class({
 	initialize: function(room) {
 		new puTriforce(7.5*TILESIZE, 9*TILESIZE,room);

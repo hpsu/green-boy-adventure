@@ -16,6 +16,7 @@ var ctx = null
 		,pauseScreen: null
 		,paused: false
 		,spriteSheet: new Image()
+		,bossSpriteSheet: new Image()
 		,palettes: [
 			 [[128, 208,  16], [200,  76,  12], [252, 152,  56]] // green, orange, brown (link)
 			,[[  0,   0,   0], [216,  40,   0], [  0, 128, 136]] // black, red, blue
@@ -40,7 +41,7 @@ var TintCache = {
 };
 
 env.spriteSheet.src='sprites.png';
-
+env.bossSpriteSheet.src = 'boss_sprites.png';
 window.addEvent('load', function () {
     ctx = $('screen').getContext('2d');
     ctxBg = $('background').getContext('2d');

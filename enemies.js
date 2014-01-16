@@ -1379,3 +1379,25 @@ var StoneStatue = new Class({
 	}
 	,draw: function(){}
 });
+
+var Aquamentus = new Class({
+	Extends: RandomMob
+	,width: 24
+	,height: 32
+	,maxAnimFrames: 2
+	,msPerFrame: 200
+	,name: 'Aquamentus'
+	,damage: 0.5
+	,health: 0.5
+	,frames: [0,1]
+	,direction: 0
+	,randomDirection: function() {
+		directions = [0, 180];
+		this.direction = directions[Number.random(0,1)];
+	}
+	,draw: function() {
+		frame = this.frames[this.animFrame];
+		ctx.drawImage(env.bossSpriteSheet, (frame*32), 0, this.width, this.height, Math.round(this.x+(HALFTILE/2)), Math.round(this.y), this.width, this.height);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	}
+});

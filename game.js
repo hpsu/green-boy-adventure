@@ -161,7 +161,7 @@ var Mob = new Class({
 			return;
 		}
 		if(this.palette != fromPalette || palettes != env.palettes) {
-			map = ctx.getImageData(this.x, this.y, TILESIZE, TILESIZE);
+			map = ctx.getImageData(this.x, this.y, this.width, this.height);
 			imdata = map.data;
 			for(var p = 0, len = imdata.length; p < len; p+=4) {
 				r = imdata[p]

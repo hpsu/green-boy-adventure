@@ -764,7 +764,16 @@ var d1r4_9 = new Class({
 
 var d1r3_9 = new Class({
 	initialize: function(room) {
-		new Aquamentus(10*TILESIZE, 8*TILESIZE, room);
+		if(!room.isInitialized) {
+			room.aqua = new Aquamentus(10*TILESIZE, 8*TILESIZE, room);
+			room.isInitialized = true;
+			room.aqua.die = function() {
+				new puHeartContainer(12*TILESIZE,9*TILESIZE, room);
+				room.doors[0].state = 'open';
+				new EnemyDeath(this.x, this.y);
+				this.destroy();
+			};
+		}
 	}
 });
 

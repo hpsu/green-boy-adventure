@@ -127,9 +127,10 @@ var FireBall = new Class({
 	,height: 10
 	,width: 8
 	,rotatePalette: true
-	,initialize: function(ancestor) {
+	,initialize: function(ancestor, offsetY) {
+		if(!offsetY) offsetY = 0;
 		this.parent(ancestor);
-		this.direction = Math.atan2(env.player.y - this.y, env.player.x - this.x) * 180 / Math.PI;
+		this.direction = Math.atan2(env.player.y - offsetY - this.y, env.player.x - this.x) * 180 / Math.PI;
 	}
 	,draw: function() {
 		ctx.drawImage(env.spriteSheet, (this.tile*TILESIZE)+4, HALFTILE-5, this.width, this.height, Math.round(this.x), Math.round(this.y), this.width, this.height);
@@ -877,7 +878,7 @@ var RandomMob = new Class({
 		}
 
 		if(!this.passive)
-		this.flytta(this.direction);
+			this.flytta(this.direction);
 
 		this.dirDelta += delta;
 		this.rockDelta += delta;
@@ -1382,22 +1383,80 @@ var StoneStatue = new Class({
 
 var Aquamentus = new Class({
 	Extends: RandomMob
-	,width: 24
+	,width: 32
 	,height: 32
 	,maxAnimFrames: 2
 	,msPerFrame: 200
+	,movementRate: 0.15
 	,name: 'Aquamentus'
-	,damage: 0.5
-	,health: 0.5
+	,damage: 1
+	,acDirDelta: 0
+	,health: 3
 	,frames: [0,1]
 	,direction: 0
+	,acProjectileDelta: 0
+
+	,initialize: function(x,y,room) {
+		this.parent(x,y,room);
+		this.initialX  = x;
+	}
 	,randomDirection: function() {
 		directions = [0, 180];
 		this.direction = directions[Number.random(0,1)];
 	}
+	,move: function() {
+		var delta = Date.now() - this.lastUpdateTime;
+
+		if(this.x > 12*TILESIZE || this.x < 10*TILESIZE)
+			this.direction = 180+this.direction%360;
+		else if(!this.passive && this.acDirDelta > this.msPerFrame*Number.random(8,16)) {
+			this.acDirDelta = 0;
+			this.randomDirection();
+		}
+		else if(!this.passive && this.acProjectileDelta > this.msPerFrame*Number.random(16,32)) {
+			this.acProjectileDelta = 0;
+			new FireBall(this,0);
+			new FireBall(this,20);
+			new FireBall(this,40);
+		}
+
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+
+			if(++this.animFrame >= this.maxAnimFrames) this.animFrame=0;
+		}
+
+		if(this.isImmune) {
+			if(this.acPaletteDelta > this.msPerPalette) {
+				this.acPaletteDelta = 0;
+				if(++this.palette > 3) this.palette = 0;
+			}
+		}
+		else 
+			this.palette = this.defaultPalette;
+
+
+		if(!this.passive)
+			this.x = this.x + Math.cos(this.direction * Math.PI/180) * this.movementRate;
+
+		Array.each(solidObjects, function(that){
+			if(that != this && that.isFriendly && this.collidesWith(that)) {
+				that.impact(this.damage, this.direction);
+			}
+		},this);
+
+
+		this.acDelta += delta;
+		this.acDirDelta += delta;
+		this.acPaletteDelta += delta;
+		this.acProjectileDelta += delta;
+
+		this.lastUpdateTime = Date.now();
+
+	}
 	,draw: function() {
 		frame = this.frames[this.animFrame];
 		ctx.drawImage(env.bossSpriteSheet, (frame*32), 0, this.width, this.height, Math.round(this.x+(HALFTILE/2)), Math.round(this.y), this.width, this.height);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(0);
 	}
 });

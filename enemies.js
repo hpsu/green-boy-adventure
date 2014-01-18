@@ -943,6 +943,10 @@ var Moblin = new Class({
 		,270:	{sprites: [93,93], flip: [null,'x']}
 	}
 	,draw: function() {
+		if(this.spawning) {
+			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
+			return true;
+		}
 		frame = this.frames[this.direction]['sprites'][this.animFrame];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
@@ -980,6 +984,10 @@ var Lynel = new Class({
 		,270:	{sprites: [99,99], flip: [null,'x']}
 	}
 	,draw: function() {
+		if(this.spawning) {
+			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
+			return true;
+		}
 		frame = this.frames[this.direction]['sprites'][this.animFrame];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
@@ -1017,6 +1025,10 @@ var Ghini = new Class({
 		,270:	{sprites: [101], flip: [null]}
 	}
 	,draw: function() {
+		if(this.spawning) {
+			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
+			return true;
+		}
 		frame = this.frames[this.direction]['sprites'][0];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
@@ -1076,6 +1088,10 @@ var Staflos = new Class({
 		,270:	{sprites: [124,124], flip: [null,'x']}
 	}
 	,draw: function() {
+		if(this.spawning) {
+			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
+			return true;
+		}
 		frame = this.frames[this.direction]['sprites'][this.animFrame];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
@@ -1236,6 +1252,10 @@ var Goriya = new Class({
 		,270:	{sprites: [140,140], flip: [null,'x']}
 	}
 	,draw: function() {
+		if(this.spawning) {
+			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
+			return true;
+		}
 		frame = this.frames[this.direction]['sprites'][this.animFrame];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
@@ -1357,6 +1377,10 @@ var Rope = new Class({
 		,270:	{sprites: [147,148], flip: [null,null]}
 	}
 	,draw: function() {
+		if(this.spawning) {
+			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
+			return true;
+		}
 		frame = this.frames[this.direction]['sprites'][this.animFrame];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);

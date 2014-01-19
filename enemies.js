@@ -1484,3 +1484,53 @@ var Aquamentus = new Class({
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(0);
 	}
 });
+
+var Dodongo = new Class({
+	//@TODO: Takes damage when it walks in the path of a non-exploded bomb
+	Extends: RandomMob
+	,maxAnimFrames: 2
+	,name: 'Dodongo'
+	,damage: 1
+	,health: 1
+	,frames: {
+		 0:		{spritex: [2*32,2*32], spritey: [0,16], flip: [null, null], width: 28, height: 16}
+		,90:	{spritex: [3.5*32,3.5*32], spritey: [0,0], flip: [null,'x'], width: 15, height: 16}
+		,180:	{spritex: [2*32,2*32], spritey: [0,16], flip: ['x', 'x'], width: 28, height: 16}
+		,270:	{spritex: [3*32,3*32], spritey: [0,0], flip: [null,'x'], width: 15, height: 16}
+	}
+	,impact: function() {
+		return false;
+	}
+	,draw: function() {
+		frame = this.frames[this.direction]['spritex'][this.animFrame];
+		flip = this.frames[this.direction]['flip'][this.animFrame];
+		this.width = this.frames[this.direction]['width'];
+		this.height = this.frames[this.direction]['height'];
+
+		if(flip) {
+			tmpY = this.height/-2;
+			tmpX = this.width/-2;
+			ctx.save(); 
+			ctx.translate(this.x+(this.width/2), this.y+(this.height/2));
+			ctx.scale((flip.contains('x') ? -1 : 1), (flip.contains('y') ? -1 : 1));
+		} else {
+			tmpY = this.y;
+			tmpX = this.x;
+		}
+
+		ctx.drawImage(
+			env.bossSpriteSheet, 
+			frame, 
+			this.frames[this.direction]['spritey'][this.animFrame], 
+			this.width, 
+			this.height, 
+			Math.round(tmpX), 
+			Math.round(tmpY), 
+			this.width, 
+			this.height
+		);
+		if(flip) ctx.restore();
+
+		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	}
+});

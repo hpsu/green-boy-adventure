@@ -315,6 +315,7 @@ var Link = new Class({
 	,swordThrow: null
 	,bomb: null
 	,impacted: false
+	,immobilized: false
 	,getRupees: function() {
 		return this.items.rupees;
 	}
@@ -483,7 +484,7 @@ var Link = new Class({
 	}
 	,move: function() {
 		this.impacted = false;
-
+		if(this.immobilized) return;
 		var delta = Date.now() - this.lastUpdateTime;
 
 		if(this.usingItem) {

@@ -140,7 +140,6 @@ var DeathEvent = new Class({
 
 var Event = new Class({
 	initialize: function(room, noMovingPlayer) {
-		//@TODO: Freeze player movement during event
 		room.tmpX = env.player.x;
 		room.tmpY = env.player.y;
 		room.addEvent('leave', function() {
@@ -532,13 +531,17 @@ var TextContainer = new Class({
 		this.y = y;
 		this.animFrame=0;
 		this.text = text;
+		env.player.immobilized = true;
 	}
 	,draw: function() {
 		var delta = Date.now() - this.lastUpdateTime;
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
 			if(["\n"," "].contains(this.text[this.animFrame])) this.animFrame++;
-			if(++this.animFrame > this.text.length) this.animFrame = this.text.length;
+			if(++this.animFrame > this.text.length) {
+				this.animFrame = this.text.length;
+				env.player.immobilized = false;
+			}
 		}
 		writeText(this.text.substr(0,this.animFrame), this.x, this.y);
 		this.acDelta+=delta;

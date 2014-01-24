@@ -48,7 +48,7 @@ window.addEvent('load', function () {
 	ctx.webkitImageSmoothingEnabled=false;
 	ctxBg.webkitImageSmoothingEnabled=false;
 	env.player = new Link(WIDTH/2, HEIGHT/2);
-	
+	env.pauseScreen = new PauseScreen();
 	paintRoom();
 	
 	$('screen').addEventListener("touchstart", handleStart, false);
@@ -229,23 +229,51 @@ var PauseScreen = new Class({
 	,height: 241-(4*TILESIZE)
 	,isFriendly: true
 	,inSpaceTime: false
+	,state: 'closed'
 	,initialize: function(){
 		this.x=0;
 		this.y=-this.height;
-		env.paused = true;
+		
 		solidObjects.push(this);
 
 		//this.parent(this.x, this.y);
 	}
+	,open: function() {
+		env.paused = true;
+		this.state='opening';
+	}
+	,close: function() {
+		this.state='closing';
+	}
+	,toggle: function() {
+		if(this.state == 'open')
+			this.close();
+		else if(this.state == 'closed')
+			this.open();
+	}
 	,move: function() {
-		/*if(this.y < 0) {
-			this.y+=1.5;
-		}*/
-		if(YOFF < this.height) {
-			YOFF+=1.5;
+		switch(this.state) {
+			case 'opening':
+				if(YOFF < this.height) {
+					YOFF+=1.5;
+				} else this.state='open';
+			break;
+			case 'closing':
+				if(YOFF > 0) {
+					YOFF-=1.5;
+				} else {
+					this.state='closed';
+					env.paused = false;
+				}
+			break;
+			default:
+				if(env.keyStates['enter']) {
+					env.pauseScreen.toggle();
+				}
 		}
 	}
 	,draw: function() {
+		if(this.state=='closed') return;
 		filledRectangle(this.x, Math.ceil(YOFF+this.y), this.width, this.height, "#000");
 		writeText('inventory', this.x+(2*TILESIZE), YOFF+this.y+(1.5*TILESIZE), [216, 40, 0]);
 		writeText('use b button\n  for this', this.x+(1*TILESIZE), YOFF+this.y+(4.5*TILESIZE));

@@ -25,6 +25,10 @@ var ctx = null
 		]
 	};
 
+window.collisionDebug = false;
+window.spriteDebug = false;
+window.godMode = false;
+
 var TintCache = {
 	cache: {}
 	,get: function(color, tile) {
@@ -221,6 +225,73 @@ var Mob = new Class({
 	,draw: function() {
 		placeTile(this.sprite, this.x, this.y);
 	}
+});
+
+var OptionScreen = new Class({
+	Extends:Mob
+	,width: 256
+	,height: 241
+	,isFriendly: true
+	,inSpaceTime: false
+	,state: 'closed'
+	,choice: 0
+	,options: [
+		['collisionDebug', 'Debug collisions', 'boolean']
+		,['spriteDebug', 'Debug sprites', 'boolean']
+		,['godMode', 'Passthru solid tiles', 'boolean']
+	]
+	,initialize: function(){
+		this.x=0;
+		this.y=0;
+		
+		solidObjects.push(this);
+
+	}
+	,destroy: function() {
+		this.isActive = false;
+		solidObjects.erase(this);
+	}
+	,move: function() {
+		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+		if(env.keyStates['up'] || env.keyStates['down'] || env.keyStates['space'] || env.keyStates['right']) {
+			if(this.acDelta < 150) return;
+			else this.acDelta = 0;
+		}
+		switch(true) {
+			case env.keyStates['up']:
+				if(--this.choice < 0) this.choice=this.options.length-1;
+				break;
+			case env.keyStates['down']:
+				if(++this.choice >= this.options.length) this.choice=0;
+				break;
+			case env.keyStates['right']:
+				var o = this.options[this.choice];
+				if(o[2] == 'boolean') {
+					window[o[0]] = !window[o[0]];
+				}
+				break;
+			case env.keyStates['esc']:
+				this.destroy();
+				break;
+		}
+		this.acDelta += delta;
+		this.lastUpdateTime = Date.now();
+
+	}
+	,draw: function() {
+		filledRectangle(this.x, Math.ceil(this.y), this.width, this.height, "#000");
+		drawBorder(this.x+HALFTILE, this.y+TILESIZE, 30, 27);
+		writeText('developer options', this.x+TILESIZE, this.y+(HALFTILE), [216, 40, 0]);
+
+		for(var i=0; i<this.options.length; i++) {
+			var o = this.options[i];
+			writeText(o[1], this.x+TILESIZE*3, this.y+(TILESIZE*(i+2)));
+			filledRectangle(this.x+TILESIZE*2, this.y+(TILESIZE*(i+2)), HALFTILE, HALFTILE, "#fff", ctx, !window[o[0]]);
+		}
+
+		ctx.drawImage(env.spriteSheet, (22*TILESIZE), 0, HALFTILE, HALFTILE, 1*TILESIZE, (2*TILESIZE)+(this.choice*TILESIZE), HALFTILE, HALFTILE); // Heart
+	}
+
 });
 
 var PauseScreen = new Class({
@@ -800,13 +871,20 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 	}
 }
 
-function filledRectangle(x, y, w, h, c, tCtx) {
+function filledRectangle(x, y, w, h, c, tCtx, stroked) {
 	if(!tCtx) tCtx = ctx;
 	tCtx.beginPath();
-	tCtx.fillStyle=c;
+	if(stroked === true)
+		tCtx.strokeStyle=c;
+	else
+		tCtx.fillStyle=c;
 	tCtx.rect(x, y, w, h);
-	tCtx.fill();
+	if(stroked === true)
+		tCtx.stroke();
+	else
+		tCtx.fill();
 }
+
 
 function writeText(string, x, y, color, tCtx) {
 	if(!tCtx) tCtx = ctx;

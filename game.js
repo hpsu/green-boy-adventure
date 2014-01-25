@@ -90,8 +90,22 @@ function handleEnd(evt) {
 }
 
 // Record keypresses
-window.addEvent('keydown', function(e) { if(env.keyStates[e.key] !== null) env.keyStates[e.key] = true;});
-window.addEvent('keyup', function(e) { env.keyStates[e.key] = false; });
+window.addEvent('keydown', function(e) { 
+	if(env.keyStates[e.key] !== null) env.keyStates[e.key] = true;
+	if(e.control && e.key == 'p') {
+		e.preventDefault();
+		if(env.optionscreen) {
+			env.optionscreen.destroy();
+			delete env.optionscreen;
+		}
+		else {
+			env.optionscreen = new OptionScreen();
+		}
+	}
+});
+window.addEvent('keyup', function(e) { 
+	env.keyStates[e.key] = false; 
+});
 
 /*
  * Base skeleton class for all Mobile OBjects
@@ -245,11 +259,14 @@ var OptionScreen = new Class({
 		this.y=0;
 		
 		solidObjects.push(this);
-
+		env.paused = true;
 	}
 	,destroy: function() {
 		this.isActive = false;
 		solidObjects.erase(this);
+		env.paused = false;
+		paintRoom();
+
 	}
 	,move: function() {
 		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
@@ -264,14 +281,11 @@ var OptionScreen = new Class({
 			case env.keyStates['down']:
 				if(++this.choice >= this.options.length) this.choice=0;
 				break;
-			case env.keyStates['right']:
+			case env.keyStates['space']:
 				var o = this.options[this.choice];
 				if(o[2] == 'boolean') {
 					window[o[0]] = !window[o[0]];
 				}
-				break;
-			case env.keyStates['esc']:
-				this.destroy();
 				break;
 		}
 		this.acDelta += delta;

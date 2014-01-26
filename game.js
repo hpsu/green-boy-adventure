@@ -765,7 +765,13 @@ function paintHeader() {
 	drawBorder(xOff+(8*TILESIZE), yOff, 3, 4);
 	writeText('A', xOff+(8*TILESIZE)+HALFTILE, yOff); 
 	if(env.player.items.sword > 0) {
-		placeTile(12, xOff+(8*TILESIZE)+(HALFTILE/2), yOff+HALFTILE);
+		var x = xOff+(8*TILESIZE)+(HALFTILE/2),
+			y = yOff+HALFTILE,
+			w = TILESIZE,
+			h = TILESIZE;
+		placeTile(12, x, y, w, h);
+		if(env.player.items.sword == 2)
+			tintArea(0, 3, null, x, y, w, h);
 	}
 
 	writeText('-LIFE-', xOff+(10*TILESIZE)+HALFTILE, yOff, [216, 40, 0]); 
@@ -1162,3 +1168,31 @@ function tintWorld() {
 	}
 	ctxBg.putImageData(map, 0, 0);
 }
+
+function tintArea(from, to, palettes, x, y, w, h) {
+		if(!palettes) palettes = env.palettes;
+		if(!from) from = 0;
+		
+		if(!palettes[to]) { 
+			console.log('There is no palette',to);
+			return;
+		}
+		if(to != from || palettes != env.palettes) {
+			map = ctx.getImageData(x, y, w, h);
+			imdata = map.data;
+			for(var p = 0, len = imdata.length; p < len; p+=4) {
+				r = imdata[p]
+				g = imdata[p+1];
+				b = imdata[p+2];
+				Array.each([0,1,2], function(i){
+					j = i;
+					if(r == env.palettes[from][i][0] && g == env.palettes[from][i][1] && b == env.palettes[from][i][2]) {
+						imdata[p] = palettes[to][j][0];
+						imdata[p+1] = palettes[to][j][1];
+						imdata[p+2] = palettes[to][j][2];
+					}
+				},this);
+			}
+			ctx.putImageData(map, x, y);
+		}
+	}

@@ -300,14 +300,15 @@ var LinkGainItem = new Class({
 	Extends: Mob
 	,shownMs: 2000
 	,acDelta: 0
-	,initialize: function(itemsprite, halfspritepos, quarterspritepos){
+	,initialize: function(itemsprite, halfspritepos, quarterspritepos, palette){
 		this.itemsprite = itemsprite
 		this.halfspritepos = halfspritepos
 		this.quarterspritepos = quarterspritepos
 		env.player.isActive=false;
 		this.x = env.player.x;
-		this.y = env.player.y;
+		this.y = env.player.y-TILESIZE;
 		this.parent(this.x,this.y,rooms.getCurrentRoom());
+		if(typeof(palette) != 'undefined') this.palette=palette;
 	}
 	,destroy: function() {
 		env.player.isActive=true;
@@ -322,12 +323,13 @@ var LinkGainItem = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		placeTile(109, this.x, this.y);
+		placeTile(109, this.x, this.y+TILESIZE);
 		if(this.halfspritepos != undefined) {
 			ctx.drawImage(env.spriteSheet, (this.itemsprite*TILESIZE)+(this.halfspritepos*HALFTILE), (this.quarterspritepos != undefined ? this.quarterspritepos : 0), HALFTILE, (this.quarterspritepos != undefined ? HALFTILE : TILESIZE), Math.floor(this.x), Math.floor(this.y-TILESIZE), HALFTILE, (this.quarterspritepos != undefined ? HALFTILE : TILESIZE));
 		}
 		else {
-			placeTile(this.itemsprite, this.x, this.y-TILESIZE);
+			placeTile(this.itemsprite, this.x, this.y);
+			this.changePalette();
 		}
 	}
 });
@@ -512,6 +514,31 @@ var WhiteSwordEvent = new Class({
 			if(that.items.hearts < 5)
 				return;
 			that.items.sword=2;
+			this.destroy();
+			room.guy.destroy();
+			room.txtNode.destroy();
+			new LinkGainItem(this.sprite, null, null, 3);
+			room.eventDone=true;
+		};
+		
+	}
+});
+
+
+var MagicalSwordEvent = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room);
+		if(room.eventDone) return;
+
+		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
+		room.txtNode = new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "master using it and\n you can have this.");
+
+		room.whiteSword = new puMagicalSword(TILESIZE*7.5, TILESIZE*9.5, room);
+		room.whiteSword.pickup = function(that){
+			if(that.items.hearts < 12)
+				return;
+			that.items.sword=3;
 			this.destroy();
 			room.guy.destroy();
 			room.txtNode.destroy();

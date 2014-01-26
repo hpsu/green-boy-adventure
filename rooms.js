@@ -277,10 +277,11 @@ var Tile = new Class({
  *********************/
 
 var underworld = new RoomStorage(7,7,[
-	new CaveRoom({row: 1, col: 0,scriptedEvent: MoneyMakingGameEvent})
+	new CaveRoom({row: 0, col: 10,scriptedEvent: WhiteSwordEvent})
+	,new CaveRoom({row: 1, col: 0,scriptedEvent: MoneyMakingGameEvent})
 	,new CaveRoom({row: 1, col: 10,scriptedEvent: PayMeAndIllTalkEvent2})
 
-	,new CaveRoom({row: 2, col: 1,scriptedEvent: WhiteSwordEvent})
+	,new CaveRoom({row: 2, col: 1,scriptedEvent: MagicalSwordEvent})
 	,new CaveRoom({row: 2, col: 5,scriptedEvent: ShieldBombArrowEvent})
 	
 	,new CaveRoom({row: 4, col: 4,scriptedEvent: ShieldBombArrowEvent})
@@ -1222,6 +1223,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,16,16,16,41,16,16,16,16,16,16,71,16,16]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		,eventTiles: [{row:1, col:2, 'event': function() {switchRoom(0,10,underworld);}}]
 	})
 	,new Room({row: 0, col:11, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]

@@ -435,6 +435,16 @@ var puSword = new Class({
 	}
 });
 
+var puWhiteSword = new Class({
+	Extends: puSword
+	,palette: 3
+	,draw: function(){
+		this.parent();
+		this.changePalette();
+	}
+});
+
+
 var puShield = new Class({
 	Extends: Mob
 	,name: 'puShield'
@@ -515,7 +525,7 @@ var puTriforce = new Class({
 });
 
 
-var puWhiteSword = new Class({
+var puMagicalSword = new Class({
 	Extends: Mob
 	,sprite: 128
 	,isFriendly: true

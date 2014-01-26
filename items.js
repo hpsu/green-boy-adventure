@@ -208,12 +208,19 @@ var Sword = new Class({
 	,movementRate: 5
 	,isFriendly: true
 	,fullPower: false
+	,palette: 0
 	,initialize: function(ancestor) {
 		this.name = 'Sword';
 		this.ancestor = ancestor;
 		this.parent(ancestor.x, ancestor.y);
 		this.fullPower = this.ancestor.health == this.ancestor.items.hearts;
 		this.rePosition();
+		switch(ancestor.items.sword) {
+			case 2:
+				this.palette = 3;
+				this.damage = 1;
+				break;
+		}
 	}
 	,rePosition: function() {
 		this.x = this.ancestor.x;
@@ -261,7 +268,11 @@ var Sword = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
+
 		placeTile(this.sprite, this.x+xAdd, this.y, false, null, (90 + this.direction % 360)/180);
+		
+		this.changePalette();
+
 	}	
 });
 

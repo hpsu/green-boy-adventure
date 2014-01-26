@@ -293,6 +293,8 @@ var OptionScreen = new Class({
 
 	}
 	,draw: function() {
+		ctx.imageSmoothingEnabled= false;
+		ctx.webkitImageSmoothingEnabled = false;
 		filledRectangle(this.x, Math.ceil(this.y), this.width, this.height, "#000");
 		drawBorder(this.x+HALFTILE, this.y+TILESIZE, 30, 27);
 		writeText('developer options', this.x+TILESIZE, this.y+(HALFTILE), [216, 40, 0]);
@@ -888,15 +890,17 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 function filledRectangle(x, y, w, h, c, tCtx, stroked) {
 	if(!tCtx) tCtx = ctx;
 	tCtx.beginPath();
-	if(stroked === true)
+		tCtx.lineWidth=2;
+	if(stroked === true){
 		tCtx.strokeStyle=c;
-	else
-		tCtx.fillStyle=c;
-	tCtx.rect(x, y, w, h);
-	if(stroked === true)
+		tCtx.strokeRect(x, y, w, h);
 		tCtx.stroke();
-	else
-		tCtx.fill();
+	}
+	else {
+		tCtx.fillStyle=c;
+		tCtx.fillRect(x, y, w, h);
+//		tCtx.fill();
+	}
 }
 
 

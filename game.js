@@ -766,12 +766,18 @@ function paintHeader() {
 	writeText('A', xOff+(8*TILESIZE)+HALFTILE, yOff); 
 	if(env.player.items.sword > 0) {
 		var x = xOff+(8*TILESIZE)+(HALFTILE/2),
-			y = yOff+HALFTILE,
-			w = TILESIZE,
-			h = TILESIZE;
-		placeTile(12, x, y, w, h);
+			y = yOff+HALFTILE;
+		switch(env.player.items.sword) {
+			case 1:
+				imSword.draw(ctx, x, y);
+				break;
+			case 2: 
+				imWhiteSword.draw(ctx, x, y);
+				break;
+		}
+		/*placeTile(12, x, y, w, h);
 		if(env.player.items.sword == 2)
-			tintArea(0, 3, null, x, y, w, h);
+			tintArea(0, 3, null, x, y, w, h);*/
 	}
 
 	writeText('-LIFE-', xOff+(10*TILESIZE)+HALFTILE, yOff, [216, 40, 0]); 

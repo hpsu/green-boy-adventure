@@ -644,14 +644,15 @@ var Link = new Class({
 					this.candle = this.usingItem = new CandleFire(this);
 				env.keyStates['x']=null;
 				break;
-			case env.keyStates['space'] && this.usingItem == false:
+			case (env.keyStates['space'] || env.keyStates['f']) && this.usingItem == false:
 				if(this.items.sword > 0) {
 					this.usingItem = new Sword(this);
 					if(this.health == this.items.hearts && this.swordThrow == null) {
 						this.swordThrow = new SwordThrow(this);
 					}
 				}
-				env.keyStates['space']=null;
+				if(env.keyStates['space']) env.keyStates['space']=null;
+				else if(env.keyStates['f']) env.keyStates['f']=null;
 				break;
 			case env.keyStates['down']: case env.keyStates['s']:
 				this.isMoving=true;

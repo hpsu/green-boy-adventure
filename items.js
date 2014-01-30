@@ -217,9 +217,11 @@ var Sword = new Class({
 		this.rePosition();
 		switch(ancestor.items.sword) {
 			case 2:
-				this.palette = 3;
+				this.swob = imWhiteSword;
 				this.damage = 1;
 				break;
+			default:
+				this.swob = imSword;
 		}
 	}
 	,rePosition: function() {
@@ -268,10 +270,10 @@ var Sword = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-
-		placeTile(this.sprite, this.x+xAdd, this.y, false, null, (90 + this.direction % 360)/180);
+		this.swob.draw(ctx, this.x, this.y, (90 + this.direction %360));
+		//placeTile(this.sprite, this.x+xAdd, this.y, false, null, (90 + this.direction % 360)/180);
 		
-		this.changePalette();
+		//this.changePalette();
 
 	}	
 });

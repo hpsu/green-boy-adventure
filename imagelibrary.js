@@ -1,5 +1,10 @@
 var Sprite16 = new Class({
-	buffer: null,
+	buffer: {
+		0: null
+		,90: null
+		,180: null
+		,270: null
+	},
 	width: 16,
 	height: 16,
 	direction: 0,
@@ -12,25 +17,37 @@ var Sprite16 = new Class({
 			}
 		}
 	}
-	,draw: function(tCtx, x, y) {
-		if(!this.buffer) this.create();
-		tCtx.drawImage(this.buffer, 0, 0, this.width, this.height, Math.round(x), Math.round(y), this.width, this.height);
+	,draw: function(tCtx, x, y, direction, flip) {
+		if(!this.buffer[direction]) return this.create(direction);
+		tCtx.drawImage(this.buffer[direction], 0, 0, this.width, this.height, Math.round(x), Math.round(y), this.width, this.height);
 
 	}
-	,create: function(){
-		if(this.buffer) return this.buffer;
-		this.buffer = document.createElement('canvas');
-		this.buffer.width = 16;
-		this.buffer.height = 16;
+	,create: function(direction){
+		if(this.buffer[direction]) return this.buffer[direction];
+		this.buffer[direction] = document.createElement('canvas');
+		this.buffer[direction].width = 16;
+		this.buffer[direction].height = 16;
 
-		this.buffer.getContext('2d').drawImage(
+		var tmpX = 0, tmpY = 0;
+		var tCtx = this.buffer[direction].getContext('2d');
+		if(direction > 0) {
+			console.log('rotating to',direction);
+			tmpY = this.height/-2;
+			tmpX = this.width/-2;
+			rotate = (direction/180)*Math.PI;
+			tCtx.translate((this.width/2), (this.height/2));
+			tCtx.rotate(rotate);
+		}
+
+
+		tCtx.drawImage(
 			env.spriteSheet, 
 			this.position*SPRITESIZE,
 			0,
 			this.width,
 			this.height,
-			0, //dstX
-			0, //dstY
+			tmpX, //dstX
+			tmpY, //dstY
 			this.width,
 			this.height
 		);
@@ -38,7 +55,7 @@ var Sprite16 = new Class({
 		// Tint
 		if(this.tintFrom) {
 			console.log('tinting from',this.tintFrom);
-			map = this.buffer.getContext('2d').getImageData(0, 0, this.width, this.height);
+			var map = tCtx.getImageData(0, 0, this.width, this.height);
 			imdata = map.data;
 			for(var p = 0, len = imdata.length; p < len; p+=4) {
 				r = imdata[p]
@@ -62,10 +79,10 @@ var Sprite16 = new Class({
 					}
 				}
 			}
-			this.buffer.getContext('2d').putImageData(map, 0, 0);
+			tCtx.putImageData(map, 0, 0);
 		}
 
-		return this.buffer;
+		return this.buffer[this.direction];
 	}
 });
 

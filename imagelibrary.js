@@ -18,8 +18,8 @@ var Sprite16 = new Class({
 		}
 	}
 	,draw: function(tCtx, x, y, direction, flip) {
-		if(!this.buffer[direction]) return this.create(direction);
-		tCtx.drawImage(this.buffer[direction], 0, 0, this.width, this.height, Math.round(x), Math.round(y), this.width, this.height);
+		if(!this.buffer[direction]) this.create(direction);
+		tCtx.drawImage(this.buffer[direction], 0, 0, this.width, this.height, Math.round(x*SCALE), Math.round(y*SCALE), Math.round(this.width*SCALE), Math.round(this.height*SCALE));
 
 	}
 	,create: function(direction){
@@ -48,8 +48,8 @@ var Sprite16 = new Class({
 			this.height,
 			tmpX, //dstX
 			tmpY, //dstY
-			this.width,
-			this.height
+			Math.round(this.width*SCALE),
+			this.height*SCALE
 		);
 
 		// Tint

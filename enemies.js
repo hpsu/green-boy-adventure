@@ -60,8 +60,8 @@ var Projectile = new Class({
 		this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
 		this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
 		
-		var xTile = this.x/TILESIZE;
-		var yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
+		var xTile = this.x/SPRITESIZE;
+		var yTile = (this.y/SPRITESIZE)-4; // -4 is accounting for the header
 		switch(this.direction) {
 			case 0: // right
 				xTile = Math.ceil(xTile);
@@ -82,8 +82,8 @@ var Projectile = new Class({
 				break;
 		}
 
-		if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-		if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
+		//if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
+		//if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
 
 		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
 		|| yTile < 1 || yTile > this.currentRoom.roomHeight-2
@@ -133,7 +133,7 @@ var FireBall = new Class({
 		this.direction = Math.atan2(env.player.y - offsetY - this.y, env.player.x - this.x) * 180 / Math.PI;
 	}
 	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.tile*TILESIZE)+4, HALFTILE-5, this.width, this.height, Math.round(this.x), Math.round(this.y), this.width, this.height);
+		ctx.drawImage(env.spriteSheet, (this.tile*SPRITESIZE)+4, (SPRITESIZE/2)-5, this.width, this.height, Math.round(this.x), Math.round(this.y), this.width, this.height);
 		if(this.rotatePalette) this.changePalette();
 	}
 });
@@ -200,7 +200,7 @@ var BoomerangProjectile = new Class({
 		var delta = Date.now() - this.lastUpdateTime;
 		this.parent();
 		if(this.turnCount && this.collidesWith(this.ancestor)) this.destroy();
-		else if(!this.turnCount && Math.sqrt(Math.pow(this.x-this.ancestor.x,2) + Math.pow(this.y-this.ancestor.y,2)) > TILESIZE*5 ) {
+		else if(!this.turnCount && Math.sqrt(Math.pow(this.x-this.ancestor.x,2) + Math.pow(this.y-this.ancestor.y,2)) > SPRITESIZE*5 ) {
 			this.direction = 180 + this.direction % 360;
 			this.turnCount++;
 		}
@@ -286,8 +286,8 @@ var Tektite = new Class({
 		this.startY = this.y;
 
 		do {
-			this.targetY = this.y+Number.random(-TILESIZE,TILESIZE);
-		} while((this.targetY <= 4*TILESIZE || this.targetY >= 14*TILESIZE) && ++infCnt <100 );
+			this.targetY = this.y+Number.random(-SPRITESIZE,SPRITESIZE);
+		} while((this.targetY <= 4*SPRITESIZE || this.targetY >= 14*SPRITESIZE) && ++infCnt <100 );
 
 		if(infCnt >= 100) {
 			this.targetY = this.startY;
@@ -317,7 +317,7 @@ var Tektite = new Class({
 				this.y = this.targetY;
 				this.stopJump();
 			}
-			else if(this.x > sc((this.currentRoom.roomWidth*TILESIZE)-TILESIZE-HALFTILE)
+			else if(this.x > sc((this.currentRoom.roomWidth*SPRITESIZE)-SPRITEIZE-(SPRITESIZE/2))
 			|| this.x < sc(HALFTILE)) {
 				this.y -= this.velocityY;
 				this.x -= this.velocityX;
@@ -424,7 +424,7 @@ var Leever = new Class({
 					this.randomDirection();
 				}
 			}
-			if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 2*TILESIZE) {
+			if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 2*SPRITESIZE) {
 				if(!isNaN(this.impactDirection)) {
 					this.x += Math.cos(this.impactDirection * Math.PI/180) * (this.movementRate*3);
 					this.y += Math.sin(this.impactDirection * Math.PI/180) * (this.movementRate*3);
@@ -436,8 +436,8 @@ var Leever = new Class({
 				this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
 			}
 
-			xTile = this.x/TILESIZE;
-			yTile = (this.y/TILESIZE)-4; // -4 is accounting for the header
+			xTile = this.x/SPRITESIZE;
+			yTile = (this.y/SPRITESIZE)-4; // -4 is accounting for the header
 			
 			switch(this.direction) {
 				case 0: // right
@@ -460,7 +460,7 @@ var Leever = new Class({
 			}
 
 			if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-			if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
+			if(window.collisionDebug) filledRectangle(xTile*SPRITESIZE, (yTile+4)*SPRITESIZE, SPRITESIZE, SPRITESIZE, '#00f');
 			
 			Array.each(solidObjects, function(that){
 				if(that != this && that.isFriendly && this.collidesWith(that)) {
@@ -590,12 +590,12 @@ var RiverZora = new Class({
 		do{
 			xTile = Number.random(1, this.currentRoom.roomWidth-2);
 			yTile = Number.random(1, this.currentRoom.roomHeight-2);
-			if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, this.width, this.height, "#f0f");
+			if(window.collisionDebug) filledRectangle(xTile*SPRITESIZE, (yTile+4)*SPRITESIZE, this.width, this.height, "#f0f");
 			if(++infCnt >100)
 				return false;
 		} while(![34, 35, 36, 37, 38, 39, 40, 41, 42].contains(this.currentRoom.getTile(yTile, xTile).sprite));
-		this.x = xTile*TILESIZE;
-		this.y = (yTile+4)*TILESIZE;
+		this.x = xTile*SPRITESIZE;
+		this.y = (yTile+4)*SPRITESIZE;
 	}
 	,move: function() {
 
@@ -792,8 +792,8 @@ var RandomMob = new Class({
 		var tx = this.x + Math.cos(direction * Math.PI/180) * this.movementRate;
 		var ty = this.y + Math.sin(direction * Math.PI/180) * this.movementRate;
 
-		var xTile = tx/TILESIZE;
-		var yTile = (ty/TILESIZE)-4; // -4 is accounting for the header
+		var xTile = tx/SPRITESIZE;
+		var yTile = (ty/SPRITESIZE)-4; // -4 is accounting for the header
 		switch(direction) {
 			case 0: // right
 				xTile = Math.ceil(xTile);
@@ -865,7 +865,7 @@ var RandomMob = new Class({
 		}
 
 		//skuffa
-		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 4*HALFTILE) {
+		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 2*SPRITESIZE) {
 			if(!isNaN(this.impactDirection)) {
 				for(var i=0; i<6; i++) {
 					this.flytta(this.impactDirection);

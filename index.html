@@ -13,25 +13,26 @@
 		<style>
 		#gamecontainer {
 			position: relative;
-			margin:0 auto; 
-			box-shadow:10px 10px 10px rgba(0, 0, 0, 0.5);
-			width:256px;
-			height:240px;
-
+			margin: 0 auto; 
+			padding: 0;
+			text-align: center;
 		}
 		#screen { 
-			position: absolute;
+			position: relative;
+			top: 0;
 			background: transparent;
 		}
 		#background { 
 			position: absolute;
 			background-color:#fcd8a8; 
 		}
-		.mobnav {
-			text-align: center;
-		}
 		body {
 			background: #3c3c3c;
+			margin: 0;
+		}
+		button {
+			position: absolute;
+			top: 0;
 		}
 	  </style>
 	</head>
@@ -40,5 +41,6 @@
 			<canvas id="background" width="256" height="240"></canvas>
 			<canvas id="screen" width="256" height="240"></canvas>
 		</div>
+		<button onclick="gofs()">text</button>
 	</body>
 </html>

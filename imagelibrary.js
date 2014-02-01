@@ -151,14 +151,19 @@ var SpriteCatalog = {
 	,LinkItem90: {col: [11]}
 	,LinkItem180: {col: [8]}
 	,LinkItem270: {col: [10]}
+	,LinkGainItem: {col: [109]}
 	,OldMan: {col: [85]}
 	,Fire: {col: [84]}
-	
+	,HeartContainer: {col: [107]}
+	,Compass: {col: [127]}
+	,Triforce: {col: [144]}
+	,MovableBlock: {col: [284]}
+
 	// 8x8
 	,SmallRupee: {col: [42], row: [0], size: 8}
 	,SmallKey: {col: [43], row: [0], size: 8}
 	,SmallBomb: {col: [43], row: [1], size: 8}
-	,FullHeart: {col: [44], row: [0], size: 8}
+	,FullHeart: {col: [44], row: [0], size: 8, palette:2}
 	,HalfHeart: {col: [45], row: [0], size: 8}
 	,EmptyHeart: {col: [44], row: [1], size: 8}
 	,TopLeftBorder: {col: [100], row: [0], size: 8}
@@ -167,7 +172,6 @@ var SpriteCatalog = {
 	,VerticalBorder: {col: [103], row: [0], size: 8}
 	,BottomLeftBorder: {col: [100], row: [1], size: 8}
 	,BottomRightBorder: {col: [101], row: [1], size: 8}
-
 	,a: {col: [46], row: [0], size: 8, palette: 2}
 	,b: {col: [47], row: [0], size: 8, palette: 2}
 	,c: {col: [46], row: [1], size: 8, palette: 2}
@@ -212,6 +216,7 @@ var SpriteCatalog = {
 	,8: {col: [67], row: [0], size: 8, palette: 2}
 	,9: {col: [66], row: [1], size: 8, palette: 2}
 	,'+': {col: [67], row: [1], size: 8, palette: 2}
+	,Boomerang: {col: [141*2], size:8}
 
 	// 8x16
 	,Bracelet: {col: [132*2], width: 8, height: 16}
@@ -219,7 +224,38 @@ var SpriteCatalog = {
 	,Candle: {col: [106*2+1], width: 8, height: 16}
 	,Bomb: {col: [123*2], width: 8, height: 16}
 	,Rupee: {col: [123*2+1], width: 8, height: 16}
+	,Shield: {col: [105*2], width: 8, height: 16}
+	,Map: {col: [136*2], width: 8, height: 16}
+	,MagicalSword: {col: [128*2], width: 8, height: 16}
+	,Key: {col: [106*2], width: 8, height: 16}
+	,Bone: {col: [108*2+1], width: 8, height: 16}
+	,Fairy: {col: [60*2,60*2+1], width: 8, height: 16}
+	,Arrow: {col: [94*2], width: 8, height: 16}
+	,Bow: {col: [146*2], width: 8, height: 16}
+	,getWidth: function(key) {
+		if(!this[key]) {
+			console.warn('No such sprite in catalog!');
+			return false;
+		}
+		if(this[key].width)
+			return this[key].width;
+		else if(this[key].size)
+			return this[key].size;
 
+		return SPRITESIZE;
+	}
+	,getHeight: function(key) {
+		if(!this[key]) {
+			console.warn('No such sprite in catalog!');
+			return false;
+		}
+		if(this[key].height)
+			return this[key].height;
+		else if(this[key].size)
+			return this[key].size;
+
+		return SPRITESIZE;
+	}
 	,draw: function(key, x, y, params) {
 		if(!params) params = {};
 

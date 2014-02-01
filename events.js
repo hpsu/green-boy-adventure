@@ -192,15 +192,14 @@ var MoneyMakingGameEvent = new Class({
 	,initialize: function(room) {
 		this.parent(room);
 		
-		new TextContainer(TILESIZE*3.5, (TILESIZE*6)+HALFTILE, room, "let's play money\nmaking game.");
-		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
+		new TextContainer(SPRITESIZE*3.5, (SPRITESIZE*6)+HALFSPRITE, room, "let's play money\nmaking game.");
+		new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldMan');
 		room.rupees = [];
-		room.rupees[0] = new mmgRupee((TILESIZE*5)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 10);
-		room.rupees[1] = new mmgRupee((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 10);
-		room.rupees[2] = new mmgRupee((TILESIZE*9)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 10);
+		room.rupees[0] = new mmgRupee((SPRITESIZE*5)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, 10);
+		room.rupees[1] = new mmgRupee((SPRITESIZE*7)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, 10);
+		room.rupees[2] = new mmgRupee((SPRITESIZE*9)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, 10);
 		room.winningRupee = Number.random(0,2);
 		room.priceRupee = Number.random(0,2);
-		//new TextContainer(TILESIZE*4, (TILESIZE*11), room, "x -10 -10 -10");
 		
 		var values = [20,50];
 		var devalues = [-10, -40, -50]
@@ -217,7 +216,7 @@ var MoneyMakingGameEvent = new Class({
 		room.rupees[1].worth = rupeeWorth[1];
 		room.rupees[2].worth = rupeeWorth[2];
 		
-		new mmgRupee((TILESIZE*3), (TILESIZE*11)-4, room, true);
+		new mmgRupee((SPRITESIZE*3), (SPRITESIZE*11)-4, room, true);
 	}
 });
 
@@ -306,7 +305,7 @@ var LinkGainItem = new Class({
 		this.quarterspritepos = quarterspritepos
 		env.player.isActive=false;
 		this.x = env.player.x;
-		this.y = env.player.y-TILESIZE;
+		this.y = env.player.y-SPRITESIZE;
 		this.parent(this.x,this.y,rooms.getCurrentRoom());
 		if(typeof(palette) != 'undefined') this.palette=palette;
 	}
@@ -323,14 +322,19 @@ var LinkGainItem = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		placeTile(109, this.x, this.y+TILESIZE);
-		if(this.halfspritepos != undefined) {
+		SpriteCatalog.draw('LinkGainItem', this.x, this.y+SPRITESIZE);
+		var item = SpriteCatalog[this.itemsprite];
+		console.log(this.y, this.y+(SPRITESIZE-SpriteCatalog.getHeight(this.itemsprite))/2);
+		SpriteCatalog.draw(this.itemsprite, this.x+(SPRITESIZE-SpriteCatalog.getWidth(this.itemsprite))/2, this.y+(SPRITESIZE-SpriteCatalog.getHeight(this.itemsprite))/2);
+
+		/*if(this.halfspritepos != undefined) {
 			ctx.drawImage(env.spriteSheet, (this.itemsprite*TILESIZE)+(this.halfspritepos*HALFTILE), (this.quarterspritepos != undefined ? this.quarterspritepos : 0), HALFTILE, (this.quarterspritepos != undefined ? HALFTILE : TILESIZE), Math.floor(this.x), Math.floor(this.y-TILESIZE), HALFTILE, (this.quarterspritepos != undefined ? HALFTILE : TILESIZE));
 		}
 		else {
 			placeTile(this.itemsprite, this.x, this.y);
 			this.changePalette();
 		}
+		*/
 	}
 });
 
@@ -347,11 +351,11 @@ var TakeOneEvent = new Class({
 			room.eventDone = true;
 		};
 
-		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
-		new TextContainer(TILESIZE*2+HALFTILE, (TILESIZE*6)+HALFTILE, room, "take any one you want.");
+		new StaticSprite((SPRITESIZE*7.5), SPRITESIZE*8, room, 'OldMan');
+		new TextContainer(SPRITESIZE*2.5, (SPRITESIZE*6.5), room, "take any one you want.");
 	
-		room.potion = new puRedPotion((TILESIZE*6)-4, (TILESIZE*10)-HALFTILE, room);
-		room.heart = new puHeartContainer((TILESIZE*10)-4, (TILESIZE*10)-HALFTILE, room);
+		room.potion = new puRedPotion((SPRITESIZE*6)-4, (SPRITESIZE*9.5), room);
+		room.heart = new puHeartContainer((SPRITESIZE*10)-4, (SPRITESIZE*9.5), room);
 
 		room.tmpPotFunc = room.potion.pickup;
 		room.potion.pickup = function(that) {
@@ -454,8 +458,8 @@ var LakeFairyEvent = new Class({
 	Extends: Event
 	,initialize: function(room) {
 		if(!room.fairy) {
-			room.fairy = new LakeFairy(8*TILESIZE-(HALFTILE/2),11*TILESIZE,room);
-			//new LakeFairyTrigger(8*TILESIZE-(HALFTILE/2),11*TILESIZE,room)
+			room.fairy = new LakeFairy(8*SPRITESIZE-(HALFSPRITE/2),8.25*SPRITESIZE,room);
+			new LakeFairyTrigger(8*SPRITESIZE-(HALFSPRITE/2),11*SPRITESIZE,room)
 		}
 			
 	}

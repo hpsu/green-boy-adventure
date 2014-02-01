@@ -215,7 +215,7 @@ var Mob = new Class({
 			return;
 		}
 		if(this.palette != fromPalette || palettes != env.palettes) {
-			map = ctx.getImageData(this.x, this.y, this.width, this.height);
+			map = ctx.getImageData(this.x*SCALE, this.y*SCALE, this.width*SCALE, this.height*SCALE);
 			imdata = map.data;
 			for(var p = 0, len = imdata.length; p < len; p+=4) {
 				r = imdata[p]
@@ -230,7 +230,7 @@ var Mob = new Class({
 					}
 				},this);
 			}
-			ctx.putImageData(map, this.x, this.y);
+			ctx.putImageData(map, this.x*SCALE, this.y*SCALE);
 		}
 	}
 	,collidesWith: function(that, tx, ty) {
@@ -273,8 +273,10 @@ var Mob = new Class({
 	}
 	,move: function() {}
 	,draw: function() {
-		placeTile(this.sprite, this.x, this.y);
-		SpriteCatalog.draw(this.sprite, this.x, this.y);
+		var params = {};
+		if(this.palette && this.palette != this.defaultPalette) params['palette'] = this.palette;
+		if(this.animFrame) params['animFrame'] = this.animFrame;
+		SpriteCatalog.draw(this.sprite, this.x, this.y, params);
 	}
 });
 

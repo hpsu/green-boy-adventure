@@ -217,11 +217,8 @@ var Sword = new Class({
 		this.rePosition();
 		switch(ancestor.items.sword) {
 			case 2:
-				this.swob = imWhiteSword;
 				this.palette = 3;
 				break;
-			default:
-				this.swob = imSword;
 		}
 	}
 	,rePosition: function() {
@@ -386,7 +383,7 @@ var SwordThrow = new Class({
 var puHeartContainer = new Class({
 	Extends: Mob
 	,name: 'puHeartContainer'
-	,sprite: 107
+	,sprite: 'HeartContainer'
 	,isFriendly: true
 	,pickup: function(that) {
 		that.addHearts(1);
@@ -394,22 +391,18 @@ var puHeartContainer = new Class({
 		new LinkGainItem(this.sprite);
 		this.destroy();
 	}
-
 });
 
 var puRedPotion = new Class({
 	Extends: Mob
 	,name: 'puRedPotionContainer'
 	,width:HALFTILE
-	,sprite: 108
+	,sprite: 'Potion'
 	,isFriendly: true
 	,pickup: function(that) {
 		that.items.potions =2;
 		new LinkGainItem(this.sprite);
 		this.destroy();
-	}
-	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE), 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
 	}
 });
 
@@ -417,14 +410,11 @@ var puBracelet = new Class({
 	Extends: Mob
 	,name: 'puBracelet'
 	,width:HALFTILE
-	,sprite: 132
+	,sprite: 'Bracelet'
 	,isFriendly: true
 	,pickup: function(that) {
 		that.items.bracelet = 1;
 		this.destroy();
-	}
-	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE), 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
 	}
 });
 
@@ -433,8 +423,9 @@ var puSword = new Class({
 	,name: 'puSword'
 	,sprite: 'Sword'
 	,isFriendly: true
+	,type: 1
 	,pickup: function(that) {
-		that.items.sword = 1;
+		that.items.sword = this.type;
 		new LinkGainItem(this.sprite);
 		this.destroy();
 	}
@@ -443,10 +434,7 @@ var puSword = new Class({
 var puWhiteSword = new Class({
 	Extends: puSword
 	,palette: 3
-	,draw: function(){
-		this.parent();
-		this.changePalette();
-	}
+	,type: 2
 });
 
 
@@ -455,7 +443,7 @@ var puShield = new Class({
 	,name: 'puShield'
 	,price: 160
 	,width: 8
-	,sprite: 105
+	,sprite: 'Shield'
 	,isFriendly: true
 	,pickup: function(that) {
 		if(this.price) {
@@ -467,15 +455,15 @@ var puShield = new Class({
 		this.currentRoom.killSprites();
 	}
 	,draw: function() {
-		placeTile(this.sprite, this.x, this.y);
-		writeText((String(this.price).length < 3 ? ' ' : '') + String(this.price), this.x-TILESIZE+4, this.y+TILESIZE+HALFTILE);
+		this.parent();
+		writeText((String(this.price).length < 3 ? ' ' : '') + String(this.price), this.x-SPRITESIZE+4, this.y+1.5*SPRITESIZE);
 
 	}
 });
 
 var puCompass = new Class({
 	Extends: Mob
-	,sprite: 127
+	,sprite: 'Compass'
 	,isFriendly: true
 	,pickup: function(that) {
 		rooms.hasCompass=true;
@@ -485,7 +473,7 @@ var puCompass = new Class({
 
 var puMap = new Class({
 	Extends: Mob
-	,sprite: 136
+	,sprite: 'Map'
 	,isFriendly: true
 	,pickup: function(that) {
 		rooms.hasMap=true;
@@ -495,22 +483,18 @@ var puMap = new Class({
 
 var puBoomerang = new Class({
 	Extends: Mob
-	,sprite: 141
+	,sprite: 'Boomerang'
 	,isFriendly: true
 });
 
 var puBlueBoomerang = new Class({
 	Extends: puBoomerang
 	,palette:3
-	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE), 0, TILESIZE, TILESIZE, this.x, this.y, TILESIZE, TILESIZE); // Heart
-		this.changePalette(0);
-	}
 });
 
 var puTriforce = new Class({
 	Extends: Mob
-	,sprite: 144
+	,sprite: 'Triforce'
 	,isFriendly: true
 	,move: function() {
 		var delta = Date.now() - this.lastUpdateTime;
@@ -523,16 +507,11 @@ var puTriforce = new Class({
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
-	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE), 0, TILESIZE, TILESIZE, this.x, this.y, TILESIZE, TILESIZE); // Heart
-		this.changePalette(2);
-	}
 });
-
 
 var puMagicalSword = new Class({
 	Extends: Mob
-	,sprite: 128
+	,sprite: 'MagicalSword'
 	,isFriendly: true
 });
 var puKey = new Class({
@@ -540,7 +519,7 @@ var puKey = new Class({
 	,name: 'puKey'
 	,price: 100
 	,width: 8
-	,sprite: 106
+	,sprite: 'Key'
 	,isFriendly: true
 	,initialize: function(x,y,room,price) {
 		this.parent(x,y,room);
@@ -560,8 +539,8 @@ var puKey = new Class({
 		}
 	}
 	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (106*TILESIZE), 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
-		if(this.price) writeText(String(this.price), this.x-TILESIZE+4, this.y+TILESIZE+HALFTILE);
+		this.parent();
+		if(this.price) writeText(String(this.price), this.x-SPRITESIZE+8, this.y+1.5*SPRITESIZE);
 	}
 });
 
@@ -569,9 +548,8 @@ var puBone = new Class({
 	Extends: Mob
 	,name: 'puBone'
 	,width:HALFTILE
-	,sprite: 108
+	,sprite: 'Bone'
 	,price: 100
-	,width: 8
 	,isFriendly: true
 	,pickup: function(that) {
 		if(this.price) {
@@ -584,8 +562,8 @@ var puBone = new Class({
 		this.destroy();
 	}
 	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+HALFTILE, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
-		writeText(String(this.price), this.x-TILESIZE+4, this.y+TILESIZE+HALFTILE);
+		this.parent();
+		writeText(String(this.price), this.x-SPRITESIZE+8, this.y+1.5*SPRITESIZE);
 	}
 });
 
@@ -595,7 +573,7 @@ var puCandle = new Class({
 	,name: 'puCandle'
 	,price: 60
 	,width: 8
-	,sprite: 106
+	,sprite: 'Candle'
 	,isFriendly: true
 	,pickup: function(that) {
 		if(this.price) {
@@ -607,8 +585,8 @@ var puCandle = new Class({
 		this.currentRoom.killSprites();
 	}
 	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+HALFTILE, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), HALFTILE, TILESIZE);
-		writeText(String(this.price), this.x-TILESIZE+4+HALFTILE, this.y+TILESIZE+HALFTILE);
+		this.parent();
+		writeText(String(this.price), this.x-SPRITESIZE+4+HALFSPRITE, this.y+1.5*SPRITESIZE);
 	}
 
 });
@@ -617,8 +595,8 @@ var puCandle = new Class({
 var LakeFairy = new Class({
 	Extends: Mob
 	,name: 'LakeFairy'
-	,sprite: 60
-	,spritePos: 0
+	,sprite: 'Fairy'
+	,animFrame: 0
 	,width: 8
 	,height: 8
 	,isFriendly:true
@@ -628,16 +606,19 @@ var LakeFairy = new Class({
 	,acHeartDelta: 0
 	,hearts: []
 	,healthMode: false
+	,animFrame: 0
 	,initialize: function(x, y, room) {
 		this.parent(x,y,room);
-		this.centerY = Math.floor(this.y-(3.25*TILESIZE));
+		this.centerY = Math.floor(this.y-(3.25*SPRITESIZE));
 		this.centerX = Math.floor(this.x);
+		//this.x = this.centerX;
+		//this.y = this.centerY;
 	}
 	,move: function() {
 		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
-			this.spritePos = this.spritePos ? 0 : HALFTILE;
+			if(++this.animFrame > 1) this.animFrame = 0;
 		}
 		if(this.healthMode && this.acHeartDelta >= this.msPerHeart) {
 			this.acHeartDelta = 0;
@@ -648,7 +629,7 @@ var LakeFairy = new Class({
 				});
 			}
 			if(this.heartCount++ <8)
-				this.hearts.push(new LakeHeart(this.centerX, this.centerY+(2*TILESIZE)));
+				this.hearts.push(new LakeHeart(this.x, this.y));
 		}
 		this.acDelta+=delta;
 		this.acHeartDelta += delta;
@@ -657,54 +638,38 @@ var LakeFairy = new Class({
 	,pickup: function() {
 		this.healthMode=true;
 	}
-	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+this.spritePos, 0, HALFTILE, TILESIZE, this.centerX, this.centerY, HALFTILE, TILESIZE);
-	}
 });
 
 var LakeHeart = new Class({
 	Extends: Mob
-	,sprite: 22
-	,radius: 3.5*TILESIZE
+	,sprite: 'FullHeart'
+	,radius: 3.5*SPRITESIZE
 	,angle: 180
-	,ocX: 0
-	,ocY: 0
+	,orgX: 0
+	,orgY: 0
 	,initialize: function(x,y,room) {
-		this.ocY = this.radius*Math.cos(this.angle) + this.y;
-		this.ocX = this.radius*Math.sin(this.angle) + this.x;
 		this.parent(x,y,room);
+		this.orgX = x;
+		this.orgY = y;
 	}
 	,move: function() {
-		this.ocY = this.radius*Math.cos(this.angle) + this.y;
-		this.ocX = this.radius*Math.sin(this.angle) + this.x;
+		this.y = this.radius*Math.cos(this.angle) + this.orgY;
+		this.x = this.radius*Math.sin(this.angle) + this.orgX;
 		this.angle+=0.05;
-	}
-	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (22*TILESIZE), 0, HALFTILE, HALFTILE, this.ocX, this.ocY, HALFTILE, HALFTILE); // Heart
 	}
 });
 
 var LakeFairyTrigger = new Class({
 	Extends: Mob
+	,isFriendly:true
 	,name: 'LakeFairy'
-	,sprite: 60
-	,spritePos: 0
+	,sprite: 'EmptyHeart'
 	,width: 8
-	,height:8
-	,msPerFrame: 50
-
-	,move: function() {
-		var delta = Date.now() - this.lastUpdateTime;
-		if(this.acDelta > this.msPerFrame) {
-			this.acDelta = 0;
-			this.spritePos = this.spritePos ? 0 : HALFTILE;
-		}
-		this.acDelta+=delta;
-		this.lastUpdateTime = Date.now();
+	,height: 8
+	,pickup: function(){
+		this.currentRoom.fairy.pickup();
 	}
-	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+this.spritePos, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), this.width, this.height);
-	}
+	,draw: function(){}
 });
 
 var puFairy = new Class({
@@ -714,16 +679,15 @@ var puFairy = new Class({
 	,height: 16
 	,msPerFrame: 10
 	,isFriendly: true
-	,sprite: 60
+	,sprite: 'Fairy'
 	,acDirDelta: 0
-	,width: HALFTILE
+	,width: HALFSPRITE
 	,moveRate: 1
 	,direction: 0
-	,height: TILESIZE
-	,spritePos: 0
+	,height: SPRITESIZE
+	,animFrame: 0
 	,initialize: function(x,y) {
 		this.parent(x,y);
-		this.isFriendly = true;
 		this.randomDirection();
 		(function(){this.destroy();}).delay(20000, this);
 	}
@@ -741,21 +705,20 @@ var puFairy = new Class({
 
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
-			this.spritePos = this.spritePos ? 0 : HALFTILE;
+			if(++this.animFrame > 1) this.animFrame = 0;
 
 			if(this.acDirDelta > this.msPerFrame*Number.random(64,256)) {
 				this.acDirDelta = 0;
 				this.randomDirection();
 			}
 
-
 			this.x += Math.cos(this.direction * Math.PI/180) * this.moveRate;
 			this.y += Math.sin(this.direction * Math.PI/180) * this.moveRate;
 
-			if(this.x > sc((this.currentRoom.roomWidth*TILESIZE)-TILESIZE-HALFTILE)
-			|| this.y < sc(TILESIZE*4)
-			|| this.x < sc(HALFTILE)
-			|| this.y > sc(TILESIZE*14)) {
+			if(this.x > (this.currentRoom.roomWidth*SPRITESIZE)-SPRITESIZE-HALFSPRITE
+			|| this.y < SPRITESIZE*4
+			|| this.x < HALFSPRITE
+			|| this.y > SPRITESIZE*14) {
 				this.x -= Math.cos(this.direction * Math.PI/180) * this.moveRate;
 				this.y -= Math.sin(this.direction * Math.PI/180) * this.moveRate;
 				this.randomDirection();
@@ -764,9 +727,6 @@ var puFairy = new Class({
 		this.acDelta+=delta;
 		this.acDirDelta+=delta;
 		this.lastUpdateTime = Date.now();
-	}
-	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+this.spritePos, 0, HALFTILE, TILESIZE, Math.round(this.x), Math.round(this.y), this.width, this.height);
 	}
 });
 
@@ -777,6 +737,7 @@ var puRupee = new Class({
 	,palette: 2
 	,width: 16
 	,height: 16
+	,sprite: 'Rupee'
 	,msPerFrame: 120
 	,isFriendly: true
 	,paletteFrames: [2,3]
@@ -794,7 +755,7 @@ var puRupee = new Class({
 		that.addRupees(this.worth);
 		this.destroy();
 	}
-	,draw: function() {
+	,move: function() {
 		var delta = Date.now() - this.lastUpdateTime;
 	
 		if(this.acDelta > this.msPerFrame) {
@@ -802,12 +763,9 @@ var puRupee = new Class({
 			if(this.palettePosition >= this.paletteFrames.length) this.palettePosition=0;
 			this.palette = this.paletteFrames[this.palettePosition++];
 		}
-
-		placeTile(123, this.x, this.y);
-		this.changePalette();
-		
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
+
 	}
 });
 
@@ -847,14 +805,12 @@ var mmgRupee = new Class({
 	,draw: function() {
 		this.parent();
 		if(this.static) {
-			writeText(this.text, this.x+TILESIZE, this.y+(HALFTILE/2));
+			writeText(this.text, this.x+SPRITESIZE, this.y+(HALFSPRITE/2));
 		}
 		else {
-			writeText(this.text, this.x-HALFTILE, this.y+TILESIZE+HALFTILE);
+			writeText(this.text, this.x-HALFSPRITE, this.y+SPRITESIZE+HALFSPRITE);
 		}
-		
 	}
-	
 });
 
 var puMidRupee = new Class({
@@ -872,9 +828,10 @@ var puHeart = new Class({
 	,width: HALFTILE
 	,height: HALFTILE
 	,msPerFrame: 150
-	,sprite:22
+	,sprite:'FullHeart'
 	,isFriendly: true
 	,price: null
+	,defaultPalette: 2
 	,expire: 10000
 	,lastUpdateTime: 0
 	,initialize: function(x,y,room,expire,price) {
@@ -882,7 +839,6 @@ var puHeart = new Class({
 		if(typeof expire != undefined) this.expire = expire;
 		if(typeof price != undefined) this.price = price;
 		this.isFriendly = true;
-		console.log(this.expire, expire, typeof expire == undefined);
 		if(this.expire) (function(){this.destroy();}).delay(this.expire, this);
 	}
 	,pickup: function(that) {
@@ -907,20 +863,19 @@ var puHeart = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE), 0, HALFTILE, HALFTILE, this.x, this.y, HALFTILE, HALFTILE); // Heart
-		this.changePalette(2);
+		this.parent();
 		if(this.price) {
-			writeText(String(this.price), this.x-(HALFTILE/2), this.y+TILESIZE+HALFTILE);
+			writeText(String(this.price), this.x-(HALFSPRITE), this.y+SPRITESIZE+HALFSPRITE);
 		}
 	}
-	
 });
 
 var puBomb = new Class({
 	Extends: Mob
 	,name: 'Bomb'
+	,sprite: 'Bomb'
 	,palette: 2
-	,width: 16
+	,width: HALFSPRITE
 	,height: 16
 	,worth: 1
 	,price: null
@@ -945,19 +900,19 @@ var puBomb = new Class({
 		return true;
 	}
 	,draw: function() {
-		placeTile(122, this.x, this.y);
+		this.parent();
 		if(this.price) {
-			writeText(' '+String(this.price), this.x-HALFTILE, this.y+TILESIZE+HALFTILE);
+			writeText(' '+String(this.price), this.x-HALFTILE, this.y+SPRITESIZE+HALFSPRITE);
 		}
 	}
 });
 
 var puArrow = new Class({
 	Extends: Mob
-	,name: 'Bomb'
-
+	,name: 'Arrow'
+	,sprite: 'Arrow'
 	,palette: 0
-	,width: 16
+	,width: 8
 	,height: 16
 	,worth: 1
 	,price: 80
@@ -981,22 +936,21 @@ var puArrow = new Class({
 		this.destroy();
 	}
 	,draw: function() {
-		placeTile(94, this.x, this.y);
-		writeText(' '+String(this.price), this.x-HALFTILE, this.y+TILESIZE+HALFTILE);
-		this.changePalette(2);
+		this.parent();
+		writeText(' '+String(this.price), this.x-HALFSPRITE, this.y+SPRITESIZE+HALFSPRITE);
 	}
 });
 
 var puBow = new Class({
 	Extends: Mob
 	,name: 'Bow'
-	,sprite: 146
+	,sprite: 'Bow'
 	,width: HALFTILE
 });
 
 var movableBlock = new Class({
 	Extends: Mob
-	,sprite: 284
+	,sprite: 'MovableBlock'
 	,direction: 0
 	,isFriendly: true
 	,wasMoved: false
@@ -1005,8 +959,8 @@ var movableBlock = new Class({
 			newDistance = Math.sqrt(Math.pow(this.x-tx,2) + Math.pow(this.y-ty,2));
 		if(this.collidesWith(that) && newDistance < curDistance-1) {
 			if(!this.wasMoved && (this.direction == '*' || this.direction == that.direction)) {
-				this.x += Math.cos(that.direction * Math.PI/180)*TILESIZE;
-				this.y += Math.sin(that.direction * Math.PI/180)*TILESIZE;
+				this.x += Math.cos(that.direction * Math.PI/180)*SPRITESIZE;
+				this.y += Math.sin(that.direction * Math.PI/180)*SPRITESIZE;
 				this.wasMoved = true;
 				this.onMove();
 			}
@@ -1036,8 +990,8 @@ var Door = new Class({
 	,state: 'open'
 	,openSprite: 299
 	,initialize: function(x,y,room) {
-		var xPost = {0: 14*TILESIZE, 90: 7.5*TILESIZE, 180: 1*TILESIZE, 270: 7.5*TILESIZE}
-			,yPost = {0: 9*TILESIZE, 90: 13*TILESIZE, 180: 9*TILESIZE, 270: 5*TILESIZE};
+		var xPost = {0: 14*SPRITESIZE, 90: 7.5*SPRITESIZE, 180: 1*SPRITESIZE, 270: 7.5*SPRITESIZE}
+			,yPost = {0: 9*SPRITESIZE, 90: 13*SPRITESIZE, 180: 9*SPRITESIZE, 270: 5*SPRITESIZE};
 
 		if(!room.doors) room.doors = {};
 		room.doors[this.direction] = this;

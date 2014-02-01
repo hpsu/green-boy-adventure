@@ -119,15 +119,33 @@ var Sprite = new Class({
 var SpriteCatalog = {
 	Sword: [12]
 	,SwordRipple: [13]
+
+	,Link0: [2,3]// right
+	,Link90: [6,7] // down
+	,Link180: [0,1] //left
+	,Link270: [4,5]
+	,LinkItem0: [9]
+	,LinkItem90: [11] 
+	,LinkItem180: [8]
+	,LinkItem270: [10]
+
 	,draw: function(key, x, y, params) {
 		if(!params) params = {};
+
+		if(typeof params['direction'] != 'undefined' && this[key+params['direction']]) {
+			key = key+params['direction'];
+			delete params['direction'];
+		}
+
 		if(!this[key]) {
 			console.warn('No such sprite in catalog!');
 			return false;
 		}
 		var tCtx = (params['ctx'] ? params['ctx'] : ctx);
-		if(!SpriteCache[key]) SpriteCache[key] = new Sprite(this[key][0], this[key][1]);
-		return SpriteCache[key].draw(tCtx, x, y, params['direction'], params['flip'], params['palette']);
+		var animFrame = typeof params['animFrame'] != 'undefined' && typeof this[key][params['animFrame']] != 'undefined' ? params['animFrame'] : 0;
+
+		if(!SpriteCache[key+animFrame]) SpriteCache[key+animFrame] = new Sprite(this[key][animFrame]);
+		return SpriteCache[key+animFrame].draw(tCtx, x, y, params['direction'], params['flip'], params['palette']);
 	}
 };
 

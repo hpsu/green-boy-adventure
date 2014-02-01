@@ -456,7 +456,6 @@ var PauseScreen = new Class({
 var Link = new Class({
 	Extends: Mob
 	,isFriendly: true
-	,paletteFrame: 0
 	,animFrame: 0
 	,health: 3
 	,direction: 270
@@ -467,6 +466,7 @@ var Link = new Class({
 	,bomb: null
 	,impacted: false
 	,immobilized: false
+	,defaultPalette: 0
 	,getRupees: function() {
 		return this.items.rupees;
 	}
@@ -509,12 +509,6 @@ var Link = new Class({
 		this.y=y;
 		solidObjects.unshift(this);
 		this.moveDelta = 1.3;
-		this.frames = {
-			 0:		{normal: [2, 3], item: [9]}		// Right
-			,90:	{normal: [6, 7], item: [11]}	// Down
-			,180:	{normal: [0, 1], item: [8]}		// Left
-			,270:	{normal: [4, 5], item: [10]}	// Up
-		};
 		this.usingItem = false;
 	}
 	,impact: function(damage, direction) {
@@ -651,8 +645,9 @@ var Link = new Class({
 			if(this.isImmune) {
 				if(++this.palette > 3) this.palette = 0;
 			}
+			else this.palette = this.defaultPalette;
 			if(this.isMoving)
-				if(typeof this.frames[this.direction]['normal'][++this.animFrame] == 'undefined') this.animFrame=0;
+				if(++this.animFrame > 1) this.animFrame=0;
 		}
 
 		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 3*HALFTILE) {
@@ -714,12 +709,13 @@ var Link = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		frame = this.frames[this.direction][(this.usingItem?'item':'normal')][this.animFrame];
 		if(window.collisionDebug) filledRectangle(this.x*SCALE, this.y*SCALE, this.width*SCALE, this.height*SCALE, this.impacted ? "#ff0": "#0f0");
-		placeTile(frame, this.x, this.y);
-	 	if(this.isImmune) {
-			this.changePalette();
-		}
+
+		SpriteCatalog.draw('Link'+(this.usingItem?'Item':''), this.x, this.y, {
+			direction: this.direction
+			,palette: this.palette
+			,animFrame: this.animFrame
+		});
 	}
 	
 });

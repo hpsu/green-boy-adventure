@@ -345,8 +345,8 @@ var SwordThrow = new Class({
 
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
-			this.x += sc(Math.cos(this.direction * Math.PI/180) * this.movementRate);
-			this.y += sc(Math.sin(this.direction * Math.PI/180) * this.movementRate);
+			this.x += Math.cos(this.direction * Math.PI/180) * this.movementRate;
+			this.y += Math.sin(this.direction * Math.PI/180) * this.movementRate;
 
 			Array.each(this.currentRoom.MOBs, function(that){
 				if(that != this &&  !that.isFriendly && this.collidesWith(that)) {
@@ -356,10 +356,10 @@ var SwordThrow = new Class({
 			},this);
 
 			
-			if(this.x > sc((this.currentRoom.roomWidth*TILESIZE)-TILESIZE-HALFTILE)
-			|| this.y < sc(TILESIZE*4)
-			|| this.x < sc(HALFTILE)
-			|| this.y > sc(TILESIZE*14)) {
+			if(this.x > (this.currentRoom.roomWidth*SPRITESIZE)-(SPRITESIZE*1.5)
+			|| this.y < SPRITESIZE*4
+			|| this.x < (SPRITESIZE/2)
+			|| this.y > SPRITESIZE*14) {
 				this.destroy();
 			}
 			if(++this.palette > env.palettes.length-1)

@@ -124,7 +124,7 @@ var DeathEvent = new Class({
 		}
 		if(frame) {
 			if(frame == 22) {
-				ctx.drawImage(env.spriteSheet, (22*TILESIZE), 0, HALFTILE, HALFTILE, 4*TILESIZE, (5*TILESIZE)+(this.choice*1.5*TILESIZE), HALFTILE, HALFTILE); // Heart
+				ctx.drawImage(env.spriteSheet, (22*SPRITESIZE), 0, (SPRITESIZE/2), (SPRITESIZE/2), 4*TILESIZE, (5*TILESIZE)+(this.choice*1.5*TILESIZE), HALFTILE, HALFTILE); // Heart
 			}
 			else {
 				placeTile(frame, this.x,this.y);
@@ -159,12 +159,12 @@ var Event = new Class({
 		});
 		
 		if(!noMovingPlayer) {
-			env.player.y = (11+4-1)*TILESIZE;
-			env.player.x = TILESIZE*7;
+			env.player.y = (11+4-1)*SPRITESIZE;
+			env.player.x = SPRITESIZE*7;
 			env.player.direction=270;
 		}
-		new Fire((TILESIZE*5)-HALFTILE, TILESIZE*8, room);
-		new Fire((TILESIZE*10)+HALFTILE, TILESIZE*8, room);
+		new Fire((SPRITESIZE*4.5), SPRITESIZE*8, room);
+		new Fire((SPRITESIZE*10.5), SPRITESIZE*8, room);
 		
 		Array.each(room.tiles[4], function(tile) {
 			tile.isSolid = true;
@@ -180,8 +180,8 @@ var SwordEvent = new Class({
 		this.parent(room);
 		
 		if(env.player.items.sword == 0) {
-			new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
-			new puSword((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room);
+			new StaticSprite((SPRITESIZE*7.5), SPRITESIZE*8, room, 85);
+			new puSword((SPRITESIZE*7.5), (SPRITESIZE*9.5), room);
 			new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "it's dangerous to go\n  alone! take this.");
 		}
 	}

@@ -164,8 +164,6 @@ var Mob = new Class({
 	,spawning: true
 	,width: SPRITESIZE
 	,initialize: function(x,y,room){
-		x = sc(x);
-		y = sc(y);
 		if(room)
 			this.currentRoom = room
 		else
@@ -808,10 +806,10 @@ function paintHeader() {
 			y = yOff+HALFTILE;
 		switch(env.player.items.sword) {
 			case 1:
-				imSword.draw(ctx, x, y);
+				imSword.draw(ctx, x/SCALE, y/SCALE);
 				break;
 			case 2: 
-				imWhiteSword.draw(ctx, x, y);
+				imWhiteSword.draw(ctx, x/SCALE, y/SCALE);
 				break;
 		}
 		/*placeTile(12, x, y, w, h);
@@ -890,11 +888,11 @@ function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 		return tCtx.putImageData(TintCache.get(tintTo, frame), x, y);
 	}
 	if(rotate || flip) {
-		tmpY = 16/-2;
-		tmpX = 16/-2;;
+		tmpY = TILESIZE/-2;
+		tmpX = TILESIZE/-2;
 		rotate = rotate*Math.PI;
 		tCtx.save(); 
-		tCtx.translate(x+8, y+8);
+		tCtx.translate(x+(HALFTILE), y+(HALFTILE));
 		if(rotate)
 			tCtx.rotate(rotate);
 		if(flip)

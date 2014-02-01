@@ -218,7 +218,7 @@ var Sword = new Class({
 		switch(ancestor.items.sword) {
 			case 2:
 				this.swob = imWhiteSword;
-				this.damage = 1;
+				this.palette = 3;
 				break;
 			default:
 				this.swob = imSword;
@@ -270,11 +270,10 @@ var Sword = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		this.swob.draw(ctx, this.x, this.y, (90 + this.direction %360));
-		//placeTile(this.sprite, this.x+xAdd, this.y, false, null, (90 + this.direction % 360)/180);
-		
-		//this.changePalette();
-
+		SpriteCatalog.draw('Sword', this.x, this.y, {
+			direction: (90 + this.direction %360)
+			,palette: this.palette
+		});
 	}	
 });
 
@@ -292,8 +291,8 @@ var SwordRipplePart = new Class({
 	}
 	,move: function() {
 		this.iterable += this.moveRate;
-		if(this.iterable > TILESIZE*2) {
-			this.destroy();
+		if(this.iterable > SPRITESIZE*2) {
+			return this.destroy();
 		}
 		this.x += Math.cos(this.angle * Math.PI/180) * this.moveRate;
 		this.y += Math.sin(this.angle * Math.PI/180) * this.moveRate;
@@ -315,8 +314,10 @@ var SwordRipplePart = new Class({
 			case 270:
 				break;
 		}
-		placeTile(this.sprite, this.x, this.y, null, null, null, flip);
-		this.changePalette();
+		SpriteCatalog.draw('SwordRipple', this.x, this.y, {
+			flip: flip
+			,palette: this.palette
+		});
 	}
 });
 
@@ -371,8 +372,10 @@ var SwordThrow = new Class({
 
 	}
 	,draw: function() {
-		placeTile(this.sprite, this.x, this.y, false, null, ((this.direction+90)/180%360));
-		this.changePalette();
+		SpriteCatalog.draw('Sword', this.x, this.y, {
+			direction: (90 + this.direction % 360)
+			,palette: this.palette
+		});
 	}
 });
 

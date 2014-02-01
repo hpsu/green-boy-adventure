@@ -1,10 +1,7 @@
-var Sprite16 = new Class({
-	buffer: {
-		0: null
-		,90: null
-		,180: null
-		,270: null
-	},
+var SpriteCache = {};
+
+var Sprite = new Class({
+	buffer: {},
 	width: 16,
 	height: 16,
 	direction: 0,
@@ -17,28 +14,38 @@ var Sprite16 = new Class({
 			}
 		}
 	}
-	,draw: function(tCtx, x, y, direction, flip) {
-		if(!this.buffer[direction]) this.create(direction);
-		tCtx.drawImage(this.buffer[direction], 0, 0, this.width, this.height, x*SCALE, y*SCALE, Math.round(this.width*SCALE), Math.round(this.height*SCALE));
+	,hash: function() {
+
+		return Array.slice(arguments).join('.');
+	}
+	,draw: function(tCtx, x, y, direction, flip, palette) {
+		var h = this.hash(direction,flip,palette);
+		if(!this.buffer[h]) this.create(direction, flip, palette);
+		tCtx.drawImage(this.buffer[h], 0, 0, this.width, this.height, x*SCALE, y*SCALE, Math.round(this.width*SCALE), Math.round(this.height*SCALE));
 
 	}
-	,create: function(direction){
-		if(this.buffer[direction]) return this.buffer[direction];
-		this.buffer[direction] = document.createElement('canvas');
-		this.buffer[direction].width = 16;
-		this.buffer[direction].height = 16;
+	,create: function(direction, flip, palette){
+		var h = this.hash(direction,flip,palette);
+		if(this.buffer[h]) return this.buffer[direction];
+		this.buffer[h] = document.createElement('canvas');
+		this.buffer[h].width = 16;
+		this.buffer[h].height = 16;
 
 		var tmpX = 0, tmpY = 0;
-		var tCtx = this.buffer[direction].getContext('2d');
-		if(direction > 0) {
-			console.log('rotating to',direction);
+		var tCtx = this.buffer[h].getContext('2d');
+		if(direction > 0 || flip) {
 			tmpY = this.height/-2;
 			tmpX = this.width/-2;
 			rotate = (direction/180)*Math.PI;
 			tCtx.translate((this.width/2), (this.height/2));
-			tCtx.rotate(rotate);
+			if(direction > 0) {
+				console.log('rotating to',direction);
+				tCtx.rotate(rotate);
+			}
+			if(flip) {
+				tCtx.scale((flip.contains('x') ? -1 : 1), (flip.contains('y') ? -1 : 1));
+			}
 		}
-
 
 		tCtx.drawImage(
 			env.spriteSheet, 
@@ -52,9 +59,32 @@ var Sprite16 = new Class({
 			this.height
 		);
 
-		// Tint
+		//palette
+		if(palette) {
+			console.log('tinting to palette',palette);
+			var map = tCtx.getImageData(0, 0, this.width, this.height),
+				imdata = map.data
+				tintFrom = env.palettes[0]
+				tintTo = env.palettes[palette];
+			for(var p = 0, len = imdata.length; p < len; p+=4) {
+				r = imdata[p]
+				g = imdata[p+1];
+				b = imdata[p+2];
+				
+				for(var i=0;i<tintFrom.length;i++) {
+					if(r == tintFrom[i][0] && g == tintFrom[i][1] && b == tintFrom[i][2]) {
+						imdata[p] = tintTo[i][0];
+						imdata[p+1] = tintTo[i][1];
+						imdata[p+2] = tintTo[i][2];
+					}
+				}
+			}
+			tCtx.putImageData(map, 0, 0);
+		}
+
+		// Deprecated, remove once all sprites use the same palette
 		if(this.tintFrom) {
-			console.log('tinting from',this.tintFrom);
+			console.warn('DEPRECATED - tinting from',this.tintFrom);
 			var map = tCtx.getImageData(0, 0, this.width, this.height);
 			imdata = map.data;
 			for(var p = 0, len = imdata.length; p < len; p+=4) {
@@ -82,12 +112,27 @@ var Sprite16 = new Class({
 			tCtx.putImageData(map, 0, 0);
 		}
 
-		return this.buffer[this.direction];
+		return this.buffer[h];
 	}
 });
 
-var imSword = new Sprite16(12);
-var imWhiteSword = new Sprite16(12, {fromPalette: 0, toPalette: 3});
+var SpriteCatalog = {
+	Sword: [12]
+	,SwordRipple: [13]
+	,draw: function(key, x, y, params) {
+		if(!params) params = {};
+		if(!this[key]) {
+			console.warn('No such sprite in catalog!');
+			return false;
+		}
+		var tCtx = (params['ctx'] ? params['ctx'] : ctx);
+		if(!SpriteCache[key]) SpriteCache[key] = new Sprite(this[key][0], this[key][1]);
+		return SpriteCache[key].draw(tCtx, x, y, params['direction'], params['flip'], params['palette']);
+	}
+};
+
+var imSword = new Sprite(12);
+var imWhiteSword = new Sprite(12, {fromPalette: 0, toPalette: 3});
 
 
 function xxplaceTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {

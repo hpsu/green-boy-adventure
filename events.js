@@ -180,9 +180,9 @@ var SwordEvent = new Class({
 		this.parent(room);
 		
 		if(env.player.items.sword == 0) {
-			new StaticSprite((SPRITESIZE*7.5), SPRITESIZE*8, room, 85);
+			new StaticSprite((SPRITESIZE*7.5), SPRITESIZE*8, room, 'OldMan');
 			new puSword((SPRITESIZE*7.5), (SPRITESIZE*9.5), room);
-			new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "it's dangerous to go\n  alone! take this.");
+			new TextContainer(SPRITESIZE*3, (SPRITESIZE*6.5), room, "it's dangerous to go\n  alone! take this.");
 		}
 	}
 });
@@ -585,8 +585,7 @@ var Fire = new Class({
 			this.acDelta = 0;
 			this.flip = this.flip ? 0 : 1;
 		}
-		var rotation = this.flip ? 0.5 : null;
-		placeTile(84, this.x, this.y, null, null, null, (this.flip ? 'x' : null));
+		SpriteCatalog.draw('Fire', this.x, this.y, {flip: (this.flip ? 'x' : null)});
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
@@ -599,7 +598,7 @@ var StaticSprite = new Class({
 		this.parent(x,y,room);
 	}
 	,draw: function() {
-		placeTile(this.sprite, this.x, this.y);
+		SpriteCatalog.draw(this.sprite, this.x, this.y);
 	}
 });
 

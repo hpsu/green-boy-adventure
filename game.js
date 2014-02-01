@@ -274,6 +274,7 @@ var Mob = new Class({
 	,move: function() {}
 	,draw: function() {
 		placeTile(this.sprite, this.x, this.y);
+		SpriteCatalog.draw(this.sprite, this.x, this.y);
 	}
 });
 
@@ -721,8 +722,8 @@ var Link = new Class({
 });
 
 function drawMapFromRooms(rooms, xOff, yOff) {
-	sizeX = (4*TILESIZE)/16; // Total levels 8
-	sizeY = (2*TILESIZE)/8; // Total rooms 16
+	sizeX = (4*SPRITESIZE)/16; // Total levels 8
+	sizeY = (2*SPRITESIZE)/8; // Total rooms 16
 	sizeX = sizeX*2;
 	currentRoom = rooms.getCurrentRoom();
 
@@ -731,16 +732,16 @@ function drawMapFromRooms(rooms, xOff, yOff) {
 			for(var j = 0; j < rooms.rooms[i].length; j++) {
 				if(typeof rooms.rooms[i][j] !== 'undefined') {
 					var thisRoom = rooms.rooms[i][j];
-					if(rooms.hasMap) filledRectangle((xOff+(sizeX*thisRoom.col))-(TILESIZE*2), yOff+(sizeY*thisRoom.row), sizeX-1, sizeY-1, "#2038ec");
+					if(rooms.hasMap) filledRectangle((xOff+(sizeX*thisRoom.col))-(SPRITESIZE*2), yOff+(sizeY*thisRoom.row), sizeX-1, sizeY-1, "#2038ec");
 					if(rooms.hasCompass && rooms.rooms[i][j].triforceRoom)
-						filledRectangle(xOff+(sizeX*thisRoom.col)-(TILESIZE*2)+(sizeX/4), yOff+(sizeY*thisRoom.row), sizeX/2-1, sizeY-1, "#d82800");
+						filledRectangle(xOff+(sizeX*thisRoom.col)-(SPRITESIZE*2)+(sizeX/4), yOff+(sizeY*thisRoom.row), sizeX/2-1, sizeY-1, "#d82800");
 				}
 			}
 		}
 	}
-	filledRectangle(xOff+(sizeX*currentRoom.col)-(TILESIZE*2)+(sizeX/4), yOff+(sizeY*currentRoom.row), sizeX/2-1, sizeY-1, "#80d010");
+	filledRectangle(xOff+(sizeX*currentRoom.col)-(SPRITESIZE*2)+(sizeX/4), yOff+(sizeY*currentRoom.row), sizeX/2-1, sizeY-1, "#80d010");
 
-	writeText(rooms.name, TILESIZE, yOff-HALFTILE);
+	writeText(rooms.name, SPRITESIZE, yOff-HALFTILE);
 }
 
 /* 

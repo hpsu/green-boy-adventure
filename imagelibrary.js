@@ -42,7 +42,7 @@ var Sprite = new Class({
 		if(!this.buffer[h]) this.create(direction, flip, palette);
 
 		//if(window.spriteDebug)
-		filledRectangle(x, y, this.width, this.height, 'rgba(255,255,100,0.5)', tCtx);
+		filledRectangle(x, y, this.width, this.height, 'rgba(255,0,255,0.2)', tCtx);
 
 		tCtx.drawImage(this.buffer[h], 0, 0, this.width, this.height, x*SCALE, y*SCALE, Math.round(this.width*SCALE), Math.round(this.height*SCALE));
 	}
@@ -151,6 +151,8 @@ var SpriteCatalog = {
 	,LinkItem90: {col: [11]}
 	,LinkItem180: {col: [8]}
 	,LinkItem270: {col: [10]}
+	,OldMan: {col: [85]}
+	,Fire: {col: [84]}
 	
 	// 8x8
 	,SmallRupee: {col: [42], row: [0], size: 8}

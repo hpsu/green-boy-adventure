@@ -431,7 +431,7 @@ var puBracelet = new Class({
 var puSword = new Class({
 	Extends: Mob
 	,name: 'puSword'
-	,sprite: 12
+	,sprite: 'Sword'
 	,isFriendly: true
 	,pickup: function(that) {
 		that.items.sword = 1;

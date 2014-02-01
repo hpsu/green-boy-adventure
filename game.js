@@ -50,10 +50,11 @@ function setCanvasSize() {
 	else
 		bs = {x: 256, y: 240};
 	if(bs.x > bs.y)	{
-		SCALE = ((Math.floor(bs.y/16)*16)/240).round(1);
+		SCALE = Math.floor((bs.y/240)*16)/16;
 	}
 	else {
-		SCALE = WIDTH/256;
+
+		SCALE = Math.floor((bs.x/256)*16)/16;
 	}
 	bs.x = 256*SCALE;
 	bs.y = 240*SCALE;
@@ -76,6 +77,12 @@ function setCanvasSize() {
 
 env.spriteSheet.src='sprites.png';
 env.bossSpriteSheet.src = 'boss_sprites.png';
+
+window.addEvent('resize', function () {
+    setCanvasSize();
+	paintRoom();
+});
+
 window.addEvent('load', function () {
     ctx = $('screen').getContext('2d');
     ctxBg = $('background').getContext('2d');

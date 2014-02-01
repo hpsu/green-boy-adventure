@@ -9,6 +9,7 @@ var ctx = null
 	,TILESIZE = 16
 	,HALFTILE = 8
 	,SPRITESIZE = 16
+	,HALFSPRITE = 8
 	,YOFF = 0
 	,solidObjects = []
 	,env = {
@@ -285,9 +286,9 @@ var OptionScreen = new Class({
 	,state: 'closed'
 	,choice: 0
 	,options: [
-		['collisionDebug', 'Debug collisions', 'boolean']
-		,['spriteDebug', 'Debug sprites', 'boolean']
-		,['godMode', 'Passthru solid tiles', 'boolean']
+		['collisionDebug', 'debug collisions', 'boolean']
+		,['spriteDebug', 'debug sprites', 'boolean']
+		,['godMode', 'passthru solid tiles', 'boolean']
 	]
 	,initialize: function(){
 		this.x=0;
@@ -328,30 +329,28 @@ var OptionScreen = new Class({
 
 	}
 	,draw: function() {
-		ctx.imageSmoothingEnabled= false;
-		ctx.webkitImageSmoothingEnabled = false;
-		filledRectangle(this.x*SCALE, Math.ceil(this.y*SCALE), this.width*SCALE, this.height*SCALE, "#000");
-		drawBorder(this.x+HALFTILE, this.y+TILESIZE, 30, 27);
-		writeText('developer options', this.x+TILESIZE, this.y+(HALFTILE), [216, 40, 0]);
+		filledRectangle(this.x, this.y, this.width, this.height, "#000");
+		drawBorder(this.x+HALFSPRITE, this.y+SPRITESIZE, 30, 27);
+		writeText('developer options', this.x+SPRITESIZE, this.y+(HALFSPRITE), 1);
 
 		for(var i=0; i<this.options.length; i++) {
 			var o = this.options[i];
-			writeText(o[1], this.x+TILESIZE*3, this.y+(TILESIZE*(i+2)));
-			filledRectangle(this.x+TILESIZE*2, this.y+(TILESIZE*(i+2)), HALFTILE, HALFTILE, "#fff", ctx, !window[o[0]]);
+			writeText(o[1], this.x+SPRITESIZE*3, this.y+(SPRITESIZE*(i+2)));
+			filledRectangle(this.x+SPRITESIZE*2, this.y+(SPRITESIZE*(i+2)), HALFSPRITE, HALFSPRITE, "#fff", ctx, !window[o[0]]);
 		}
 
-		ctx.drawImage(env.spriteSheet, (22*SPRITESIZE), 0, (SPRITESIZE/2), (SPRITESIZE/2), 1*TILESIZE, (2*TILESIZE)+(this.choice*TILESIZE), HALFTILE, HALFTILE); // Heart
+		SpriteCatalog.draw('FullHeart', SPRITESIZE, (2*SPRITESIZE)+(this.choice*SPRITESIZE));
+
 	}
 
 });
 
 var PauseScreen = new Class({
 	Extends:Mob
-	,width: WIDTH
-	,height: HEIGHT-(4*TILESIZE)
+	,width: 256
+	,height: 241-(4*SPRITESIZE)
 	,isFriendly: true
 	,inSpaceTime: false
-	,YOFF: 0
 	,state: 'closed'
 	,initialize: function(){
 		this.x=0;
@@ -377,13 +376,13 @@ var PauseScreen = new Class({
 	,move: function() {
 		switch(this.state) {
 			case 'opening':
-				if(this.YOFF < this.height) {
-					this.YOFF+=1.5*SCALE;
+				if(YOFF < this.height) {
+					YOFF+=1.5;
 				} else this.state='open';
 			break;
 			case 'closing':
-				if(this.YOFF > 0) {
-					this.YOFF-=1.5*SCALE;
+				if(YOFF > 0) {
+					YOFF-=1.5;
 				} else {
 					this.state='closed';
 					env.paused = false;
@@ -397,28 +396,29 @@ var PauseScreen = new Class({
 	}
 	,draw: function() {
 		if(this.state=='closed') return;
-		filledRectangle(this.x, Math.ceil((this.YOFF+this.y)), this.width*SCALE, this.height*SCALE, "#000");
-		writeText('inventory', this.x+(2*TILESIZE), this.YOFF+this.y+(1.5*TILESIZE), [216, 40, 0]);
-		writeText('use b button\n  for this', this.x+(1*TILESIZE), this.YOFF+this.y+(4.5*TILESIZE));
-		drawBorder(this.x+(3.5*TILESIZE), this.YOFF+this.y+(2.5*TILESIZE), 4, 4);
-		drawBorder(this.x+(7.5*TILESIZE), this.YOFF+this.y+(2.5*TILESIZE), 13, 6);
-		writeText('triforce', this.x+(6*TILESIZE), this.YOFF+this.y+(10*TILESIZE),[216, 40, 0]);
+		filledRectangle(this.x, Math.ceil((YOFF+this.y)), this.width, this.height, "#000");
+		writeText('inventory', this.x+(2*SPRITESIZE), YOFF+this.y+(1.5*SPRITESIZE), 1);
+		writeText('use b button\n  for this', this.x+(1*SPRITESIZE), YOFF+this.y+(4.5*SPRITESIZE));
+		drawBorder(this.x+(3.5*SPRITESIZE), YOFF+this.y+(2.5*SPRITESIZE), 4, 4);
+		drawBorder(this.x+(7.5*SPRITESIZE), YOFF+this.y+(2.5*SPRITESIZE), 13, 6);
+		writeText('triforce', this.x+(6*SPRITESIZE), YOFF+this.y+(10*SPRITESIZE),1);
 
 		//if(env.player.items.bombs > 0) {
-			ctx.drawImage(env.spriteSheet, (69*TILESIZE)+(TILESIZE/4), 0, HALFTILE, TILESIZE, Math.floor(this.x+(10*TILESIZE)-(TILESIZE/4)), Math.floor(this.YOFF+this.y+(3*TILESIZE)), HALFTILE, TILESIZE);
+			//ctx.drawImage(env.spriteSheet, (69*TILESIZE)+(TILESIZE/4), 0, HALFTILE, TILESIZE, , HALFTILE, TILESIZE);
+			SpriteCatalog.draw('Bomb', Math.floor(this.x+(10*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(3*SPRITESIZE)));
 		//}
 		//if(env.player.items.candle == 1) {
-			ctx.drawImage(env.spriteSheet, (106*TILESIZE)+HALFTILE, 0, HALFTILE, TILESIZE, Math.floor(this.x+(13*TILESIZE)-(TILESIZE/4)), Math.floor(this.YOFF+this.y+(3*TILESIZE)), HALFTILE, TILESIZE);
+			SpriteCatalog.draw('Candle', Math.floor(this.x+(13*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(3*SPRITESIZE)));
 		//}
 		//if(env.player.items.potions > 0) {
-			ctx.drawImage(env.spriteSheet, (108*TILESIZE), 0, HALFTILE, TILESIZE, Math.floor(this.x+(11.5*TILESIZE)-(TILESIZE/4)), Math.floor(this.YOFF+this.y+(4*TILESIZE)), HALFTILE, TILESIZE);
+			SpriteCatalog.draw('Potion', Math.floor(this.x+(11.5*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(4*SPRITESIZE)));
 		//}
 
 
 
 
 		//if(env.player.items.bracelet > 0) {
-			ctx.drawImage(env.spriteSheet, (132*TILESIZE), 0, HALFTILE, TILESIZE, Math.floor(this.x+(13*TILESIZE)), Math.floor(this.YOFF+this.y+(1.5*TILESIZE)), HALFTILE, TILESIZE);
+			SpriteCatalog.draw('Bracelet', Math.floor(this.x+(13*SPRITESIZE)), Math.floor(YOFF+this.y+(1.5*SPRITESIZE)));
 		//}
 		
 
@@ -427,22 +427,22 @@ var PauseScreen = new Class({
 				for(var i=0; i<16; i++) {
 					ctx.beginPath();
 					ctx.strokeStyle='#f0f';
-					ctx.rect(Math.floor(this.x+(i*TILESIZE)), Math.floor(this.YOFF+this.y+(io*TILESIZE)), TILESIZE, TILESIZE);
+					ctx.rect(Math.floor(this.x+(i*TILESIZE)), Math.floor(YOFF+this.y+(io*TILESIZE)), TILESIZE, TILESIZE);
 					ctx.stroke();
 				}
 			}
 */
 		ctx.beginPath();
 		ctx.strokeStyle="#fcbcb0";
-		ctx.moveTo((5*TILESIZE), this.YOFF+this.y+(9.5*TILESIZE));
-		ctx.lineTo((11*TILESIZE), this.YOFF+this.y+(9.5*TILESIZE));
-		ctx.lineTo((8*TILESIZE), this.YOFF+this.y+(6.5*TILESIZE));
-		ctx.lineTo((5*TILESIZE), this.YOFF+this.y+(9.5*TILESIZE));
+		ctx.moveTo(5*TILESIZE, (YOFF+this.y+(9.5*SPRITESIZE))*SCALE);
+		ctx.lineTo(11*TILESIZE, (YOFF+this.y+(9.5*SPRITESIZE))*SCALE);
+		ctx.lineTo(8*TILESIZE, (YOFF+this.y+(6.5*SPRITESIZE))*SCALE);
+		ctx.lineTo(5*TILESIZE, (YOFF+this.y+(9.5*SPRITESIZE))*SCALE);
 
-		ctx.moveTo((6*TILESIZE), this.YOFF+this.y+(9*TILESIZE));
-		ctx.lineTo((10*TILESIZE), this.YOFF+this.y+(9*TILESIZE));
-		ctx.lineTo((8*TILESIZE), this.YOFF+this.y+(7*TILESIZE));
-		ctx.lineTo((6*TILESIZE), this.YOFF+this.y+(9*TILESIZE));
+		ctx.moveTo(6*TILESIZE, (YOFF+this.y+(9*SPRITESIZE))*SCALE);
+		ctx.lineTo(10*TILESIZE, (YOFF+this.y+(9*SPRITESIZE))*SCALE);
+		ctx.lineTo(8*TILESIZE, (YOFF+this.y+(7*SPRITESIZE))*SCALE);
+		ctx.lineTo(6*TILESIZE, (YOFF+this.y+(9*SPRITESIZE))*SCALE);
 
 
 		ctx.stroke();
@@ -749,11 +749,11 @@ function drawMapFromRooms(rooms, xOff, yOff) {
  * */
 
 function paintHeader() {
-	var yOff = YOFF+(TILESIZE*1.5),
-		xOff = TILESIZE;
+	var yOff = YOFF+(SPRITESIZE*1.5),
+		xOff = SPRITESIZE;
 
 	// Background
-	filledRectangle(0, YOFF, 16*TILESIZE, 4*TILESIZE, "#000");
+	filledRectangle(0, YOFF, 16*SPRITESIZE, 4*SPRITESIZE, "#000");
 
 	if(window.spriteDebug) {
 		for(var io=0; io<2; io++) {
@@ -769,10 +769,10 @@ function paintHeader() {
 	// Map
 	
 	if(rooms == overworld) { // Overworld map
-		filledRectangle(xOff, yOff, 4*TILESIZE, 2*TILESIZE, "#747474");
+		filledRectangle(xOff, yOff, 4*SPRITESIZE, 2*SPRITESIZE, "#747474");
 		
-		sizeX = (4*TILESIZE)/16; // Total levels 8
-		sizeY = (2*TILESIZE)/8; // Total rooms 16
+		sizeX = (4*SPRITESIZE)/16; // Total levels 8
+		sizeY = (2*SPRITESIZE)/8; // Total rooms 16
 		currentRoom = rooms.getCurrentRoom();
 		filledRectangle(xOff+(sizeX*currentRoom.col), yOff+(sizeY*currentRoom.row), sizeX, sizeY, "#80d010");
 	}
@@ -780,55 +780,51 @@ function paintHeader() {
 		drawMapFromRooms(rooms, xOff, yOff);
 	}
 	
-	
 	// Rupees
-	ctx.drawImage(env.spriteSheet, (21*SPRITESIZE), 0,SPRITESIZE/2, SPRITESIZE/2, xOff+(4*TILESIZE)+HALFTILE, yOff, HALFTILE, HALFTILE); // Rupee
-	writeText((env.player.getRupees() <= 99 ? 'X' : '')+env.player.items.rupees, xOff+(4*TILESIZE)+TILESIZE, yOff); 
+	SpriteCatalog.draw('SmallRupee', (xOff+(4.5*SPRITESIZE)), yOff);
+	writeText((env.player.getRupees() <= 99 ? 'X' : '')+env.player.items.rupees, xOff+(5*SPRITESIZE), yOff);
 
 	// Keys
-	ctx.drawImage(env.spriteSheet, (21*SPRITESIZE)+(SPRITESIZE/2), 0,(SPRITESIZE/2), (SPRITESIZE/2), xOff+(4*TILESIZE)+HALFTILE, yOff+(TILESIZE), HALFTILE, HALFTILE); // Key
-	writeText('X'+env.player.items.keys, xOff+(4*TILESIZE)+TILESIZE, yOff+TILESIZE); 
+	SpriteCatalog.draw('SmallKey', (xOff+(4.5*SPRITESIZE)), yOff+SPRITESIZE);
+	writeText('X'+env.player.items.keys, xOff+(5*SPRITESIZE), yOff+SPRITESIZE); 
 
 	// Bombs
-	ctx.drawImage(env.spriteSheet, (21*SPRITESIZE)+(SPRITESIZE/2), (SPRITESIZE/2), (SPRITESIZE/2), (SPRITESIZE/2), xOff+(4*TILESIZE)+HALFTILE, yOff+(TILESIZE*1.5), HALFTILE, HALFTILE); // Bomb
-	writeText('X'+env.player.items.bombs, xOff+(4*TILESIZE)+TILESIZE, yOff+(HALFTILE*3)); 
+	SpriteCatalog.draw('SmallBomb', (xOff+(4.5*SPRITESIZE)), yOff+(SPRITESIZE*1.5));
+	writeText('X'+env.player.items.bombs, xOff+(5*SPRITESIZE), yOff+(SPRITESIZE*1.5));
 
-	drawBorder(xOff+(6*TILESIZE)+HALFTILE, yOff, 3, 4);
-	writeText('B', xOff+(6*TILESIZE)+TILESIZE, yOff); 
-	drawBorder(xOff+(8*TILESIZE), yOff, 3, 4);
-	writeText('A', xOff+(8*TILESIZE)+HALFTILE, yOff); 
+	drawBorder(xOff+(6.5*SPRITESIZE), yOff, 3, 4);
+	writeText('B', xOff+(7*SPRITESIZE), yOff); 
+	drawBorder(xOff+(8*SPRITESIZE), yOff, 3, 4);
+	writeText('A', xOff+(8.5*SPRITESIZE), yOff); 
 	if(env.player.items.sword > 0) {
-		var x = xOff+(8*TILESIZE)+(HALFTILE/2),
-			y = yOff+HALFTILE;
+		var x = xOff+(8.25*SPRITESIZE),
+			y = yOff+HALFSPRITE;
 		switch(env.player.items.sword) {
 			case 1:
-				imSword.draw(ctx, x/SCALE, y/SCALE);
+				swpal = 0;
 				break;
 			case 2: 
-				imWhiteSword.draw(ctx, x/SCALE, y/SCALE);
+				swpal = 3;
 				break;
 		}
-		/*placeTile(12, x, y, w, h);
-		if(env.player.items.sword == 2)
-			tintArea(0, 3, null, x, y, w, h);*/
+		SpriteCatalog.draw('Sword', x, y, {
+			palette: swpal
+		});
 	}
 
-	writeText('-LIFE-', xOff+(10*TILESIZE)+HALFTILE, yOff, [216, 40, 0]); 
+	writeText('-LIFE-', xOff+(10.5*SPRITESIZE), yOff, 1); 
 	
 	tmpLife = env.player.health;
-	var yPos = (TILESIZE*1.5);
+	var yPos = (SPRITESIZE*1.5);
 	var xPos = 0;
 	for(var i=0; i < env.player.items.hearts; i++) {
 		if(tmpLife >= 1) {
-			xAdd = 0;
-			yAdd = 0;
+			sprite = 'FullHeart';
 		} else if(tmpLife >= 0.5) {
-			xAdd = 1;
-			yAdd = 0;
+			sprite = 'HalfHeart';
 		}
 		else {
-			xAdd = 0;
-			yAdd = 1;
+			sprite = 'EmptyHeart';
 		}
 		
 		if(xPos==8) {
@@ -836,7 +832,7 @@ function paintHeader() {
 			xPos = 0;
 		}
 		
-		ctx.drawImage(env.spriteSheet, (22*SPRITESIZE)+(xAdd*(SPRITESIZE/2)), yAdd*(SPRITESIZE/2), (SPRITESIZE/2), (SPRITESIZE/2), xOff+(10*TILESIZE)+(xPos++*HALFTILE), yOff+yPos, HALFTILE, HALFTILE); // Heart
+		SpriteCatalog.draw(sprite, xOff+(10*SPRITESIZE)+(xPos++*HALFSPRITE), yOff+yPos);
 		tmpLife--;
 	}
 }
@@ -940,57 +936,32 @@ function filledRectangle(x, y, w, h, c, tCtx, stroked) {
 		tCtx.lineWidth=2;
 	if(stroked === true){
 		tCtx.strokeStyle=c;
-		tCtx.strokeRect(x, y, w, h);
+		tCtx.strokeRect(x*SCALE, y*SCALE, w*SCALE, h*SCALE);
 		tCtx.stroke();
 	}
 	else {
 		tCtx.fillStyle=c;
-		tCtx.fillRect(x, y, w, h);
+		tCtx.fillRect(x*SCALE, y*SCALE, w*SCALE, h*SCALE);
 //		tCtx.fill();
 	}
 }
 
 
-function writeText(string, x, y, color, tCtx) {
+function writeText(string, x, y, palette, tCtx) {
 	if(!tCtx) tCtx = ctx;
 	var xOff = 0;
 	Array.each(string.toLowerCase(), function(c){
 		if(c == "\n") {
-			y+= HALFTILE;
+			y+= HALFSPRITE;
 			xOff = 0;
 			return;
 		}
-		char = font[c];
-		if(char) {
-			tCtx.drawImage(
-				env.spriteSheet, 
-				(23*SPRITESIZE)+(char[0]*(SPRITESIZE/2)), 
-				char[1]*(SPRITESIZE/2), 
-				SPRITESIZE/2, 
-				SPRITESIZE/2, 
-				Math.round((x+(xOff*HALFTILE))), 
-				Math.round(y), 
-				HALFTILE, 
-				HALFTILE);
-			if(color) {
-				map = tCtx.getImageData(x+(xOff*HALFTILE), y, HALFTILE, HALFTILE);
-				imdata = map.data;
-				for(var p = 0, len = imdata.length; p < len; p+=4) {
-					r = imdata[p]
-					g = imdata[p+1];
-					b = imdata[p+2];
-					
-					if(r == 252 && g == 252 && b == 252) {
-						imdata[p] = color[0];
-						imdata[p+1] = color[1];
-						imdata[p+2] = color[2];
-					}
-					
-				}
-				tCtx.putImageData(map, x+(xOff*HALFTILE), y);
-				
-			}
+		var params = {ctx: tCtx};
+		if(typeof palette != 'undefined') {
+			params['palette'] = palette;
 		}
+		if(SpriteCatalog[c])
+			SpriteCatalog.draw(c, x+(xOff*HALFSPRITE), y, params);
 		xOff++;
 	});
 }
@@ -1004,77 +975,27 @@ function drawBorder(x, y, w, h) {
 		currentRow = 0;
 
 	// Top 
-	ctx.drawImage(env.spriteSheet
-		,(50*SPRITESIZE)
-		,0
-		,(SPRITESIZE/2), (SPRITESIZE/2)
-		,x+(currentCol++*HALFTILE)
-		,y
-		,HALFTILE, HALFTILE);
-		
+	SpriteCatalog.draw('TopLeftBorder', x+(currentCol++*SPRITESIZE),y);	
 	for(var i=0; i<totalCols; i++) {
-		ctx.drawImage(env.spriteSheet
-			,(51*SPRITESIZE)+0
-			,0
-			,(SPRITESIZE/2), (SPRITESIZE/2)
-			,x+(currentCol++*HALFTILE) 
-			,y
-			,HALFTILE, HALFTILE);
+		SpriteCatalog.draw('HorizontalBorder', x+(currentCol++*HALFSPRITE),y);	
 	}
-	ctx.drawImage(env.spriteSheet
-		,(50*SPRITESIZE)+(SPRITESIZE/2)
-		,0
-		,(SPRITESIZE/2), (SPRITESIZE/2)
-		,x+(currentCol++*HALFTILE) 
-		,y
-		,HALFTILE, HALFTILE);
+	SpriteCatalog.draw('TopRightBorder', x+(currentCol++*HALFSPRITE),y);	
 
 	currentRow++;
 
 	//Sides  
 	for(var i=0; i<totalRows; i++) {
-		ctx.drawImage(env.spriteSheet
-			,(51*SPRITESIZE)+(SPRITESIZE/2)
-			,0
-			,(SPRITESIZE/2), (SPRITESIZE/2)
-			,x
-			,y+(currentRow*HALFTILE)
-			,HALFTILE, HALFTILE);
-		ctx.drawImage(env.spriteSheet
-			,(51*SPRITESIZE)+(SPRITESIZE/2)
-			,0
-			,(SPRITESIZE/2), (SPRITESIZE/2)
-			,x+HALFTILE+(HALFTILE*totalCols)
-			,y+(currentRow++*HALFTILE)
-			,HALFTILE, HALFTILE);
+		SpriteCatalog.draw('VerticalBorder', x,y+(currentRow*HALFSPRITE));
+		SpriteCatalog.draw('VerticalBorder', x+HALFSPRITE+(HALFSPRITE*totalCols),y+(currentRow++*HALFSPRITE));
 	}
 
 	// Bottom
 	currentCol=0;
-	ctx.drawImage(env.spriteSheet
-		,(50*SPRITESIZE)+0
-		,(SPRITESIZE/2)
-		,(SPRITESIZE/2), (SPRITESIZE/2)
-		,x+(currentCol++*HALFTILE)
-		,y+(currentRow*HALFTILE)
-		,HALFTILE, HALFTILE);
+	SpriteCatalog.draw('BottomLeftBorder', x+(currentCol++*HALFSPRITE),y+(currentRow*HALFSPRITE));
 	for(var i=0; i<totalCols; i++) {
-		ctx.drawImage(env.spriteSheet
-			,(51*SPRITESIZE)+0
-			,0
-			,(SPRITESIZE/2), (SPRITESIZE/2)
-			,x+(currentCol++*HALFTILE) 
-			,y+(currentRow*HALFTILE)
-			,HALFTILE, HALFTILE);
+		SpriteCatalog.draw('HorizontalBorder', x+(currentCol++*HALFSPRITE),y+(currentRow*HALFSPRITE));
 	}
-	ctx.drawImage(env.spriteSheet
-		,(50*SPRITESIZE)+(SPRITESIZE/2)
-		,(SPRITESIZE/2)
-		,(SPRITESIZE/2), (SPRITESIZE/2)
-		,x+(currentCol++*HALFTILE)
-		,y+(currentRow*HALFTILE)
-		,HALFTILE, HALFTILE);
-
+	SpriteCatalog.draw('BottomRightBorder', x+(currentCol++*HALFSPRITE),y+(currentRow*HALFSPRITE));
 }
 
 /*********************

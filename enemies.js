@@ -317,7 +317,7 @@ var Tektite = new Class({
 				this.y = this.targetY;
 				this.stopJump();
 			}
-			else if(this.x > sc((this.currentRoom.roomWidth*SPRITESIZE)-SPRITEIZE-(SPRITESIZE/2))
+			else if(this.x > sc((this.currentRoom.roomWidth*SPRITESIZE)-SPRITESIZE-(SPRITESIZE/2))
 			|| this.x < sc(HALFTILE)) {
 				this.y -= this.velocityY;
 				this.x -= this.velocityX;

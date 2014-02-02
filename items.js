@@ -121,8 +121,8 @@ var Detonation = new Class({
 	,frame: 0
 	,damage: 1
 	,msPerFrame: 20
-	,width:TILESIZE*2+12
-	,height:TILESIZE*2+12
+	,width:SPRITESIZE*2+12
+	,height:SPRITESIZE*2+12
 	,acTileSwitchDelta: 0
 	,tile: 110
 	,move: function() {
@@ -135,8 +135,8 @@ var Detonation = new Class({
 		},this);
 
 
-		var xTile = Math.round((this.x+12)/TILESIZE);
-		var yTile = Math.round((this.y+12)/TILESIZE)-4;
+		var xTile = Math.round((this.x+12)/SPRITESIZE);
+		var yTile = Math.round((this.y+12)/SPRITESIZE)-4;
 
 		if(xTile < 0) xTile = 0;
 		if(yTile < 0) yTile = 0;
@@ -379,7 +379,7 @@ var puHeartContainer = new Class({
 var puRedPotion = new Class({
 	Extends: Mob
 	,name: 'puRedPotionContainer'
-	,width:HALFTILE
+	,width:HALFSPRITE
 	,sprite: 'Potion'
 	,isFriendly: true
 	,pickup: function(that) {
@@ -392,7 +392,7 @@ var puRedPotion = new Class({
 var puBracelet = new Class({
 	Extends: Mob
 	,name: 'puBracelet'
-	,width:HALFTILE
+	,width:HALFSPRITE
 	,sprite: 'Bracelet'
 	,isFriendly: true
 	,pickup: function(that) {
@@ -530,7 +530,7 @@ var puKey = new Class({
 var puBone = new Class({
 	Extends: Mob
 	,name: 'puBone'
-	,width:HALFTILE
+	,width:HALFSPRITE
 	,sprite: 'Bone'
 	,price: 100
 	,isFriendly: true
@@ -808,8 +808,8 @@ var puHeart = new Class({
 	,name: 'Heart'
 	,acDelta: 0
 	,palette: 2
-	,width: HALFTILE
-	,height: HALFTILE
+	,width: HALFSPRITE
+	,height: HALFSPRITE
 	,msPerFrame: 150
 	,sprite:'FullHeart'
 	,isFriendly: true
@@ -885,7 +885,7 @@ var puBomb = new Class({
 	,draw: function() {
 		this.parent();
 		if(this.price) {
-			writeText(' '+String(this.price), this.x-HALFTILE, this.y+SPRITESIZE+HALFSPRITE);
+			writeText(' '+String(this.price), this.x-HALFSPRITE, this.y+SPRITESIZE+HALFSPRITE);
 		}
 	}
 });
@@ -928,7 +928,7 @@ var puBow = new Class({
 	Extends: Mob
 	,name: 'Bow'
 	,sprite: 'Bow'
-	,width: HALFTILE
+	,width: HALFSPRITE
 });
 
 var movableBlock = new Class({

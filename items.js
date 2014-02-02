@@ -1116,8 +1116,8 @@ var BombHole = new Class({
 	,isFriendly: false
 	,x: 0
 	,y: 0
+	,sprite: 'BombHole'
 	,direction: 0
-	,sprites: {90: 301, 270: 297, 0: 306, 180: 306}
 	,hasBeenBombed: false
 	,initialize: function(x,y,room) {
 		var xPost = {0: 14*SPRITESIZE, 90: 7.5*SPRITESIZE, 180: 1*SPRITESIZE, 270: 7.5*SPRITESIZE}
@@ -1137,7 +1137,7 @@ var BombHole = new Class({
 	}
 	,draw: function() {
 		if(this.hasBeenBombed) {
-			placeTile(this.sprites[this.direction], this.x, this.y);
+			this.parent();
 		}
 	}
 });
@@ -1195,11 +1195,6 @@ var BombHoleEast = new Class({
 
 		}
 		return this.hasBeenBombed;
-	}
-	,draw: function() {
-		if(this.hasBeenBombed) {
-			placeTile(this.sprites[this.direction], this.x, this.y, null, null, null, 'x');
-		}
 	}
 });
 

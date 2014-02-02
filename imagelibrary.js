@@ -172,6 +172,7 @@ var SpriteCatalog = {
 	,DoorShut180: {col: [295]}
 	,DoorShut270: {col: [304]}
 
+	,BombHole: {col: [306]}
 	// 8x8
 	,SmallRupee: {col: [42], row: [0], size: 8}
 	,SmallKey: {col: [43], row: [0], size: 8}

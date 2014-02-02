@@ -1120,8 +1120,8 @@ var BombHole = new Class({
 	,sprites: {90: 301, 270: 297, 0: 306, 180: 306}
 	,hasBeenBombed: false
 	,initialize: function(x,y,room) {
-		var xPost = {0: 14*TILESIZE, 90: 7.5*TILESIZE, 180: 1*TILESIZE, 270: 7.5*TILESIZE}
-			,yPost = {0: 9*TILESIZE, 90: 13*TILESIZE, 180: 9*TILESIZE, 270: 5*TILESIZE};
+		var xPost = {0: 14*SPRITESIZE, 90: 7.5*SPRITESIZE, 180: 1*SPRITESIZE, 270: 7.5*SPRITESIZE}
+			,yPost = {0: 9*SPRITESIZE, 90: 13*SPRITESIZE, 180: 9*SPRITESIZE, 270: 5*SPRITESIZE};
 		this.x = xPost[this.direction];
 		this.y = yPost[this.direction];
 
@@ -1151,7 +1151,7 @@ var BombHoleNorth = new Class({
 		if(ty < this.y) {
 			if(!rooms.exists(that.currentRoom.row-1, that.currentRoom.col)) {console.log('Room not found');return false;}
 			that.currentRoom = switchRoom(that.currentRoom.row-1, that.currentRoom.col);
-			that.y = (that.currentRoom.roomHeight+4-1)*TILESIZE-TILESIZE;
+			that.y = (that.currentRoom.roomHeight+4-1)*SPRITESIZE-SPRITESIZE;
 			return false;
 		}
 
@@ -1169,7 +1169,7 @@ var BombHoleSouth = new Class({
 		if(ty > this.y) {
 			if(!rooms.exists(that.currentRoom.row+1, that.currentRoom.col)) {console.log('Room not found');return false;}
 			that.currentRoom = switchRoom(that.currentRoom.row+1, that.currentRoom.col);
-			that.y = 5*TILESIZE;
+			that.y = 5*SPRITESIZE;
 			return false;
 		}
 
@@ -1190,7 +1190,7 @@ var BombHoleEast = new Class({
 		if(tx > this.x) {
 			if(!rooms.exists(that.currentRoom.row, that.currentRoom.col+1)) {console.log('Room not found');return false;}
 			that.currentRoom = switchRoom(that.currentRoom.row, that.currentRoom.col+1);
-			that.x = TILESIZE;
+			that.x = SPRITESIZE;
 			return false;
 
 		}
@@ -1216,7 +1216,7 @@ var BombHoleWest = new Class({
 		if(tx < this.x) {
 			if(!rooms.exists(that.currentRoom.row, that.currentRoom.col-1)) {console.log('Room not found');return false;}
 			that.currentRoom = switchRoom(that.currentRoom.row, that.currentRoom.col-1);
-			that.x = (that.currentRoom.roomWidth-1)*TILESIZE-TILESIZE;
+			that.x = (that.currentRoom.roomWidth-1)*SPRITESIZE-SPRITESIZE;
 			return false;
 
 		}

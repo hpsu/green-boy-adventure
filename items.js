@@ -6,43 +6,28 @@ var CandleFire = new Class({
 	Extends: Mob
 	,msShown: 2000
 	,flip: 0
-	,xAdd: 1
 	,msPerFrame: 50
 	,msPerOther: 20
 	,acShove:0
 	,acShown:0
-	,sprite: 84
+	,movementRate: 1
+	,sprite: 'Fire'
+	,accuAdd: 1
+	,lockRotation: true
 	,initialize: function(ancestor) {
 		this.name = 'CandleFire';
 		this.ancestor = ancestor;
 		this.parent(ancestor.x, ancestor.y);
-		this.rePosition();
-	}
-	,rePosition: function() {
-		this.x = this.ancestor.x;
-		this.y = this.ancestor.y;
 		this.direction = this.ancestor.direction;
-		switch(this.direction) {
-			case 0:
-				this.x += TILESIZE*this.xAdd;
-				break;
-			case 180:
-				this.x -= TILESIZE*this.xAdd;
-				break;
-			case 270:
-				this.y -= TILESIZE*this.xAdd;
-				break;
-			case 90:
-				this.y += TILESIZE*this.xAdd;
-				break;
-		}
+		this.origX = this.ancestor.x;
+		this.origY = this.ancestor.y;
 	}
 	,move: function() {
 		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
 		if(this.acShown > this.msShown) {
 			this.ancestor.candle = null;
-			var xTile = Math.round((this.x)/TILESIZE);
-			var yTile = Math.round((this.y)/TILESIZE)-4;
+			var xTile = Math.round((this.x)/SPRITESIZE);
+			var yTile = Math.round((this.y)/SPRITESIZE)-4;
 
 			if(xTile < 0) xTile = 0;
 			if(yTile < 0) yTile = 0;
@@ -50,30 +35,27 @@ var CandleFire = new Class({
 			if(yTile > this.currentRoom.roomHeight-1) yTile=this.currentRoom.roomHeight-1;
 
 			this.currentRoom.getTile(yTile,xTile).fire();
-
-			//bomb()
 			this.destroy();
 		}
+
 		if(this.acShove > this.msPerOther) {
 			this.acShove = 0;
-			if(this.xAdd <2) {
-				this.xAdd += 0.1;
-				this.rePosition();
+			if(this.accuAdd < 2) {
+				this.accuAdd += 0.1;
 			}
 		}
+		this.x = this.origX + (Math.cos(this.direction * Math.PI/180) * (this.accuAdd*SPRITESIZE));
+		this.y = this.origY + (Math.sin(this.direction * Math.PI/180) * (this.accuAdd*SPRITESIZE));
 		if(this.acDelta > this.msPerFrame) {
 			this.ancestor.usingItem = false;
 			this.acDelta = 0;
-			this.flip = this.flip ? 0 : 1;
+			this.flip = this.flip ? null : 'x';
 		}
 		this.acShove+=delta;
 		this.acDelta+=delta;
 		this.acShown+=delta;
 		this.acTotalDelta+=delta;
 		this.lastUpdateTime = Date.now();
-	}
-	,draw: function() {
-		placeTile(this.sprite, this.x, this.y, null, null, null, (this.flip ? 'x' : null));
 	}
 });
 
@@ -82,7 +64,9 @@ var Bomb = new Class({
 	,msShown: 200
 	,msBlowup: 2000
 	,isFriendly: true
-	,sprite: 122
+	,sprite: 'Bomb'
+	,lockRotation: true
+	,width: 8
 	,initialize: function(ancestor) {
 		this.name = 'Sword';
 		this.ancestor = ancestor;
@@ -100,16 +84,18 @@ var Bomb = new Class({
 		this.direction = this.ancestor.direction;
 		switch(this.direction) {
 			case 0:
-				this.x += TILESIZE*1.5;
+				this.x += this.ancestor.width + SPRITESIZE;
 				break;
 			case 180:
-				this.x -= TILESIZE*1.5;
+				this.x -= this.width + SPRITESIZE;
 				break;
 			case 270:
-				this.y -= TILESIZE*1.5;
+				this.y -= this.height + SPRITESIZE;
+				this.x += this.width/2;
 				break;
 			case 90:
-				this.y += TILESIZE*1.5;
+				this.y += this.ancestor.height + SPRITESIZE;
+				this.x += this.width/2;
 				break;
 		}
 	}
@@ -125,9 +111,6 @@ var Bomb = new Class({
 		this.acDelta+=delta;
 		this.acTotalDelta+=delta;
 		this.lastUpdateTime = Date.now();
-	}
-	,draw: function() {
-		placeTile(this.sprite, this.x, this.y);
 	}
 });
 

@@ -159,6 +159,19 @@ var SpriteCatalog = {
 	,Triforce: {col: [144]}
 	,MovableBlock: {col: [284]}
 
+	,DoorLocked0: {col: [294]}
+	,DoorLocked90: {col: [298]}
+	,DoorLocked180: {col: [303]}
+	,DoorLocked270: {col: [298]}
+	,DoorOpen0: {col: [241]}
+	,DoorOpen90: {col: [300]}
+	,DoorOpen180: {col: [240]}
+	,DoorOpen270: {col: [299]}
+	,DoorShut0: {col: [295]}
+	,DoorShut90: {col: [304]}
+	,DoorShut180: {col: [295]}
+	,DoorShut270: {col: [304]}
+
 	// 8x8
 	,SmallRupee: {col: [42], row: [0], size: 8}
 	,SmallKey: {col: [43], row: [0], size: 8}
@@ -265,7 +278,7 @@ var SpriteCatalog = {
 		}
 
 		if(!this[key]) {
-			console.warn('No such sprite in catalog!');
+			console.warn('No such sprite in catalog!',key);
 			return false;
 		}
 		var tCtx = (params['ctx'] ? params['ctx'] : ctx);

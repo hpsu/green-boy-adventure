@@ -275,7 +275,8 @@ var Mob = new Class({
 	,draw: function() {
 		var params = {};
 		if(this.palette && this.palette != this.defaultPalette) params['palette'] = this.palette;
-		if(this.animFrame) params['animFrame'] = this.animFrame;
+		if(typeof this.animFrame != 'undefined') params['animFrame'] = this.animFrame;
+		if(typeof this.direction != 'undefined') params['direction'] = this.direction;
 		SpriteCatalog.draw(this.sprite, this.x, this.y, params);
 	}
 });

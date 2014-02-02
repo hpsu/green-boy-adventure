@@ -682,7 +682,7 @@ function doStuffOnKilledMOBs(room, mobName, item, door){
 			});
 			if(mobCnt == 0) {
 				if(typeof item !== 'undefined') new item(8*TILESIZE,9*TILESIZE,room,0);
-				if(typeof door !== 'undefined') room.doors[door].state = 'open';
+				if(typeof door !== 'undefined') room.doors[door].state = 'Open';
 
 			}
 		};
@@ -749,9 +749,9 @@ var d1r4_6 = new Class({
 	initialize: function(room) {
 		block = new movableBlock(7*TILESIZE, 9*TILESIZE, room);
 		block.direction = '*';
-		room.doors[180].state = 'shut';
+		room.doors[180].state = 'Shut';
 		block.onMove = function() {
-			room.doors[180].state = 'open';
+			room.doors[180].state = 'Open';
 		}
 		room.addEvent('leave', function() {
 			block.destroy();
@@ -802,7 +802,7 @@ var d1r3_9 = new Class({
 			room.isInitialized = true;
 			room.aqua.die = function() {
 				new puHeartContainer(12*TILESIZE,9*TILESIZE, room);
-				room.doors[0].state = 'open';
+				room.doors[0].state = 'Open';
 				new EnemyDeath(this.x, this.y);
 				this.destroy();
 			};
@@ -819,7 +819,7 @@ var d1r3_10 = new Class({
 var d1r5_6 = new Class({
 	initialize: function(room) {
 		// Open east door when all mobs are destroyed
-		room.doors[0].state = 'shut';
+		room.doors[0].state = 'Shut';
 
 		var staflosCnt = 0;
 		Array.each(room.MOBs, function(mab) {
@@ -827,7 +827,7 @@ var d1r5_6 = new Class({
 				staflosCnt++;
 		});
 		if(staflosCnt == 0) {
-			room.doors[0].state = 'open';
+			room.doors[0].state = 'Open';
 		}
 
 		Array.each(room.MOBs, function(mob){
@@ -840,7 +840,7 @@ var d1r5_6 = new Class({
 						staflosCnt++;
 				});
 				if(staflosCnt == 0) {
-					room.doors[0].state = 'open';
+					room.doors[0].state = 'Open';
 				}
 			};
 			
@@ -968,7 +968,7 @@ var d2r6_6 = Class({
 });
 var d2r6_7 = Class({
 	initialize: function(room) {
-		room.doors[180].state = 'shut';
+		room.doors[180].state = 'Shut';
 
 		var staflosCnt = 0;
 		Array.each(room.MOBs, function(mab) {
@@ -976,7 +976,7 @@ var d2r6_7 = Class({
 				staflosCnt++;
 		});
 		if(staflosCnt == 0) {
-			room.doors[180].state = 'open';
+			room.doors[180].state = 'Open';
 		}
 
 		Array.each(room.MOBs, function(mob){
@@ -989,7 +989,7 @@ var d2r6_7 = Class({
 						staflosCnt++;
 				});
 				if(staflosCnt == 0) {
-					room.doors[180].state = 'open';
+					room.doors[180].state = 'Open';
 				}
 			};
 			

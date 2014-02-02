@@ -158,7 +158,6 @@ var SpriteCatalog = {
 	,Compass: {col: [127]}
 	,Triforce: {col: [144]}
 	,MovableBlock: {col: [284]}
-
 	,DoorLocked0: {col: [294]}
 	,DoorLocked90: {col: [298]}
 	,DoorLocked180: {col: [303]}
@@ -171,8 +170,10 @@ var SpriteCatalog = {
 	,DoorShut90: {col: [304]}
 	,DoorShut180: {col: [295]}
 	,DoorShut270: {col: [304]}
-
 	,BombHole: {col: [306]}
+
+	,EnemySpawn: {col: [110,111,112]}
+	,Octorok: {col: [113,114], palette:2}
 	// 8x8
 	,SmallRupee: {col: [42], row: [0], size: 8}
 	,SmallKey: {col: [43], row: [0], size: 8}

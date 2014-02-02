@@ -1,10 +1,10 @@
 var Enemy = new Class({
 	Extends: Mob
-	,spawnFrames: [110, 111, 112]
-	,spawnFrame: 0
+	,animFrame: 0
 	,acDelta: 0
 	,lastUpdateTime:0
 	,initialize: function(x,y,room) {
+		this.mobSprite = this.sprite;
 		this.parent(x,y,room);
 	}
 	,die: function() {
@@ -13,9 +13,10 @@ var Enemy = new Class({
 	}
 	,move: function() {
 		if(this.spawning) {
+			this.sprite = 'EnemySpawn';
 			var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
-			if(this.acDelta > (this.spawnFrame == 0 ? 800 : 100)) {
-				if(++this.spawnFrame >= this.spawnFrames.length) {
+			if(this.acDelta > (this.animFrame == 0 ? 800 : 100)) {
+				if(++this.animFrame >= 3) {
 					this.spawning = false; 
 				}
 				this.acDelta = 0;
@@ -25,13 +26,7 @@ var Enemy = new Class({
 			this.lastUpdateTime = Date.now();
 			return true;
 		}
-		return false;
-	}
-	,draw: function() {
-		if(this.spawning) {
-			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
-			return true;
-		}
+		this.sprite = this.mobSprite;
 		return false;
 	}
 });
@@ -890,12 +885,6 @@ var RandomMob = new Class({
 		directions = [0, 90, 180, 270];
 		this.direction = directions[Number.random(0,3)];
 	}
-	,draw: function() {
-		if(this.parent()) return;
-		frame = this.frames[this.animFrame];
-		placeTile(frame, this.x, this.y, null, null, (270+this.direction%360)/180);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-	}
 });
 
 /**
@@ -909,7 +898,8 @@ var Octorok = new Class({
 	,damage: 0.5
 	,health: 0.5
 	,maxAnimFrames: 2
-	,frames: [113,114]
+	,sprite: 'Octorok'
+	,defaultPalette: 2
 	,projectile: RockProjectile
 });
 

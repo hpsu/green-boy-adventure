@@ -274,7 +274,7 @@ var Mob = new Class({
 	,move: function() {}
 	,draw: function() {
 		var params = {};
-		if(this.palette && this.palette != this.defaultPalette) params['palette'] = this.palette;
+		if(typeof this.palette != 'undefined') params['palette'] = this.palette;
 		if(typeof this.animFrame != 'undefined') params['animFrame'] = this.animFrame;
 		if(typeof this.direction != 'undefined' && !this.lockRotation) params['direction'] = this.direction;
 		if(typeof this.flip != 'undefined') params['flip'] = this.flip;

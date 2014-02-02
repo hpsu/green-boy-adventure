@@ -1023,12 +1023,11 @@ var DoorEast = new Class({
 
 		if(!this.parent(that, tx, ty)) return false;
 
-
 		if(ty < this.y-5 || ty+that.height > this.y+this.height+5) return false;
 		if(tx > this.x) {
 			if(!rooms.exists(that.currentRoom.row, that.currentRoom.col+1)) {console.log('Room not found');return false;}
 			that.currentRoom = switchRoom(that.currentRoom.row, that.currentRoom.col+1);
-			that.x = TILESIZE;
+			that.x = SPRITESIZE;
 			return false;
 
 		}
@@ -1058,7 +1057,7 @@ var DoorSouth = new Class({
 		if(ty > this.y) {
 			if(!rooms.exists(that.currentRoom.row+1, that.currentRoom.col)) {console.log('Room not found');return false;}
 			that.currentRoom = switchRoom(that.currentRoom.row+1, that.currentRoom.col);
-			that.y = 5*TILESIZE;
+			that.y = 5*SPRITESIZE;
 			return false;
 		}
 
@@ -1089,7 +1088,7 @@ var DoorWest = new Class({
 		if(tx < this.x) {
 			if(!rooms.exists(that.currentRoom.row, that.currentRoom.col-1)) {console.log('Room not found');return false;}
 			that.currentRoom = switchRoom(that.currentRoom.row, that.currentRoom.col-1);
-			that.x = (that.currentRoom.roomWidth-1)*TILESIZE-TILESIZE;
+			that.x = (that.currentRoom.roomWidth-1)*SPRITESIZE-SPRITESIZE;
 			return false;
 
 		}
@@ -1119,7 +1118,7 @@ var DoorNorth = new Class({
 		if(ty < this.y) {
 			if(!rooms.exists(that.currentRoom.row-1, that.currentRoom.col)) {console.log('Room not found');return false;}
 			that.currentRoom = switchRoom(that.currentRoom.row-1, that.currentRoom.col);
-			that.y = (that.currentRoom.roomHeight+4-1)*TILESIZE-TILESIZE;
+			that.y = (that.currentRoom.roomHeight+4-1)*SPRITESIZE-SPRITESIZE;
 			return false;
 		}
 

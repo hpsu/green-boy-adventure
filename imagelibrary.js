@@ -171,6 +171,7 @@ var SpriteCatalog = {
 	,DoorShut180: {col: [295]}
 	,DoorShut270: {col: [304]}
 	,BombHole: {col: [306]}
+	,Peahat: {col: [88,89], palette:2}
 
 	,EnemySpawn: {col: [110,111,112]}
 	,Octorok: {col: [113,114], palette:2}

@@ -77,9 +77,6 @@ var Projectile = new Class({
 				break;
 		}
 
-		//if(window.collisionDebug) filledRectangle(this.x, this.y, this.width, this.height, '#f00');
-		//if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
-
 		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
 		|| yTile < 1 || yTile > this.currentRoom.roomHeight-2
 		|| (this.tileBlock && this.currentRoom.getTile(yTile,xTile).isSolid)) {
@@ -647,16 +644,19 @@ var Peahat = new Class({
 	Extends: Enemy
 	,health: 1
 	,damage:0.5
-	,frames: [88,89]
+	,sprite: 'Peahat'
 	,msPerPalette: 50
 	,killableOnMove: false
 	,acPaletteDelta: 0
 	,acDirDelta: 0
+	,defaultPalette: 2
+	,palette: 2
 	,direction: 0
 	,animFrame: 0
 	,moveRate: 1
 	,stateFrame: 0
 	,msSpeed:0
+	,lockRotation: true
 	,accelAdd: 1.5
 	,state: 0 // Acceleration, flight, deceleration, rest
 	,initialize: function(x,y,room) {
@@ -679,6 +679,9 @@ var Peahat = new Class({
 		if(this.isImmune && this.acPaletteDelta > this.msPerPalette) {
 			this.acPaletteDelta = 0;
 			if(++this.palette > 3) this.palette = 0;
+		}
+		if(!this.isImmune) {
+			this.palette = this.defaultPalette;
 		}
 
 		if(this.acDirDelta > this.msPerFrame*Number.random(64,256)) { // @TODO: Random somewhere else
@@ -723,15 +726,15 @@ var Peahat = new Class({
 					break;
 			}
 			if(this.state != 3) {
-				if(typeof this.frames[++this.animFrame] == 'undefined') this.animFrame=0;
+				if(++this.animFrame >= 2) this.animFrame=0;
 				this.x += Math.cos(this.direction * Math.PI/180) * this.moveRate;
 				this.y += Math.sin(this.direction * Math.PI/180) * this.moveRate;
 			}
 
-			if(this.x > sc((this.currentRoom.roomWidth*TILESIZE)-TILESIZE-HALFTILE)
-			|| this.y < sc(TILESIZE*4)
-			|| this.x < sc(HALFTILE)
-			|| this.y > sc(TILESIZE*14)) {
+			if(this.x > (this.currentRoom.roomWidth*SPRITESIZE)-SPRITESIZE-HALFSPRITE
+			|| this.y < SPRITESIZE*4
+			|| this.x < HALFSPRITE
+			|| this.y > SPRITESIZE*14) {
 				this.x -= Math.cos(this.direction * Math.PI/180) * this.moveRate;
 				this.y -= Math.sin(this.direction * Math.PI/180) * this.moveRate;
 				this.randomDirection();
@@ -749,14 +752,6 @@ var Peahat = new Class({
 		this.acDirDelta+=delta;
 		this.acPaletteDelta+=delta;
 		this.lastUpdateTime = Date.now();
-	}
-	,draw: function() {
-		if(this.parent()) return;
-		frame = this.frames[this.animFrame];
-		placeTile(frame, this.x, this.y);
-		if(this.isImmune)
-			this.changePalette(2);
-
 	}
 });
 

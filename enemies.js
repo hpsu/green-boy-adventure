@@ -40,12 +40,13 @@ var Projectile = new Class({
 	Extends: Mob
 	,movementRate: 3.5
 	,rotatePalette: false
-	,rotate: true
 	,initialize: function(ancestor) {
 		this.ancestor = ancestor;
 		this.x = ancestor.x;
 		this.y = ancestor.y;
 		this.parent(this.x,this.y,ancestor.currentRoom);
+		this.x += (ancestor.width-this.width)/2;
+		this.y += (ancestor.height-this.height)/2;
 		this.direction = ancestor.direction;
 	}
 	,impact: function() {return false;}
@@ -94,10 +95,6 @@ var Projectile = new Class({
 		if(this.rotatePalette && ++this.palette > env.palettes.length-1)
 			this.palette=0;
 	}
-	,draw: function() {
-		placeTile(this.tile, this.x, this.y, null, null, this.rotate ? (90+this.direction%360)/180 : null);
-		if(this.rotatePalette) this.changePalette();
-	}	
 });
 
 
@@ -113,20 +110,18 @@ var FireBall = new Class({
 	Extends: Projectile
 	,damage: 0.5
 	,movementRate: 1.5
-	,tile: 80
+	,sprite: 'Fireball'
 	,tileBlock: false
-	,rotate: false
+	,width:8
 	,height: 10
+	,height: 10
+	,rotatePalette: true
 	,width: 8
 	,rotatePalette: true
 	,initialize: function(ancestor, offsetY) {
 		if(!offsetY) offsetY = 0;
 		this.parent(ancestor);
 		this.direction = Math.atan2(env.player.y - offsetY - this.y, env.player.x - this.x) * 180 / Math.PI;
-	}
-	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (this.tile*SPRITESIZE)+4, (SPRITESIZE/2)-5, this.width, this.height, Math.round(this.x), Math.round(this.y), this.width, this.height);
-		if(this.rotatePalette) this.changePalette();
 	}
 });
 
@@ -139,15 +134,23 @@ var FireBall = new Class({
 
 var RockProjectile = new Class({
 	Extends: Projectile
+	,sprite: 'RockProjectile'
+	,width:8
+	,height: 10
 	,damage: 0.5
-	,tile: 115
+	,lockRotation: true
 	,tileBlock: true
 });
 
+/**
+ * Mob MagicProjectile - Thingy shot by Wizzrobe
+ *********************************************
+ * Destroyed on tile collision
+ */
 var MagicProjectile = new Class({
 	Extends: Projectile
 	,damage: 3
-	,tile: 131
+	,sprite: 'MagicProjectile'
 	,rotatePalette: true
 });
 
@@ -160,7 +163,7 @@ var MagicProjectile = new Class({
 var ArrowProjectile = new Class({
 	Extends: Projectile
 	,damage: 0.5
-	,tile: 94
+	,sprite: 'Arrow'
 	,tileBlock: false
 	,destroy: function() {
 		new ArrowWake(this.x, this.y);
@@ -168,13 +171,18 @@ var ArrowProjectile = new Class({
 	}
 });
 
+/**
+ * Mob BoomerangProjectile - Boomerang shot by Gorya
+ ***************************************************
+ * Changes to opposite direction about half way through and returns to caster
+ */
 var BoomerangProjectile = new Class({
 	Extends: Projectile
 	,movementRate: 2
 	,damage: 1
-	,tile: 141
+	,sprite: 'Boomerang'
 	,acDelta: 0
-	,boomrot: 0
+	,rotation: 0
 	,turnCount: 0
 	,tileBlock: false
 	,destroy: function() {
@@ -198,17 +206,12 @@ var BoomerangProjectile = new Class({
 		}
 		if(this.acDelta > 50) {
 			this.acDelta = 0;
-			this.boomrot = (30 + this.boomrot % 360);
+			this.rotation = (30 + this.rotation % 360);
 		}
 
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
-
 	}
-	,draw: function() {
-		placeTile(this.tile, this.x, this.y, null, null, this.rotate ? (90+this.direction+this.boomrot%360)/180 : null);
-		if(this.rotatePalette) this.changePalette();
-	}	
 });
 
 
@@ -220,7 +223,7 @@ var BoomerangProjectile = new Class({
 var SwordProjectile = new Class({
 	Extends: Projectile
 	,damage: 2
-	,tile: 12
+	,sprite: 'Sword'
 	,palette: 0
 	,rotatePalette: true
 	,tileBlock: false
@@ -235,13 +238,11 @@ var SwordProjectile = new Class({
  */
 var ArrowWake = new Class({
 	Extends: Mob
+	,sprite: 'ArrowWake'
 	,impact: function() {return false;}
 	,initialize: function(x,y) {
 		this.parent(x,y);
 		(function(o){o.destroy();}).pass(this).delay(100);
-	}
-	,draw: function() {
-		placeTile(95, this.x, this.y);
 	}
 });
 
@@ -928,10 +929,6 @@ var Moblin = new Class({
 		,270:	{sprites: [93,93], flip: [null,'x']}
 	}
 	,draw: function() {
-		if(this.spawning) {
-			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
-			return true;
-		}
 		frame = this.frames[this.direction]['sprites'][this.animFrame];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
@@ -969,10 +966,10 @@ var Lynel = new Class({
 		,270:	{sprites: [99,99], flip: [null,'x']}
 	}
 	,draw: function() {
-		if(this.spawning) {
-			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
-			return true;
-		}
+		//if(this.spawning) {
+		//	placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
+		//	return true;
+		//}
 		frame = this.frames[this.direction]['sprites'][this.animFrame];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);
@@ -1237,10 +1234,10 @@ var Goriya = new Class({
 		,270:	{sprites: [140,140], flip: [null,'x']}
 	}
 	,draw: function() {
-		if(this.spawning) {
-			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
-			return true;
-		}
+		//if(this.spawning) {
+		//	placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
+		//	return true;
+		//}
 		frame = this.frames[this.direction]['sprites'][this.animFrame];
 		flip = this.frames[this.direction]['flip'][this.animFrame];
 		placeTile(frame, this.x, this.y, null, null, null, flip);

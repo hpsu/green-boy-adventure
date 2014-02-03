@@ -299,15 +299,16 @@ var LinkGainItem = new Class({
 	Extends: Mob
 	,shownMs: 2000
 	,acDelta: 0
-	,initialize: function(itemsprite, halfspritepos, quarterspritepos, palette){
-		this.itemsprite = itemsprite
-		this.halfspritepos = halfspritepos
-		this.quarterspritepos = quarterspritepos
+	,initialize: function(itemsprite, params){
+		this.sprite = itemsprite;
 		env.player.isActive=false;
-		this.x = env.player.x;
-		this.y = env.player.y-SPRITESIZE;
+		this.x = env.player.x + (env.player.width-SpriteCatalog.getWidth(this.sprite))/2;
+		this.y = env.player.y-SPRITESIZE + (env.player.height-SpriteCatalog.getHeight(this.sprite))/2;
 		this.parent(this.x,this.y,rooms.getCurrentRoom());
-		if(typeof(palette) != 'undefined') this.palette=palette;
+		if(params) {
+			if(typeof(params['palette']) != 'undefined') this.palette=params['palette'];
+			if(typeof(params['direction']) != 'direction') this.direction=params['direction'];
+		}
 	}
 	,destroy: function() {
 		env.player.isActive=true;
@@ -322,19 +323,8 @@ var LinkGainItem = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		SpriteCatalog.draw('LinkGainItem', this.x, this.y+SPRITESIZE);
-		var item = SpriteCatalog[this.itemsprite];
-		console.log(this.y, this.y+(SPRITESIZE-SpriteCatalog.getHeight(this.itemsprite))/2);
-		SpriteCatalog.draw(this.itemsprite, this.x+(SPRITESIZE-SpriteCatalog.getWidth(this.itemsprite))/2, this.y+(SPRITESIZE-SpriteCatalog.getHeight(this.itemsprite))/2);
-
-		/*if(this.halfspritepos != undefined) {
-			ctx.drawImage(env.spriteSheet, (this.itemsprite*TILESIZE)+(this.halfspritepos*HALFTILE), (this.quarterspritepos != undefined ? this.quarterspritepos : 0), HALFTILE, (this.quarterspritepos != undefined ? HALFTILE : TILESIZE), Math.floor(this.x), Math.floor(this.y-TILESIZE), HALFTILE, (this.quarterspritepos != undefined ? HALFTILE : TILESIZE));
-		}
-		else {
-			placeTile(this.itemsprite, this.x, this.y);
-			this.changePalette();
-		}
-		*/
+		SpriteCatalog.draw('LinkGainItem', env.player.x, env.player.y);
+		this.parent();
 	}
 });
 
@@ -437,7 +427,7 @@ var ShieldBoneHeartStore = new Class({
 		room.item3.pickup = function(that) {
 			if(room.tmpHeartFunc.bind(this).pass(that)()){
 				room.killSprites();
-				new LinkGainItem(this.sprite, 0, 0);
+				new LinkGainItem(this.sprite);
 			}
 		};
 
@@ -521,7 +511,7 @@ var WhiteSwordEvent = new Class({
 			this.destroy();
 			room.guy.destroy();
 			room.txtNode.destroy();
-			new LinkGainItem(this.sprite, null, null, 3);
+			new LinkGainItem(this.sprite, {direction: 270, palette: 3});
 			room.eventDone=true;
 		};
 		

@@ -68,7 +68,6 @@ var Bomb = new Class({
 	,lockRotation: true
 	,width: 8
 	,initialize: function(ancestor) {
-		this.name = 'Sword';
 		this.ancestor = ancestor;
 		this.parent(ancestor.x, ancestor.y);
 		this.rePosition();
@@ -184,9 +183,9 @@ var Sword = new Class({
 	Extends: Mob
 	,damage: 0.5
 	,msShown: 200
+	,sprite: 'Sword'
 	,width: 16
 	,height: 16
-	,sprite: 12
 	,direction: 0
 	,movementRate: 5
 	,isFriendly: true
@@ -249,18 +248,13 @@ var Sword = new Class({
 		this.acTotalDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
-	,draw: function() {
-		SpriteCatalog.draw('Sword', this.x, this.y, {
-			direction: (90 + this.direction %360)
-			,palette: this.palette
-		});
-	}	
 });
 
 var SwordRipplePart = new Class({
 	Extends: Mob
-	,sprite: 13
+	,sprite: 'SwordRipple'
 	,angle: 0
+	,palette: 0
 	,moveRate: 1.3
 	,iterable:0
 	,isFriendly: true
@@ -278,26 +272,19 @@ var SwordRipplePart = new Class({
 		this.y += Math.sin(this.angle * Math.PI/180) * this.moveRate;
 		if(++this.palette > env.palettes.length-1)
 			this.palette=0;
-	}
-	,draw: function() {
-		flip = null;
+
 		switch(this.angle) {
 			case 45:
-				flip = 'y';
+				this.flip = 'y';
 				break;
 			case 135:
-				flip = 'xy';
+				this.flip = 'xy';
 				break;
 			case 225:
-				flip = 'x';
-				break;
-			case 270:
+				this.flip = 'x';
 				break;
 		}
-		SpriteCatalog.draw('SwordRipple', this.x, this.y, {
-			flip: flip
-			,palette: this.palette
-		});
+
 	}
 });
 
@@ -307,7 +294,6 @@ var SwordThrow = new Class({
 	,damage: 0.5
 	,msPerFrame: 10
 	,palette: 0
-	,sprite: 12
 	,acImpactMove: 0
 	,movementRate:3
 	,destroy: function() {
@@ -350,12 +336,6 @@ var SwordThrow = new Class({
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
 
-	}
-	,draw: function() {
-		SpriteCatalog.draw('Sword', this.x, this.y, {
-			direction: (90 + this.direction % 360)
-			,palette: this.palette
-		});
 	}
 });
 
@@ -405,11 +385,12 @@ var puSword = new Class({
 	Extends: Mob
 	,name: 'puSword'
 	,sprite: 'Sword'
+	,direction: 270
 	,isFriendly: true
 	,type: 1
 	,pickup: function(that) {
 		that.items.sword = this.type;
-		new LinkGainItem(this.sprite);
+		new LinkGainItem(this.sprite, {direction: this.direction});
 		this.destroy();
 	}
 });
@@ -517,7 +498,7 @@ var puKey = new Class({
 		
 		this.destroy();
 		if(this.price) {
-			new LinkGainItem(this.sprite,0);
+			new LinkGainItem(this.sprite);
 			this.currentRoom.killSprites();
 		}
 	}
@@ -541,7 +522,7 @@ var puBone = new Class({
 		}
 		that.items.bone = 1;
 		this.currentRoom.killSprites();
-		new LinkGainItem(this.sprite, 1);
+		new LinkGainItem(this.sprite);
 		this.destroy();
 	}
 	,draw: function() {
@@ -564,7 +545,7 @@ var puCandle = new Class({
 			that.addRupees(-this.price);
 		}
 		that.items.candle = 1;
-		new LinkGainItem(this.sprite, 1);
+		new LinkGainItem(this.sprite);
 		this.currentRoom.killSprites();
 	}
 	,draw: function() {
@@ -898,6 +879,7 @@ var puArrow = new Class({
 	,width: 8
 	,height: 16
 	,worth: 1
+	,direction: 270
 	,price: 80
 	,expire: null
 	,isFriendly: true

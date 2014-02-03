@@ -161,7 +161,6 @@ var Mob = new Class({
 	,lastUpdatedTime: 0
 	,lastUpdateTime: 0
 	,msPerFrame: 100
-	,palette: 0
 	,spawning: true
 	,width: SPRITESIZE
 	,initialize: function(x,y,room){
@@ -278,6 +277,7 @@ var Mob = new Class({
 		if(typeof this.animFrame != 'undefined') params['animFrame'] = this.animFrame;
 		if(typeof this.direction != 'undefined' && !this.lockRotation) params['direction'] = this.direction;
 		if(typeof this.flip != 'undefined') params['flip'] = this.flip;
+		if(typeof this.rotation != 'undefined') params['direction'] += this.rotation;
 		SpriteCatalog.draw(this.sprite, this.x, this.y, params);
 	}
 });
@@ -814,6 +814,7 @@ function paintHeader() {
 		}
 		SpriteCatalog.draw('Sword', x, y, {
 			palette: swpal
+			,direction: 270
 		});
 	}
 

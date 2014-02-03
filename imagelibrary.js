@@ -172,10 +172,11 @@ var SpriteCatalog = {
 	,DoorShut270: {col: [304]}
 	,BombHole: {col: [306]}
 	,Peahat: {col: [88,89], palette:2}
-
 	,EnemySpawn: {col: [110,111,112]}
 	,Octorok: {col: [113,114], palette:2}
+
 	// 8x8
+	,ArrowWake: {col: [95*2], size: 8}
 	,SmallRupee: {col: [42], row: [0], size: 8}
 	,SmallKey: {col: [43], row: [0], size: 8}
 	,SmallBomb: {col: [43], row: [1], size: 8}
@@ -246,8 +247,12 @@ var SpriteCatalog = {
 	,Key: {col: [106*2], width: 8, height: 16}
 	,Bone: {col: [108*2+1], width: 8, height: 16}
 	,Fairy: {col: [60*2,60*2+1], width: 8, height: 16}
-	,Arrow: {col: [94*2], width: 8, height: 16}
+	,Arrow: {col: [94]}
 	,Bow: {col: [146*2], width: 8, height: 16}
+	,RockProjectile: {col: [115*2], width: 8, height: 10}
+	,Fireball: {col: [80*2], width: 8, height: 10}
+	,MagicProjectile: {col: [131]}
+
 	,getWidth: function(key) {
 		if(!this[key]) {
 			console.warn('No such sprite in catalog!');

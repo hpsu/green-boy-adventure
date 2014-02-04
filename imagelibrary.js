@@ -65,6 +65,7 @@ var Sprite = new Class({
 				tCtx.rotate(rotate);
 			}
 			if(flip) {
+				console.log('flipping',flip);
 				tCtx.scale((flip.contains('x') ? -1 : 1), (flip.contains('y') ? -1 : 1));
 			}
 		}
@@ -181,9 +182,13 @@ var SpriteCatalog = {
 	,Zora90: {col: [79], palette: 1}
 	,Zora270: {col: [78], palette: 1}
 	,Moblin0: {col: [90,91], palette: 2}
-	,Moblin90: {col: [92], palette: 2}
-	,Moblin180: {col: [90,91], palette: 2}
-	,Moblin270: {col: [93], palette: 2}
+	,Moblin90: {col: [92], flipMap: [null,'x'], palette: 2}
+	,Moblin180: {col: [90,91], flipMap: ['x','x'], palette: 2}
+	,Moblin270: {col: [93], flipMap: [null,'x'], palette: 2}
+	,Lynel0: {col: [96,97], palette: 2}
+	,Lynel90: {col: [98], flipMap: [null,'x'], palette: 2}
+	,Lynel180: {col: [96,97], flipMap: ['x','x'], palette: 2}
+	,Lynel270: {col: [99], flipMap: [null,'x'], palette: 2}
 
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}
@@ -299,10 +304,13 @@ var SpriteCatalog = {
 			console.warn('No such sprite in catalog!',key);
 			return false;
 		}
-		var tCtx = (params['ctx'] ? params['ctx'] : ctx);
-		var animFrame = typeof params['animFrame'] != 'undefined' && typeof this[key]['col'][params['animFrame']] != 'undefined' ? params['animFrame'] : 0;
-		var spriteParams = this[key];
-
+		var spriteParams = this[key]
+			,tCtx = (params['ctx'] ? params['ctx'] : ctx)
+			,animFrame = typeof params['animFrame'] != 'undefined' && typeof this[key]['col'][params['animFrame']] != 'undefined' ? params['animFrame'] : 0
+			,flipFrame = typeof params['animFrame'] != 'undefined' ? params['animFrame'] : 0
+			,flip = typeof spriteParams['flipMap'] != 'undefined' && typeof spriteParams['flipMap'][flipFrame] != 'undefined' ? spriteParams['flipMap'][flipFrame] : null;
+		if(typeof params['flip'] == 'undefined' && flip != null) params['flip'] = flip;
+		
 		if(!SpriteCache[key+animFrame]) SpriteCache[key+animFrame] = new Sprite(this[key]['col'][animFrame], spriteParams);
 		return SpriteCache[key+animFrame].draw(tCtx, x, y, params['direction'], params['flip'], params['palette']);
 	}

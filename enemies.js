@@ -912,16 +912,6 @@ var Moblin = new Class({
 	,damage: 0.5
 	,defaultPalette: 2
 	,health: 1
-	,move: function() {
-		this.parent();
-		if(this.acDelta > this.msPerFrame) {
-			if(this.direction == 180 || (this.animFrame == 1 && [90,270].contains(this.direction))) {
-				this.flip = 'x';
-			}
-			else
-				this.flip = null;
-		}
-	}
 });
 
 /**
@@ -944,25 +934,11 @@ var BlueMoblin= new Class({
 var Lynel = new Class({
 	Extends: RandomMob
 	,maxAnimFrames: 2
+	,defaultPalette: 2
 	,projectile: SwordProjectile
 	,damage: 1
 	,health: 2
-	,frames: {
-		 0:		{sprites: [96,97], flip: ['x','x']}
-		,90:	{sprites: [98,98], flip: [null,'x']}
-		,180:	{sprites: [96,97], flip: [null,null]}
-		,270:	{sprites: [99,99], flip: [null,'x']}
-	}
-	,draw: function() {
-		//if(this.spawning) {
-		//	placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
-		//	return true;
-		//}
-		frame = this.frames[this.direction]['sprites'][this.animFrame];
-		flip = this.frames[this.direction]['flip'][this.animFrame];
-		placeTile(frame, this.x, this.y, null, null, null, flip);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-	}
+	,sprite: 'Lynel'
 });
 
 /**

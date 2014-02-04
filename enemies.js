@@ -906,20 +906,21 @@ var BlueOctorok = new Class({
 var Moblin = new Class({
 	Extends: RandomMob
 	,maxAnimFrames: 2
+	,msPerFrame: 100
+	,sprite: 'Moblin'
 	,projectile: ArrowProjectile
 	,damage: 0.5
+	,defaultPalette: 2
 	,health: 1
-	,frames: {
-		 0:		{sprites: [90,91], flip: ['x','x']}
-		,90:	{sprites: [92,92], flip: [null,'x']}
-		,180:	{sprites: [90,91], flip: [null,null]}
-		,270:	{sprites: [93,93], flip: [null,'x']}
-	}
-	,draw: function() {
-		frame = this.frames[this.direction]['sprites'][this.animFrame];
-		flip = this.frames[this.direction]['flip'][this.animFrame];
-		placeTile(frame, this.x, this.y, null, null, null, flip);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	,move: function() {
+		this.parent();
+		if(this.acDelta > this.msPerFrame) {
+			if(this.direction == 180 || (this.animFrame == 1 && [90,270].contains(this.direction))) {
+				this.flip = 'x';
+			}
+			else
+				this.flip = null;
+		}
 	}
 });
 

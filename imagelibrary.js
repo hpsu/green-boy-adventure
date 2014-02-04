@@ -180,6 +180,11 @@ var SpriteCatalog = {
 	,Dive: {col: [76,77], palette: 2}
 	,Zora90: {col: [79], palette: 1}
 	,Zora270: {col: [78], palette: 1}
+	,Moblin0: {col: [90,91], palette: 2}
+	,Moblin90: {col: [92], palette: 2}
+	,Moblin180: {col: [90,91], palette: 2}
+	,Moblin270: {col: [93], palette: 2}
+
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}
 	,SmallRupee: {col: [42], row: [0], size: 8}

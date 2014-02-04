@@ -1002,23 +1002,10 @@ var Staflos = new Class({
 	,damage: 0.5
 	,name: "Staflos"
 	,width:8
+	,lockRotation: true
+	,sprite: 'Staflos'
 	,health: 1
-	,frames: {
-		 0:		{sprites: [124,124], flip: [null,'x']}
-		,90:	{sprites: [124,124], flip: [null,'x']}
-		,180:	{sprites: [124,124], flip: [null,'x']}
-		,270:	{sprites: [124,124], flip: [null,'x']}
-	}
-	,draw: function() {
-		if(this.spawning) {
-			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
-			return true;
-		}
-		frame = this.frames[this.direction]['sprites'][this.animFrame];
-		flip = this.frames[this.direction]['flip'][this.animFrame];
-		placeTile(frame, this.x, this.y, null, null, null, flip);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-	}
+	,defaultPalette: 2
 });
 
 /**

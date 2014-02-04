@@ -354,20 +354,22 @@ var Leever = new Class({
 	,animFrame: 0
 	,damage: 0.5
 	,health: 1
-	,defaultPalette: 0
+	,defaultPalette: 2
 	,msPerFrame: 50
 	,msPerPalette: 30
 	,movementRate: .5
 	,acPaletteDelta: 0
 	,acDirDelta: 0
 	,acBurrowDelta: 0
+	,lockRotation: true
 	,state: 'upDive'
 	,mode: 'follow'
 	,direction: 0
+	,sprite: 'LeeverDive'
 	,frames: {
-		upDive: [76,77,76,77,81,81]
-		,downDive: [81,81,81,81,76,77,76,77]
-		,normal: [82,83]
+		upDive: [0,1,0,1,2,2]
+		,downDive: [2,2,2,2,1,0,1,0]
+		,normal: [0,1]
 	}
 	,frameCount: 0
 	,initialize: function(x,y) {
@@ -396,13 +398,11 @@ var Leever = new Class({
 		}
 	}
 	,move: function() {
-		if(this.parent()) return;
 		var delta = Date.now() - this.lastUpdateTime;
 
 		if(this.state == 'normal') {
 			if(this.mode=='random') {
 				if(this.acBurrowDelta > this.msPerFrame*Number.random(128,256)) { //@TODO: This randomization should be done elsewhere ofc
-					this.animFrame=-1;
 					this.acBurrowDelta = 0;
 					this.state='downDive';
 					this.frameCount = -1;
@@ -463,7 +463,6 @@ var Leever = new Class({
 			|| yTile < 1 || yTile > this.currentRoom.roomHeight-2
 			|| this.currentRoom.getTile(yTile,xTile).isSolid) {
 				if(this.mode == 'follow') {
-					this.animFrame=-1;
 					this.state='downDive';
 					this.frameCount = -1;
 				}
@@ -473,13 +472,9 @@ var Leever = new Class({
 
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
-			if(typeof this.frames[this.state][++this.animFrame] == 'undefined') {
-				this.animFrame=0;
-			}
 			
 			if(this.state == 'upDive' && this.frameCount >= 4) {
 				this.state='normal';
-				this.animFrame=-1;
 				this.frameCount = -1;
 			}
 			else if(this.state == 'downDive' && this.frameCount >= 7) {
@@ -494,10 +489,11 @@ var Leever = new Class({
 				}
 				this.state = 'upDive';
 				this.frameCount = -1;
-				this.animFrame=-1;
 			}
 
 			this.frameCount++;
+			this.animFrame = this.frames[this.state][this.frameCount%this.frames[this.state].length];
+			this.sprite = this.state == 'normal' ? 'Leever' : 'LeeverDive';
 
 		}
 		if(this.acPaletteDelta > this.msPerPalette) {
@@ -511,17 +507,8 @@ var Leever = new Class({
 		this.acDirDelta += delta;
 		this.acBurrowDelta += delta;
 		this.lastUpdateTime = Date.now();
-	}
-	,draw: function() {
-		if(this.parent()) return;
-		if(!this.state) return;
-		frame = this.frames[this.state][this.animFrame];
-		placeTile(frame, this.x, this.y);
-		//if(this.isImmune || this.state != 'normal' || this.defaultPalette > 0)
-		if(this.isImmune || (this.defaultPalette > 0 && ![76,77].contains(this.frames[this.state][this.animFrame]))) {
-			this.changePalette(2);
-		}
-	
+
+
 	}
 });
 /**

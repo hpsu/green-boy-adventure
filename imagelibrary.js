@@ -175,7 +175,8 @@ var SpriteCatalog = {
 	,EnemySpawn: {col: [110,111,112]}
 	,Octorok: {col: [113,114], palette:2}
 	,Tektite: {col: [86,87], palette:2}
-
+	,LeeverDive: {col: [76,77,81], palette: 2}
+	,Leever: {col: [82,83], palette: 2}
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}
 	,SmallRupee: {col: [42], row: [0], size: 8}

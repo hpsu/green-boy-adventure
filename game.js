@@ -278,6 +278,7 @@ var Mob = new Class({
 		if(typeof this.direction != 'undefined' && !this.lockRotation) params['direction'] = this.direction;
 		if(typeof this.flip != 'undefined') params['flip'] = this.flip;
 		if(typeof this.rotation != 'undefined') params['direction'] += this.rotation;
+		filledRectangle(this.x,this.y,this.width,this.height,'#f00');
 		SpriteCatalog.draw(this.sprite, this.x, this.y, params);
 	}
 });

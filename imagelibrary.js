@@ -177,6 +177,9 @@ var SpriteCatalog = {
 	,Tektite: {col: [86,87], palette:2}
 	,LeeverDive: {col: [76,77,81], palette: 2}
 	,Leever: {col: [82,83], palette: 2}
+	,Dive: {col: [76,77], palette: 2}
+	,Zora90: {col: [79], palette: 1}
+	,Zora270: {col: [78], palette: 1}
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}
 	,SmallRupee: {col: [42], row: [0], size: 8}

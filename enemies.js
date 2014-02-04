@@ -72,10 +72,12 @@ var Projectile = new Class({
 				yTile = Math.ceil(yTile);
 				break;
 			case 270:
-			case -90: // up
 				xTile = Math.round(xTile);
 				yTile = Math.floor(yTile);
 				break;
+			default: 
+				xTile = Math.round(xTile);
+				yTile = Math.round(yTile);
 		}
 
 		if(xTile < 1 || xTile > this.currentRoom.roomWidth-2 
@@ -111,17 +113,16 @@ var FireBall = new Class({
 	,damage: 0.5
 	,movementRate: 1.5
 	,sprite: 'Fireball'
+	,lockRotation: true
 	,tileBlock: false
 	,width:8
+	,palette: 0
 	,height: 10
-	,height: 10
-	,rotatePalette: true
-	,width: 8
 	,rotatePalette: true
 	,initialize: function(ancestor, offsetY) {
 		if(!offsetY) offsetY = 0;
 		this.parent(ancestor);
-		this.direction = Math.atan2(env.player.y - offsetY - this.y, env.player.x - this.x) * 180 / Math.PI;
+		this.direction = Math.round(Math.atan2(env.player.y - offsetY - this.y, env.player.x - this.x) * 180 / Math.PI);
 	}
 });
 
@@ -525,7 +526,6 @@ var BlueLeever = new Class({
 	,damage: 1
 	,mode: 'random'
 	,defaultPalette: 3
-	,palette: 3
 });
 
 
@@ -542,6 +542,7 @@ var RiverZora = new Class({
 	,msPerFrame: 110
 	,damage: 0.5
 	,health: 2
+	,direction: 90
 	,state: 'upDive'
 	,frames: {
 		upDive: [76,77]
@@ -549,13 +550,14 @@ var RiverZora = new Class({
 		,down: [79]
 		,up: [78]
 	}
+	,sprite: 'Dive'
 	,frameCount: 0
 	,initialize: function() {
 		this.parent(0,0);
 		this.moveToRandomWaterTile();
 	}
 	,impact: function(damage, direction) {
-		if(['up','down'].contains(this.state)) {
+		if(this.state == 'normal') {
 			return this.parent(damage, direction);
 		}
 		return false;
@@ -578,12 +580,13 @@ var RiverZora = new Class({
 
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
-			if(typeof this.frames[this.state][++this.animFrame] == 'undefined') {
-				this.animFrame=0;
+			if(this.state == 'normal' || ++this.animFrame >= 2) {
+				this.animFrame = 0;
 			}
 			
 			if(this.state == 'upDive' && this.frameCount >= 4) {
-				this.state = (env.player.y >= this.y ? 'down' : 'up');
+				this.state = 'normal';
+				this.direction = env.player.y >= this.y ? 90 : 270;
 				this.frameCount = -1;
 				new FireBall(this);
 			}
@@ -592,27 +595,29 @@ var RiverZora = new Class({
 				this.state = 'upDive';
 				this.frameCount = -1;
 			}
-			else if((this.state == 'down' || this.state == 'up') && this.frameCount >= 16) {
+			else if(this.state == 'normal' && this.frameCount >= 16) {
 				this.state = 'downDive';
 				this.frameCount = -1;
 			}
 			this.frameCount++;
-			if(this.isImmune && ['up','down'].contains(this.state)) {
+			if(this.isImmune && this.state == 'normal') {
 				if(++this.palette > 3) this.palette = 0;
 			}
 			else {
-				this.palette = 3;
+				this.palette = 1;
+			}
+
+			if(this.state == 'normal') {
+				this.sprite = 'Zora';
+				this.lockRotation = false;
+			}
+			else {
+				this.sprite = 'Dive';
+				this.lockRotation = true;
 			}
 		}
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
-	}
-	,draw: function() {
-		frame = this.frames[this.state][this.animFrame];
-		placeTile(frame, this.x, this.y);
-		if(this.isImmune || [76,77].contains(frame))
-			this.changePalette(['up','down'].contains(this.state) ? 1 : 2);
-	
 	}
 });
 
@@ -1074,10 +1079,10 @@ var KeyStaflos = new Class({
 	,name: "KeyStaflos"
 	,destroy: function() {
 		this.parent();
-		new puKey(Math.round(this.x+(HALFTILE/2)), Math.round(this.y),0);
+		new puKey(Math.round(this.x+(HALFSPRITE/2)), Math.round(this.y),0);
 	}
 	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (106*TILESIZE), 0, this.width, this.height, Math.round(this.x+(HALFTILE/2)), Math.round(this.y), this.width, this.height);
+		ctx.drawImage(env.spriteSheet, (106*SPRITESIZE), 0, this.width, this.height, Math.round(this.x+(HALFSPRITE/2)), Math.round(this.y), this.width, this.height);
 		this.parent();
 	}
 });
@@ -1152,7 +1157,7 @@ var Zol = new Class({
 		}
 
 		//skuffa
-		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 4*HALFTILE) {
+		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 4*HALFSPRITE) {
 			if(!isNaN(this.impactDirection)) {
 				for(var i=0; i<6; i++) {
 					this.flytta(this.impactDirection);
@@ -1187,13 +1192,13 @@ var Gel = new Class({
 	,damage: 0.5
 	,msPerFrame: 55
 	,name: 'Gel'
-	,width: HALFTILE
+	,width: HALFSPRITE
 	,height: 9
 	,sprite: 135
 	,frames: [0,8]
 	,draw: function() {
 		frame = this.frames[this.animFrame];
-		ctx.drawImage(env.spriteSheet, (this.sprite*TILESIZE)+frame, 0, this.width, this.height, Math.round(this.x+(HALFTILE/2)), Math.round(this.y), this.width, this.height);
+		ctx.drawImage(env.spriteSheet, (this.sprite*SPRITESIZE)+frame, 0, this.width, this.height, Math.round(this.x+(HALFSPRITE/2)), Math.round(this.y), this.width, this.height);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
 	}
 });
@@ -1264,8 +1269,8 @@ var BladeTrap = new Class({
 	,movementRate: 2
 	,damage: 1
 	,direction: null
-	,maxDistX: 5*TILESIZE
-	,maxDistY: 3*TILESIZE
+	,maxDistX: 5*SPRITESIZE
+	,maxDistY: 3*SPRITESIZE
 	,turnCount: 0
 	,accuDistX: 0
 	,accuDistY: 0
@@ -1395,7 +1400,7 @@ var Aquamentus = new Class({
 	,move: function() {
 		var delta = Date.now() - this.lastUpdateTime;
 
-		if(this.x > 12*TILESIZE || this.x < 10*TILESIZE)
+		if(this.x > 12*SPRITESIZE || this.x < 10*SPRITESIZE)
 			this.direction = 180+this.direction%360;
 		else if(!this.passive && this.acDirDelta > this.msPerFrame*Number.random(8,16)) {
 			this.acDirDelta = 0;
@@ -1444,7 +1449,7 @@ var Aquamentus = new Class({
 	}
 	,draw: function() {
 		frame = this.frames[this.animFrame];
-		ctx.drawImage(env.bossSpriteSheet, (frame*32), 0, this.width, this.height, Math.round(this.x+(HALFTILE/2)), Math.round(this.y), this.width, this.height);
+		ctx.drawImage(env.bossSpriteSheet, (frame*32), 0, this.width, this.height, Math.round(this.x+(HALFSPRITE/2)), Math.round(this.y), this.width, this.height);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(0);
 	}
 });

@@ -1022,7 +1022,7 @@ var KeyStaflos = new Class({
 		new puKey(Math.round(this.x+(HALFSPRITE/2)), Math.round(this.y),0);
 	}
 	,draw: function() {
-		ctx.drawImage(env.spriteSheet, (106*SPRITESIZE), 0, this.width, this.height, Math.round(this.x+(HALFSPRITE/2)), Math.round(this.y), this.width, this.height);
+		SpriteCatalog.draw('Key', Math.round(this.x+(HALFSPRITE/2)), Math.round(this.y));
 		this.parent();
 	}
 });
@@ -1032,7 +1032,9 @@ var Keese = new Class({
 	,name: "Keese"
 	,health: 0.5
 	,killableOnMove: true
-	,frames: [125,126]
+	,sprite: 'Keese'
+	,defaultPalette: 3
+	,lockRotation: true
 });
 
 var Wizzrobe = new Class({

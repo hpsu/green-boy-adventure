@@ -198,7 +198,7 @@ var SpriteCatalog = {
 	,Armos180: {col:[116,117], palette:2}
 	,Armos270: {col: [118,119], palette:2}
 	,Staflos: {col: [124], flipMap: [null,'x'], palette: 2}
-
+	,Keese: {col: [125,126], palette: 3}
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}
 	,SmallRupee: {col: [42], row: [0], size: 8}

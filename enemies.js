@@ -152,6 +152,8 @@ var MagicProjectile = new Class({
 	Extends: Projectile
 	,damage: 3
 	,sprite: 'MagicProjectile'
+	,defaultPalette: 2
+	,palette: 2
 	,rotatePalette: true
 });
 
@@ -1043,19 +1045,10 @@ var Wizzrobe = new Class({
 	,health: 1.5
 	,projectile: MagicProjectile
 	,name: "Wizzrobe"
-	,frames: {
-		 0:		{sprites: 129, flip: 'x'}
-		,90:	{sprites: 129, flip: 'x'}
-		,180:	{sprites: 129, flip: null}
-		,270:	{sprites: 130, flip: null}
-	}
+	,maxAnimFrames: 1
+	,sprite: 'Wizzrobe'
+	,defaultPalette: 2
 	//,move: @TODO: Spawns like Red Leever but blinks instead of dive. Does not move
-	,draw: function() {
-		frame = this.frames[this.direction]['sprites'];
-		flip = this.frames[this.direction]['flip'];
-		placeTile(frame, this.x, this.y, null, null, null, flip);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-	}
 });
 
 var Zol = new Class({

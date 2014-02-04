@@ -171,9 +171,6 @@ var Detonation = new Class({
 			placeTile(this.tile, this.x-8+14, this.y+14+14);
 			placeTile(this.tile, this.x-14+14, this.y+14);
 		}
-
-
-
 	}
 
 });(this.x, this.y);

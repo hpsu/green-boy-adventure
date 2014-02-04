@@ -174,6 +174,7 @@ var SpriteCatalog = {
 	,Peahat: {col: [88,89], palette:2}
 	,EnemySpawn: {col: [110,111,112]}
 	,Octorok: {col: [113,114], palette:2}
+	,Tektite: {col: [86,87], palette:2}
 
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}

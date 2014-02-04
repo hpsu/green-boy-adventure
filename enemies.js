@@ -264,8 +264,9 @@ var Tektite = new Class({
 	,health: 0.5
 	,startY: 0
 	,targetY: 0
-	,sprite: 86
-	,defaultPalette: 0
+	,sprite: 'Tektite'
+	,animFrame:0
+	,defaultPalette: 2
 	,isJumping: false
 	,initialize: function(x,y) {
 		this.parent(x,y);
@@ -286,7 +287,7 @@ var Tektite = new Class({
 			this.targetY = this.startY;
 		}
 
-		this.sprite = 87;
+		this.animFrame=1;
 		if(Number.random(0,1) == 1) {
 			this.velocityX *= -1;
 		}
@@ -294,7 +295,7 @@ var Tektite = new Class({
 	,stopJump: function() {
 		this.velocityY = 0;
 		this.isJumping=false;
-		this.sprite = 86;
+		this.animFrame=0;
 		(function(ob){ob.jump();}).pass(this).delay(Number.random(100,1000));
 	}
 	,move: function() {
@@ -310,8 +311,8 @@ var Tektite = new Class({
 				this.y = this.targetY;
 				this.stopJump();
 			}
-			else if(this.x > sc((this.currentRoom.roomWidth*SPRITESIZE)-SPRITESIZE-(SPRITESIZE/2))
-			|| this.x < sc(HALFTILE)) {
+			else if(this.x > (this.currentRoom.roomWidth*SPRITESIZE)-SPRITESIZE-(SPRITESIZE/2)
+			|| this.x <HALFSPRITE) {
 				this.y -= this.velocityY;
 				this.x -= this.velocityX;
 				this.stopJump();
@@ -326,12 +327,6 @@ var Tektite = new Class({
 		},this);
 		this.acDelta+=delta;
 		this.lastUpdateTime = Date.now();
-	}
-	,draw: function() {
-		if(this.parent()) return;
-		placeTile(this.sprite, this.x, this.y);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-
 	}
 });
 

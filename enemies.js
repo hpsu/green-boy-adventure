@@ -963,23 +963,9 @@ var Ghini = new Class({
 	,maxAnimFrames: 1
 	,projectile: null
 	,damage: 1
+	,defaultPalette: 3
 	,health: 4.5
-	,frames: {
-		 0:		{sprites: [100], flip: ['x']}
-		,90:	{sprites: [100], flip: [null]}
-		,180:	{sprites: [100], flip: [null]}
-		,270:	{sprites: [101], flip: [null]}
-	}
-	,draw: function() {
-		if(this.spawning) {
-			placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
-			return true;
-		}
-		frame = this.frames[this.direction]['sprites'][0];
-		flip = this.frames[this.direction]['flip'][this.animFrame];
-		placeTile(frame, this.x, this.y, null, null, null, flip);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(3);
-	}
+	,sprite: 'Ghini'
 });
 
 /**
@@ -997,22 +983,12 @@ var Armos = new Class({
 		}
 		this.parent(x,y,room);
 	}
+	,sprite: 'Armos'
+	,defaultPalette: 2
 	,maxAnimFrames: 2
 	,projectile: null
 	,damage: 1
 	,health: 1.5
-	,frames: {
-		 0:		{sprites: [116,117], flip: [null,null]}
-		,90:	{sprites: [116,117], flip: [null,null]}
-		,180:	{sprites: [116,117], flip: [null,null]}
-		,270:	{sprites: [118,119], flip: [null,null]}
-	}
-	,draw: function() {
-		frame = this.frames[this.direction]['sprites'][this.animFrame];
-		flip = this.frames[this.direction]['flip'][this.animFrame];
-		placeTile(frame, this.x, this.y, null, null, null, flip);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-	}
 });
 
 /**

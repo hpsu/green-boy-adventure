@@ -189,6 +189,14 @@ var SpriteCatalog = {
 	,Lynel90: {col: [98], flipMap: [null,'x'], palette: 2}
 	,Lynel180: {col: [96,97], flipMap: ['x','x'], palette: 2}
 	,Lynel270: {col: [99], flipMap: [null,'x'], palette: 2}
+	,Ghini0: {col: [100], palette:2}
+	,Ghini90: {col: [100], palette:2}
+	,Ghini180: {col: [100], flipMap: ['x'], palette:2}
+	,Ghini270: {col: [101], palette:2}
+	,Armos: {col: [116,117], palette:2}
+	,Armos90: {col: [116,117], palette:2}
+	,Armos180: {col:[116,117], palette:2}
+	,Armos270: {col: [118,119], palette:2}
 
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}

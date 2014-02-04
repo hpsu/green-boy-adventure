@@ -642,6 +642,7 @@ var puFairy = new Class({
 	,isFriendly: true
 	,sprite: 'Fairy'
 	,acDirDelta: 0
+	,lockRotation: true
 	,width: HALFSPRITE
 	,moveRate: 1
 	,direction: 0

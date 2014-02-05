@@ -1138,24 +1138,10 @@ var Goriya = new Class({
 	,projectile: BoomerangProjectile
 	,passiveToProjectileDeath: true
 	,name: 'Goriya'
+	,sprite: 'Goriya'
 	,damage: 0.5
 	,health: 1.5
-	,frames: {
-		 0:		{sprites: [137,138], flip: ['x','x']}
-		,90:	{sprites: [139,139], flip: [null,'x']}
-		,180:	{sprites: [137,138], flip: [null,null]}
-		,270:	{sprites: [140,140], flip: [null,'x']}
-	}
-	,draw: function() {
-		//if(this.spawning) {
-		//	placeTile(this.spawnFrames[this.spawnFrame], this.x, this.y);
-		//	return true;
-		//}
-		frame = this.frames[this.direction]['sprites'][this.animFrame];
-		flip = this.frames[this.direction]['flip'][this.animFrame];
-		placeTile(frame, this.x, this.y, null, null, null, flip);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-	}
+	,defaultPalette: 2
 });
 
 var BlueGoriya = new Class({

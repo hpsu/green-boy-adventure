@@ -204,6 +204,10 @@ var SpriteCatalog = {
 	,Wizzrobe180: {col: [129], flipMap: ['x'], palette: 2}
 	,Wizzrobe270: {col: [130], flipMap: ['x'], palette: 2}
 	,Zol: {col: [133,134]}
+	,Goriya0: {col: [137,138], palette:2}
+	,Goriya90:{col: [139], flipMap: [null,'x'], palette:2}
+	,Goriya180:	{col: [137,138], flipMap: ['x','x'], palette:2}
+	,Goriya270:	{col: [140], flipMap: [null,'x'], palette:2}
 
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}

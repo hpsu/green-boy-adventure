@@ -1059,7 +1059,8 @@ var Zol = new Class({
 	,health: 1
 	,name: 'Zol'
 	,maxAnimFrames: 2
-	,frames: [133,134]
+	,sprite: 'Zol'
+	,lockRotation: true
 	,move: function() {
 		var delta = Date.now() - this.lastUpdateTime;
 
@@ -1113,11 +1114,7 @@ var Zol = new Class({
 		this.acPaletteDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
-	,draw: function() {
-		frame = this.frames[this.animFrame];
-		placeTile(frame, this.x, this.y);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-	}
+
 });
 
 var Gel = new Class({
@@ -1129,13 +1126,7 @@ var Gel = new Class({
 	,name: 'Gel'
 	,width: HALFSPRITE
 	,height: 9
-	,sprite: 135
-	,frames: [0,8]
-	,draw: function() {
-		frame = this.frames[this.animFrame];
-		ctx.drawImage(env.spriteSheet, (this.sprite*SPRITESIZE)+frame, 0, this.width, this.height, Math.round(this.x+(HALFSPRITE/2)), Math.round(this.y), this.width, this.height);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
-	}
+	,sprite: 'Gel'
 });
 
 /**

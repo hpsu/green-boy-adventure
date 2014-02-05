@@ -203,7 +203,7 @@ var SpriteCatalog = {
 	,Wizzrobe90: {col: [129], palette:2}
 	,Wizzrobe180: {col: [129], flipMap: ['x'], palette: 2}
 	,Wizzrobe270: {col: [130], flipMap: ['x'], palette: 2}
-
+	,Zol: {col: [133,134]}
 
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}
@@ -282,6 +282,7 @@ var SpriteCatalog = {
 	,RockProjectile: {col: [115*2], width: 8, height: 10}
 	,Fireball: {col: [80*2], width: 8, height: 10}
 	,MagicProjectile: {col: [131]}
+	,Gel: {col: [135*2, 135*2+1], width: 8, height: 9}
 
 	,getWidth: function(key) {
 		if(!this[key]) {

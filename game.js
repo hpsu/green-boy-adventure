@@ -1009,37 +1009,57 @@ function drawBorder(x, y, w, h) {
  * Utility functions *
  *********************/
 function drawPalettes() {
-	Array.each(env.palettes, function(palette) {
-		new Element('div', {
+	var cont = new Element('div', {styles: {
+		position: 'absolute'
+		,top: '10px'
+		,right: '10px'
+		,background: 'rgba(255,255,255,0.5)'
+	},events: {click: function(){this.destroy();}}}).inject(document.body);
+	Array.each(env.palettes, function(palette,i) {
+		var pc = new Element('div', {
 			styles:{
-				 height:'16px'
-				,float:'left'
-			}}).set('text', 'Palette').inject(document.body);
+			 	padding:'3px'
+			 	,clear:'both'
+			}}).inject(cont);
+		new Element('span', {text: 'Palette '+i, styles: {height:'32px', lineHeight: '32px', display:'inline-block', overflow: 'hidden', paddingRight: '10px', fontWeight: 'bold'}}).inject(pc);
 		Array.each(palette, function(color) {
-			new Element('div', {
+			new Element('span', {
 				styles:{
-					 height:'16px'
-					,width:'16px'
-					,float:'left'
+					 height:'32px'
+					,width:'32px'
+					,border:'1px solid black'
+					,borderRadius: '3px'
+					,display:'inline-block'
 					,background:color.rgbToHex()
-				}}).inject(document.body);
+				}}).inject(pc);
 		});
 	});
 }
 
 function drawNumberedTiles() {
-	for(var i = 0; i < Math.ceil(env.spriteSheet.width/TILESIZE); i++) {
-		var x = new Element('canvas', {width: 24, height: 24, styles: {border:'1px dotted magenta',margin:'1px'}}).inject(document.body);
+	var cont = new Element('div', {styles: {
+		position: 'absolute'
+		,top: '10px'
+		,left: '10px'
+		,background: 'rgba(200,200,200,0.9)'
+		,maxHeight: '500px'
+		,maxWidth: '50%'
+		,overflow: 'auto'
+	},events: {click: function(){this.destroy();}}}).inject(document.body);
+
+	for(var i = 0; i < Math.ceil(env.spriteSheet.width/SPRITESIZE); i++) {
+		var xc = new Element('div', {styles:{display: 'inline-block', margin:'3px'}}).inject(cont);
+		var x = new Element('canvas', {width: SPRITESIZE*2, height: SPRITESIZE*2, styles: {display: 'block', margin: 'auto'}}).inject(xc);
+		new Element('div', {text: i.toString(),styles:{textAlign:'center'}}).inject(xc);
 		tCtx = x.getContext('2d');
+		tCtx.webkitImageSmoothingEnabled=false;
 		tCtx.drawImage(env.spriteSheet
-			,(i*TILESIZE)
+			,(i*SPRITESIZE)
 			,0
-			,TILESIZE, TILESIZE
-			,4
+			,SPRITESIZE, SPRITESIZE
 			,0
-			,TILESIZE, TILESIZE);
-		t = i.toString();
-		writeText(i.toString(), (t.length == 1 ? HALFTILE/2 : 0), TILESIZE, null, tCtx);
+			,0
+			,SPRITESIZE*2, SPRITESIZE*2);
 	}
 }
 

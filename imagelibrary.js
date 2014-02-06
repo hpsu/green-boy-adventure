@@ -25,8 +25,8 @@ var Sprite = new Class({
 				this.width = params.width;
 				this.height = params.height;
 			}
-			if(typeof params.row != 'undefined') {
-				this.positiony = params.row;
+			if(typeof params.posy != 'undefined') {
+				this.positiony = params.posy;
 			}
 			if(typeof params.palette != 'undefined') {
 				this.defaultPalette = params.palette;
@@ -74,7 +74,6 @@ var Sprite = new Class({
 				tCtx.scale((flip.contains('x') ? -1 : 1), (flip.contains('y') ? -1 : 1));
 			}
 		}
-
 
 		tCtx.drawImage(
 			this.spriteSheet, 
@@ -220,7 +219,7 @@ var SpriteCatalog = {
 	,Rope90: {col: [147,148], palette: 2}
 	,Rope180: {col: [147,148], flipMap: ['x','x'], palette: 2}
 	,Rope270: {col: [147,148], flipMap: ['x','x'], palette: 2}
-	,Aquamentus: {col: [0,1], spriteSheet: env.bossSpriteSheet, size: 32}
+
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}
 	,SmallRupee: {col: [42], row: [0], size: 8}
@@ -295,10 +294,17 @@ var SpriteCatalog = {
 	,Fairy: {col: [60*2,60*2+1], width: 8, height: 16}
 	,Arrow: {col: [94]}
 	,Bow: {col: [146*2], width: 8, height: 16}
+
+	// Odd sizes
 	,RockProjectile: {col: [115*2], width: 8, height: 10}
 	,Fireball: {col: [80*2], width: 8, height: 10}
 	,MagicProjectile: {col: [131]}
 	,Gel: {col: [135*2, 135*2+1], width: 8, height: 9}
+	,Aquamentus: {col: [0,1], spriteSheet: env.bossSpriteSheet, size: 32}
+	,Dodongo0: {col: [2,2], row: [0,1], width: 32, height: 16, spriteSheet: env.bossSpriteSheet}
+	,Dodongo90:	{col: [7], flipMap: [null,'x'], width: 16, height: 16, spriteSheet: env.bossSpriteSheet}
+	,Dodongo180: {col: [2,2], row: [0,1], flipMap: ['x', 'x'], width: 32, height: 16, spriteSheet: env.bossSpriteSheet}
+	,Dodongo270: {col: [6], flipMap: [null,'x'], width: 16, height: 16, spriteSheet: env.bossSpriteSheet}
 
 	,getWidth: function(key) {
 		if(!this[key]) {
@@ -340,8 +346,10 @@ var SpriteCatalog = {
 			,tCtx = (params['ctx'] ? params['ctx'] : ctx)
 			,animFrame = typeof params['animFrame'] != 'undefined' && typeof this[key]['col'][params['animFrame']] != 'undefined' ? params['animFrame'] : 0
 			,flipFrame = typeof params['animFrame'] != 'undefined' ? params['animFrame'] : 0
+			,posyFrame = typeof params['animFrame'] != 'undefined' && this[key]['row'] && typeof this[key]['row'][params['animFrame']] != 'undefined' ? params['animFrame'] : 0
 			,flip = typeof spriteParams['flipMap'] != 'undefined' && typeof spriteParams['flipMap'][flipFrame] != 'undefined' ? spriteParams['flipMap'][flipFrame] : null;
 		if(typeof params['flip'] == 'undefined' && flip != null) params['flip'] = flip;
+		if(typeof spriteParams['row'] != 'undefined') spriteParams['posy'] = spriteParams['row'][posyFrame];
 		
 		if(!SpriteCache[key+animFrame]) SpriteCache[key+animFrame] = new Sprite(this[key]['col'][animFrame], spriteParams);
 		return SpriteCache[key+animFrame].draw(tCtx, x, y, params['direction'], params['flip'], params['palette']);

@@ -1173,7 +1173,7 @@ var Wallmaster = new Class({
 
 var BladeTrap = new Class({
 	Extends: Enemy
-	,sprite: 145
+	,sprite: 'BladeTrap'
 	,movementRate: 2
 	,damage: 1
 	,direction: null
@@ -1233,9 +1233,6 @@ var BladeTrap = new Class({
 					this.direction = 180;
 			}
 		}
-	}
-	,draw: function() {
-		placeTile(this.sprite, this.x, this.y);
 	}
 });
 

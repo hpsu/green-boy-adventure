@@ -210,6 +210,7 @@ var SpriteCatalog = {
 	,Goriya270:	{col: [140], flipMap: [null,'x'], palette:2}
 	,WallmasterUp: {col: [142,143]}
 	,WallmasterDown: {col: [142,143], flipMap: ['y', 'y' ]}
+	,BladeTrap: {col: [145], palette: 3}
 
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}

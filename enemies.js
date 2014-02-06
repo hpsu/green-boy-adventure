@@ -1267,7 +1267,7 @@ var StoneStatue = new Class({
 
 var Aquamentus = new Class({
 	Extends: RandomMob
-	,width: 32
+	,width: 24
 	,height: 32
 	,maxAnimFrames: 2
 	,msPerFrame: 200
@@ -1276,9 +1276,10 @@ var Aquamentus = new Class({
 	,damage: 1
 	,acDirDelta: 0
 	,health: 3
-	,frames: [0,1]
+	,sprite: 'Aquamentus'
 	,direction: 0
 	,acProjectileDelta: 0
+	,lockRotation: true
 
 	,initialize: function(x,y,room) {
 		this.parent(x,y,room);
@@ -1336,13 +1337,12 @@ var Aquamentus = new Class({
 		this.acProjectileDelta += delta;
 
 		this.lastUpdateTime = Date.now();
-
 	}
-	,draw: function() {
+/*	,draw: function() {
 		frame = this.frames[this.animFrame];
 		ctx.drawImage(env.bossSpriteSheet, (frame*32), 0, this.width, this.height, Math.round(this.x+(HALFSPRITE/2)), Math.round(this.y), this.width, this.height);
 		if(this.isImmune || this.defaultPalette != 0) this.changePalette(0);
-	}
+	}*/
 });
 
 var Dodongo = new Class({

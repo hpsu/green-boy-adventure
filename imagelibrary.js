@@ -31,6 +31,11 @@ var Sprite = new Class({
 			if(typeof params.palette != 'undefined') {
 				this.defaultPalette = params.palette;
 			}
+			if(typeof params.spriteSheet != 'undefined') {
+				this.spriteSheet = params.spriteSheet;
+			}
+			else 
+				this.spriteSheet = env.spriteSheet;
 		}
 	}
 	,hash: function() {
@@ -72,7 +77,7 @@ var Sprite = new Class({
 
 
 		tCtx.drawImage(
-			env.spriteSheet, 
+			this.spriteSheet, 
 			this.positionx*this.width,
 			this.positiony*this.height,
 			this.width,
@@ -215,7 +220,7 @@ var SpriteCatalog = {
 	,Rope90: {col: [147,148], palette: 2}
 	,Rope180: {col: [147,148], flipMap: ['x','x'], palette: 2}
 	,Rope270: {col: [147,148], flipMap: ['x','x'], palette: 2}
-
+	,Aquamentus: {col: [0,1], spriteSheet: env.bossSpriteSheet, size: 32}
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}
 	,SmallRupee: {col: [42], row: [0], size: 8}

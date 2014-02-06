@@ -788,10 +788,11 @@ var d1r4_9 = new Class({
 var d1r3_9 = new Class({
 	initialize: function(room) {
 		if(!room.isInitialized) {
-			room.aqua = new Aquamentus(10*TILESIZE, 8*TILESIZE, room);
+		console.log('boooyaaa');
+			room.aqua = new Aquamentus(10*SPRITESIZE, 8*SPRITESIZE, room);
 			room.isInitialized = true;
 			room.aqua.die = function() {
-				new puHeartContainer(12*TILESIZE,9*TILESIZE, room);
+				new puHeartContainer(12*SPRITESIZE,9*SPRITESIZE, room);
 				room.doors[0].state = 'Open';
 				new EnemyDeath(this.x, this.y);
 				this.destroy();

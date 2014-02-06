@@ -211,6 +211,10 @@ var SpriteCatalog = {
 	,WallmasterUp: {col: [142,143]}
 	,WallmasterDown: {col: [142,143], flipMap: ['y', 'y' ]}
 	,BladeTrap: {col: [145], palette: 3}
+	,Rope0: {col: [147,148], palette: 2}
+	,Rope90: {col: [147,148], palette: 2}
+	,Rope180: {col: [147,148], flipMap: ['x','x'], palette: 2}
+	,Rope270: {col: [147,148], flipMap: ['x','x'], palette: 2}
 
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}

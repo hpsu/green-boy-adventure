@@ -1161,17 +1161,13 @@ var Wallmaster = new Class({
 	,name: 'Wallmaster'
 	,damage: 0.5
 	,health: 1.0
-	,frames: {
-		 0:		{sprites: [142,143], flip: [null,null]}
-		,90:	{sprites: [142,143], flip: ['y', 'y' ]}
-		,180:	{sprites: [142,143], flip: [null,null]}
-		,270:	{sprites: [142,143], flip: [null,null]}
+	,sprite: 'Wallmaster'
+	,state: 'idle'
+	,initialize: function(x, y, room) {
+		this.parent(x,y,room);
 	}
-	,draw: function() {
-		frame = this.frames[this.direction]['sprites'][this.animFrame];
-		flip = this.frames[this.direction]['flip'][this.animFrame];
-		placeTile(frame, this.x, this.y, null, null, null, flip);
-		if(this.isImmune || this.defaultPalette != 0) this.changePalette(2);
+	,move: function(){
+		this.parent();
 	}
 });
 

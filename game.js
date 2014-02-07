@@ -658,7 +658,7 @@ var Link = new Class({
 				if(++this.animFrame > 1) this.animFrame=0;
 		}
 
-		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 3*HALFTILE) {
+		if(this.isImmune && this.impactDirection !== null && this.acImpactMove < 3*HALFSPRITE) {
 			if(!isNaN(this.impactDirection)) {
 				for(var i=0; i<4; i++) {
 					this.flytta(this.impactDirection, false);
@@ -748,7 +748,7 @@ function drawMapFromRooms(rooms, xOff, yOff) {
 	}
 	filledRectangle(xOff+(sizeX*currentRoom.col)-(SPRITESIZE*2)+(sizeX/4), yOff+(sizeY*currentRoom.row), sizeX/2-1, sizeY-1, "#80d010");
 
-	writeText(rooms.name, SPRITESIZE, yOff-HALFTILE);
+	writeText(rooms.name, SPRITESIZE, yOff-HALFSPRITE);
 }
 
 /* 

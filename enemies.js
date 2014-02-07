@@ -764,6 +764,7 @@ var RandomMob = new Class({
 	,rockDelta: 0
 	,defaultPalette: 0
 	,direction: 90
+	,palette: 0
 	,impact: function(damage, direction) {
 		direction = (direction == this.direction || this.direction == 180-direction ? direction : null);
 		this.parent(damage, direction);

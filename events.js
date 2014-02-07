@@ -616,7 +616,7 @@ var EnemyDeath = new Class({
 	,acDelta: 0
 	,lastUpdateTime: 0
 	,animFrame: 0
-	,msPerFrame: 1000
+	,msPerFrame: 30
 	,defaultPalette: 0
 	,frames: [0, 0, 0, 1, 1, 1, 0, 0, 0, 0]
 	,palette: 0

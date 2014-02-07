@@ -273,6 +273,7 @@ var Mob = new Class({
 	}
 	,move: function() {}
 	,draw: function() {
+		if(!this.sprite) return;
 		var params = {};
 		if(typeof this.palette != 'undefined') params['palette'] = this.palette;
 		if(typeof this.animFrame != 'undefined') params['animFrame'] = this.animFrame;

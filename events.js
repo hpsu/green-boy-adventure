@@ -3,10 +3,12 @@ var DeathEvent = new Class({
 	,stage:0
 	,acDelta:0
 	,acTimerDelta:0
-	,msPerFrame: 100
+	,msPerFrame: 30
 	,lastUpdateTime:0
 	,direction:0
 	,choice:0
+	,palette: 0
+	,sprite:'Link'
 	,colors: [
 		{bg: '#d82800', tiles: [200, 76, 12]}
 		,{bg: '#c84c0c', tiles: [164, 0, 0]}
@@ -27,7 +29,7 @@ var DeathEvent = new Class({
 		this.direction=90;
 		this.parent(this.x,this.y);
 	}
-	,draw: function() {
+	,move: function() {
 		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
 		var frame = 'Link';
 		switch(this.stage) {
@@ -35,8 +37,8 @@ var DeathEvent = new Class({
 				if(this.acTimerDelta > 1000) {
 					this.acTimerDelta = 0;
 					this.stage = 1;
-					this.palette=0;
-					$('background').setStyle('background', this.colors[0].bg);
+					this.palette = 0;
+					this.background = this.colors[0].bg;
 					paintRoom([0, 168, 0], this.colors[0].tiles);
 				}
 				else if(this.acDelta > 50) {
@@ -52,8 +54,7 @@ var DeathEvent = new Class({
 				}
 				if(this.acDelta > 100) {
 					this.acDelta = 0;
-					this.direction = (90+this.direction%360);
-					if(this.direction == 360) this.direction=0;
+					this.direction = (90+this.direction)%360;
 				}
 				break;
 			case 2: // Successively tint darker tiles and bg
@@ -64,7 +65,7 @@ var DeathEvent = new Class({
 						this.stage = 3;
 					}
 					else {
-						$('background').setStyle('background', this.colors[this.frame].bg);
+						this.background = this.colors[this.frame].bg;
 						paintRoom([0, 168, 0], this.colors[this.frame].tiles);
 					}
 				}
@@ -73,17 +74,17 @@ var DeathEvent = new Class({
 				this.palette=0;
 				if(this.acDelta > 2000) {
 					this.stage = 4;
-					frame = null;
 					this.acDelta = 0;
 				}
 				else if(this.acDelta > 900) {
-					frame = null;
+					this.sprite = null;
 				}
 				else if(this.acDelta > 600) {
-					frame = 121;
+					this.animFrame = 1;
 				}
 				else if(this.acDelta > 300) {
-					frame = 120;
+					this.sprite='Death';
+					this.animFrame = 0;
 				}
 				this.palettes = this.deathPalette;
 				break;
@@ -91,50 +92,64 @@ var DeathEvent = new Class({
 				if(this.acDelta > 1500) {
 					this.stage=5;
 				}
-				frame = null;
-				writeText("game over", 6*TILESIZE, 9*TILESIZE);
 				break;
 			case 5:
-				filledRectangle(0, 0, 16*TILESIZE, 4*TILESIZE, '#000');
 				frame = 22;
+				this.sprite = 'FullHeart';
 				
-				if(this.acDelta > 250 && env.keyStates['up']) {
+				if(env.keyStates['up']) {
 					if(--this.choice < 0) this.choice=2;
 					this.acDelta = 0;
+					env.keyStates['up'] = false;
 				}
-				else if(this.acDelta > 250 && env.keyStates['down']) {
+				else if(env.keyStates['down']) {
 					if(++this.choice >= 3) this.choice=0;
 					this.acDelta = 0;
+					env.keyStates['down'] = false;
 				}
-				else if(this.acDelta > 250 && env.keyStates['enter']) {
+				else if(env.keyStates['enter']) {
+					env.keyStates['enter'] = false;
+
 					switch(this.choice) {
 					}
 					continueGame();
 					this.destroy();
 				}
-				
-				
-				
-				writeText("continue", 5*TILESIZE, 5*TILESIZE);
-				writeText("save", 5*TILESIZE, (6*TILESIZE)+HALFTILE);
-				writeText("retry", 5*TILESIZE, 8*TILESIZE);
+				this.x = 4*SPRITESIZE;
+				this.y = (5+this.choice*1.5)*SPRITESIZE;
+				this.direction = 0;
+				this.palette = 2;
 				break;
-			
+		}
+		this.acDelta += delta;
+		this.acTimerDelta += delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,draw: function() {
+		$('background').setStyle('background', this.background);
+		this.parent();
+		switch(this.stage) {
+			case 4:
+				writeText("game over", 6*SPRITESIZE, 9*SPRITESIZE);
+				break;
+			case 5:
+				filledRectangle(0, 0, 16*SPRITESIZE, 4*SPRITESIZE, '#000');
+				writeText("continue", 5*SPRITESIZE, 5*SPRITESIZE);
+				writeText("save", 5*SPRITESIZE, (6*SPRITESIZE)+HALFSPRITE);
+				writeText("retry", 5*SPRITESIZE, 8*SPRITESIZE);
+
 
 		}
-		if(frame) {
+		/*if(frame) {
 			if(frame == 22) {
 				ctx.drawImage(env.spriteSheet, (22*SPRITESIZE), 0, (SPRITESIZE/2), (SPRITESIZE/2), 4*TILESIZE, (5*TILESIZE)+(this.choice*1.5*TILESIZE), HALFTILE, HALFTILE); // Heart
 			}
 			else {
-				placeTile(frame, this.x,this.y);
+				//placeTile(frame, this.x,this.y);
+				return this.self();
 			}
-		}
-		this.changePalette(null, this.palettes);
-		
-		this.acDelta += delta;
-		this.acTimerDelta += delta;
-		this.lastUpdateTime = Date.now();
+		}*/
+//		this.changePalette(null, this.palettes);
 	}
 });
 

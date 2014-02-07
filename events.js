@@ -29,7 +29,7 @@ var DeathEvent = new Class({
 	}
 	,draw: function() {
 		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
-		var frame = env.player.frames[this.direction].normal[0];
+		var frame = 'Link';
 		switch(this.stage) {
 			case 0: // Spin palette
 				if(this.acTimerDelta > 1000) {
@@ -601,37 +601,18 @@ var EnemyDeath = new Class({
 	,acDelta: 0
 	,lastUpdateTime: 0
 	,animFrame: 0
-	,msPerFrame: 30
-	,frames: [120, 120, 120, 121, 121, 121, 120, 120, 120, 120]
+	,msPerFrame: 1000
+	,defaultPalette: 0
+	,frames: [0, 0, 0, 1, 1, 1, 0, 0, 0, 0]
 	,palette: 0
-	,changePalette: function() {
-		if(this.palette > 0) {
-			map = ctx.getImageData(this.x, this.y, TILESIZE, TILESIZE);
-			imdata = map.data;
-			for(var p = 0, len = imdata.length; p < len; p+=4) {
-				r = imdata[p]
-				g = imdata[p+1];
-				b = imdata[p+2];
-				Array.each([1,2], function(i){
-					j = i;
-					if(r == env.palettes[0][i][0] && g == env.palettes[0][i][1] && b == env.palettes[0][i][2]) {
-						if(i == 1) j = 2;
-						if(i == 2) j = 1;
-						imdata[p] = env.palettes[this.palette][j][0];
-						imdata[p+1] = env.palettes[this.palette][j][1];
-						imdata[p+2] = env.palettes[this.palette][j][2];
-					}
-				},this);
-			}
-			ctx.putImageData(map, this.x, this.y);
-		}
-	}
-	,draw: function() {
+	,sprite: 'Death'
+	,animCnt: 0
+	,move: function() {
 		var delta = Date.now() - this.lastUpdateTime;
 	
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;
-			if(typeof this.frames[++this.animFrame] == 'undefined') {
+			if(typeof this.frames[this.animCnt++] == 'undefined') {
 				this.destroy();
 				if(Number.random(1,5) == 5) {
 					if(Number.random(1,10) == 5)
@@ -646,12 +627,10 @@ var EnemyDeath = new Class({
 						new puRupee(this.x, this.y);
 				}
 			}
-			if(++this.palette > env.palettes.length-1)
+			this.animFrame = this.frames[this.animCnt];
+			if(++this.palette >= env.palettes.length)
 				this.palette=0;
 		}
-
-		placeTile(this.frames[this.animFrame-1], this.x, this.y, null, null);
-		this.changePalette();
 
 		this.acDelta+=delta; 
 		this.lastUpdateTime = Date.now();

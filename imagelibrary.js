@@ -46,8 +46,8 @@ var Sprite = new Class({
 		var h = this.hash(direction,flip,palette);
 		if(!this.buffer[h]) this.create(direction, flip, palette);
 
-		//if(window.spriteDebug)
-		filledRectangle(x, y, this.width, this.height, 'rgba(255,0,255,0.2)', tCtx);
+		if(window.spriteCatalogDebug)
+			filledRectangle(x, y, this.width, this.height, 'rgba(255,0,255,0.2)', tCtx);
 
 		tCtx.drawImage(this.buffer[h], 0, 0, this.width, this.height, x*SCALE, y*SCALE, Math.round(this.width*SCALE), Math.round(this.height*SCALE));
 	}
@@ -66,11 +66,11 @@ var Sprite = new Class({
 			rotate = (direction/180)*Math.PI;
 			tCtx.translate((this.width/2), (this.height/2));
 			if(direction > 0) {
-				console.log('rotating to',direction);
+				if(window.spriteCatalogDebug) console.log('rotating to',direction);
 				tCtx.rotate(rotate);
 			}
 			if(flip) {
-				console.log('flipping',flip);
+				if(window.spriteCatalogDebug) console.log('flipping',flip);
 				tCtx.scale((flip.contains('x') ? -1 : 1), (flip.contains('y') ? -1 : 1));
 			}
 		}
@@ -89,7 +89,7 @@ var Sprite = new Class({
 
 		//palette
 		if(typeof palette != 'undefined' && palette != this.defaultPalette) {
-			console.log('tinting to palette',palette);
+			if(window.spriteCatalogDebug) console.log('tinting to palette',palette);
 			var map = tCtx.getImageData(0, 0, this.width, this.height),
 				imdata = map.data
 				tintFrom = env.palettes[this.defaultPalette]

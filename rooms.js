@@ -136,7 +136,6 @@ var Room = new Class({
 		this.addEvent('leave', this.onLeave);
 	}
 	,onEnter: function() {
-		console.log('Entered room',this);
 		env.player.currentRoom = this;
 		$('background').setStyle('background', this.background ? this.background : '#fcd8a8');
 		if(!this.initialized) {
@@ -150,7 +149,6 @@ var Room = new Class({
 
 	}
 	,onLeave: function() {
-		console.log('leaving room',this);
 		if(this.background) {
 			$('background').setStyle('background', '#fcd8a8');
 		}

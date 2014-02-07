@@ -29,6 +29,7 @@ var ctx = null
 window.collisionDebug = false;
 window.debugGrid = false;
 window.godMode = false;
+window.spriteCatalogDebug = false;
 
 var TintCache = {
 	cache: {}
@@ -295,6 +296,7 @@ var OptionScreen = new Class({
 		['collisionDebug', 'debug collisions', 'boolean']
 		,['debugGrid', 'Show debug grid', 'boolean']
 		,['godMode', 'passthru solid tiles', 'boolean']
+		,['spriteCatalogDebug', 'Debug sprite images', 'boolean']
 	]
 	,initialize: function(){
 		this.x=0;
@@ -1084,8 +1086,7 @@ function animate() {
 	paintHeader();
 	Array.each(rooms.getCurrentRoom().MOBs, function(o){
 		if(o.isActive) {
-			//if(window.collisionDebug) filledRectangle(xTile*TILESIZE, (yTile+4)*TILESIZE, TILESIZE, TILESIZE, '#00f');
-			if(window.collisionDebug) filledRectangle(o.x*SCALE, o.y*SCALE, o.width*SCALE, o.height*SCALE, '#f00');
+			if(window.collisionDebug) filledRectangle(o.x, o.y, o.width, o.height, '#f00');
 			o.draw();
 		}
 	});

@@ -19,14 +19,17 @@ var RoomStorage = new Class({
 	,row: 0
 	,col: 0
 	,name: ''
+	,palette: null
 	,hasCompass: false
 	,hasMap: false
 	,initialize: function(defRow, defCol, rooms, props) {
 		this.row = defRow;
 		this.col = defCol;
 		this.addRooms(rooms);
-		if(props && props.name)
-			this.name = props.name;
+		if(typeof props != 'undefined') { 
+			if(props.name) this.name = props.name;
+			if(typeof props.palette != 'undefined') this.palette = props.palette;
+		}
 	}
 	,addRoom: function(room) {
 		if(!this.rooms[room.row]) this.rooms[room.row] = [];
@@ -599,7 +602,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,enemies: [DoorWest, Staflos, Staflos, Staflos, Staflos]
 		,scriptedEvent: d1r7_8
 	})
-], {name:'level-1'});
+], {name:'level-1', palette: 0});
 
 var dungeon2 = new RoomStorage(7,7,[
 	,new Room({row: 0, col: 7, tileset: 1, tiles: [
@@ -938,7 +941,7 @@ var dungeon2 = new RoomStorage(7,7,[
 		,enemies: [DoorWest, DoorNorth, Rope, Rope, Rope, Rope, Rope]
 		,scriptedEvent: d2r7_8
 	})
-], {name:'level-2'});
+], {name:'level-2', palette: 1});
 
 
 var dungeon3 = new RoomStorage(7,7,[

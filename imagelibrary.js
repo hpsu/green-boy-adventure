@@ -7,6 +7,7 @@ var Sprite = new Class({
 	size: SPRITESIZE,
 	direction: 0,
 	positiony: 0,
+	paletteType: 'main',
 	positionx: 0,
 	defaultPalette: 0,
 	initialize: function(position, params){
@@ -24,6 +25,10 @@ var Sprite = new Class({
 			else if(typeof params.width != 'undefined') {
 				this.width = params.width;
 				this.height = params.height;
+			}
+			if(params.paletteType) {
+				this.paletteType = params.paletteType;
+				console.log(this.paletteType);
 			}
 			if(typeof params.posy != 'undefined') {
 				this.positiony = params.posy;
@@ -92,8 +97,8 @@ var Sprite = new Class({
 			if(window.spriteCatalogDebug) console.log('tinting to palette',palette);
 			var map = tCtx.getImageData(0, 0, this.width, this.height),
 				imdata = map.data
-				tintFrom = env.palettes['main'][this.defaultPalette]
-				tintTo = env.palettes['main'][palette];
+				tintFrom = env.palettes[this.paletteType][this.defaultPalette]
+				tintTo = env.palettes[this.paletteType][palette];
 			for(var p = 0, len = imdata.length; p < len; p+=4) {
 				r = imdata[p]
 				g = imdata[p+1];
@@ -207,7 +212,7 @@ var SpriteCatalog = {
 	,Wizzrobe90: {col: [129], palette:2}
 	,Wizzrobe180: {col: [129], flipMap: ['x'], palette: 2}
 	,Wizzrobe270: {col: [130], flipMap: ['x'], palette: 2}
-	,Zol: {col: [133,134]}
+	,Zol: {col: [133,134], palette: 2}
 	,Goriya0: {col: [137,138], palette:2}
 	,Goriya90:{col: [139], flipMap: [null,'x'], palette:2}
 	,Goriya180:	{col: [137,138], flipMap: ['x','x'], palette:2}
@@ -300,7 +305,7 @@ var SpriteCatalog = {
 	,RockProjectile: {col: [115*2], width: 8, height: 10}
 	,Fireball: {col: [80*2], width: 8, height: 10}
 	,MagicProjectile: {col: [131]}
-	,Gel: {col: [135*2, 135*2+1], width: 8, height: 9}
+	,Gel: {col: [135*2, 135*2+1], width: 8, height: 9, palette: 2}
 	,Aquamentus: {col: [0,1], spriteSheet: env.bossSpriteSheet, size: 32}
 	,Dodongo0: {col: [2,2], row: [0,1], width: 32, height: 16, spriteSheet: env.bossSpriteSheet}
 	,Dodongo90:	{col: [7], flipMap: [null,'x'], width: 16, height: 16, spriteSheet: env.bossSpriteSheet}
@@ -351,6 +356,7 @@ var SpriteCatalog = {
 			,flip = typeof spriteParams['flipMap'] != 'undefined' && typeof spriteParams['flipMap'][flipFrame] != 'undefined' ? spriteParams['flipMap'][flipFrame] : null;
 		if(typeof params['flip'] == 'undefined' && flip != null) params['flip'] = flip;
 		if(typeof spriteParams['row'] != 'undefined') spriteParams['posy'] = spriteParams['row'][posyFrame];
+		if(typeof params['paletteType'] != 'undefined') spriteParams['paletteType'] = params['paletteType'];
 		
 		if(!SpriteCache[key+animFrame]) SpriteCache[key+animFrame] = new Sprite(this[key]['col'][animFrame], spriteParams);
 		return SpriteCache[key+animFrame].draw(tCtx, x, y, params['direction'], params['flip'], params['palette']);

@@ -94,7 +94,7 @@ var Projectile = new Class({
 		},this);
 
 
-		if(this.rotatePalette && ++this.palette >= env.palettes['main'].length-1)
+		if(this.rotatePalette && ++this.palette > env.palettes['main'].length-1)
 			this.palette=0;
 	}
 });
@@ -1057,10 +1057,17 @@ var Zol = new Class({
 	Extends: RandomMob
 	,damage: 1
 	,health: 1
+	,paletteType: 'dungeon'
+	,defaultPalette: 2
 	,name: 'Zol'
 	,maxAnimFrames: 2
 	,sprite: 'Zol'
 	,lockRotation: true
+	,initialize: function(x,y,room) {
+		this.parent(x,y,room);
+		if(typeof rooms.palette != 'undefined') this.defaultPalette = rooms.palette;
+		this.palette = this.defaultPalette;
+	}
 	,move: function() {
 		var delta = Date.now() - this.lastUpdateTime;
 
@@ -1114,7 +1121,6 @@ var Zol = new Class({
 		this.acPaletteDelta+=delta;
 		this.lastUpdateTime = Date.now();
 	}
-
 });
 
 var Gel = new Class({

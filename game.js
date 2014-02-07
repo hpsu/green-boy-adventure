@@ -20,10 +20,10 @@ var ctx = null
 		,bossSpriteSheet: new Image()
 		,palettes: {
 			main: [
-				 [[128, 208,  16], [200,  76,  12], [252, 152,  56]] // green, orange, brown (link)
-				,[[  0,   0,   0], [216,  40,   0], [  0, 128, 136]] // black, red, blue
-				,[[216,  40,   0], [252, 252, 252], [252, 152,  56]] // red, white, orange
-				,[[  0,   0, 168], [252, 252, 252], [ 92, 148, 252]] // dark blue, white, light blue
+				 [[128, 208,  16], [252, 152,  56], [200,  76,  12]] // green, orange, brown (link)
+				,[[  0,   0,   0], [  0, 128, 136], [216,  40,   0]] // black, red, blue
+				,[[216,  40,   0], [252, 152,  56], [252, 252, 252]] // red, white, orange
+				,[[  0,   0, 168], [ 92, 148, 252], [252, 252, 252]] // dark blue, white, light blue
 			]
 			,dungeon: [
 				[[0,232,216],[0, 128, 136],[24, 60, 92]]	// Dungeon 1
@@ -260,6 +260,7 @@ var Mob = new Class({
 		if(typeof this.direction != 'undefined' && !this.lockRotation) params['direction'] = this.direction;
 		if(typeof this.flip != 'undefined') params['flip'] = this.flip;
 		if(typeof this.rotation != 'undefined') params['direction'] += this.rotation;
+		if(typeof this.paletteType != 'undefined') params['paletteType'] = this.paletteType; 
 		if(window.collisionDebug) filledRectangle(this.x,this.y,this.width,this.height,'rgba(255,0,0,0.5)');
 		SpriteCatalog.draw(this.sprite, this.x, this.y, params);
 	}

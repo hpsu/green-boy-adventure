@@ -853,8 +853,7 @@ function paintRoom(tintFrom, tintTo){
 	ctxBg.clearRect(0,0,WIDTH,HEIGHT);
 
 	if(room.bgRect) {
-		filledRectangle(room.bgRect[0]*TILESIZE, (room.bgRect[1]*TILESIZE)+4*TILESIZE, room.bgRect[2]*TILESIZE, room.bgRect[3]*TILESIZE,room.bgRect[4],ctxBg);
-
+		filledRectangle(room.bgRect[0]*SPRITESIZE, (room.bgRect[1]*SPRITESIZE)+4*SPRITESIZE, room.bgRect[2]*SPRITESIZE, room.bgRect[3]*SPRITESIZE,room.bgRect[4],ctxBg);
 	}
 
 	y = 4, x = 0;

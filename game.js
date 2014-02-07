@@ -1102,31 +1102,6 @@ function gofs() {
 	$('gamecontainer').webkitRequestFullScreen();
 }
 
-function changeScale(scale) {
-	new Element('canvas', {id: 'background', width: 256*scale, height: 240*scale}).replaces($('background'));
-	new Element('canvas', {id: 'screen', width: 256*scale, height: 240*scale}).replaces($('screen'));
-	ctxBg = $('background').getContext('2d');
-	ctxBg.webkitImageSmoothingEnabled=false;
-	ctx = $('screen').getContext('2d');
-	ctx.webkitImageSmoothingEnabled=false;
-
-	rect = $('screen').getBoundingClientRect();
-	ctx.width = rect.width;
-	ctx.height = rect.height;
-
-	SCALE = scale
-	TILESIZE = 16*SCALE;
-	HALFTILE = TILESIZE/2;
-	WIDTH = 256*SCALE;
-	HEIGHT = 240*SCALE;
-	paintRoom();
-	paintHeader();
-}
-
-function sc(inp) {
-	return inp*SCALE;
-}
-
 function continueGame() {
 	switchRoom(7,7,overworld);
 	var save = Object.clone(env.player.items);
@@ -1166,31 +1141,3 @@ function tintWorld() {
 	}
 	ctxBg.putImageData(map, 0, 0);
 }
-
-function tintArea(from, to, palettes, x, y, w, h) {
-		if(!palettes) palettes = env.palettes;
-		if(!from) from = 0;
-		
-		if(!palettes[to]) { 
-			console.log('There is no palette',to);
-			return;
-		}
-		if(to != from || palettes != env.palettes) {
-			map = ctx.getImageData(x, y, w, h);
-			imdata = map.data;
-			for(var p = 0, len = imdata.length; p < len; p+=4) {
-				r = imdata[p]
-				g = imdata[p+1];
-				b = imdata[p+2];
-				Array.each([0,1,2], function(i){
-					j = i;
-					if(r == env.palettes[from][i][0] && g == env.palettes[from][i][1] && b == env.palettes[from][i][2]) {
-						imdata[p] = palettes[to][j][0];
-						imdata[p+1] = palettes[to][j][1];
-						imdata[p+2] = palettes[to][j][2];
-					}
-				},this);
-			}
-			ctx.putImageData(map, x, y);
-		}
-	}

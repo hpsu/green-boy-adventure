@@ -74,7 +74,7 @@ var Bomb = new Class({
 		ancestor.addBombs(-1);
 	}
 	,destroy: function() {
-		new Detonation(this.x-12, this.y-12);
+		new Detonation(this.x, this.y, this.currentRoom, this);
 		this.parent();
 	}
 	,rePosition: function() {
@@ -123,7 +123,16 @@ var Detonation = new Class({
 	,width:SPRITESIZE*2+12
 	,height:SPRITESIZE*2+12
 	,acTileSwitchDelta: 0
-	,tile: 110
+	,animFrame: 0
+	,sprite: 'EnemySpawn'
+	,offsetx: 14
+	,offsety: 14
+	,initialize: function(x,y,room,ancestor){
+		this.direction = ancestor.direction;
+		this.parent(x,y,room);
+		this.x -= this.offsetx+(HALFSPRITE/2);
+		this.y -= this.offsety;
+	}
 	,move: function() {
 		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
 
@@ -133,21 +142,27 @@ var Detonation = new Class({
 			}
 		},this);
 
-
-		var xTile = Math.round((this.x+12)/SPRITESIZE);
-		var yTile = Math.round((this.y+12)/SPRITESIZE)-4;
+		var xTile = Math.floor((this.x+this.offsetx+(SPRITESIZE/2))/SPRITESIZE);
+		var yTile = Math.floor(((this.y+this.offsety+(SPRITESIZE/2))/SPRITESIZE))-4;
 
 		if(xTile < 0) xTile = 0;
 		if(yTile < 0) yTile = 0;
 		if(xTile > this.currentRoom.roomWidth-1) xTile=this.currentRoom.roomWidth-1;
 		if(yTile > this.currentRoom.roomHeight-1) yTile=this.currentRoom.roomHeight-1;
+		
+		tmp = this.currentRoom.getTile(yTile,xTile);
+
+		//filledRectangle(xTile*SPRITESIZE, (yTile+4)*SPRITESIZE, SPRITESIZE, SPRITESIZE, "#00f", ctxBg);
+		//filledRectangle(this.x+this.offsetx+(SPRITESIZE/2), this.y+this.offsety+(SPRITESIZE/2), 1, 1, "#f00", ctxBg);
+
 
 		this.currentRoom.getTile(yTile,xTile).bomb();
 		if(this.acTileSwitchDelta > 600) {
 			this.destroy();
 		}
 		else if(this.acTileSwitchDelta > 300) {
-			this.tile = 111;
+			this.sprite = 'EnemySpawn';
+			this.animFrame = 1;
 		}
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta=0;
@@ -158,18 +173,21 @@ var Detonation = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-
-		placeTile(this.tile, this.x+14, this.y+14);
+		var params = {animFrame: this.animFrame}
+			,x = this.x+this.offsetx
+			,y = this.y+this.offsety;
+		
+		SpriteCatalog.draw(this.sprite, x, y, params);
 
 		if(this.frame == 0) {
-			placeTile(this.tile, this.x-8+14, this.y-14+14);
-			placeTile(this.tile, this.x+8+14, this.y+14+14);
-			placeTile(this.tile, this.x+14+14, this.y+14);
+			SpriteCatalog.draw(this.sprite, x-8, y-14, params);
+			SpriteCatalog.draw(this.sprite, x+8, y+14, params);
+			SpriteCatalog.draw(this.sprite, x+14, y, params);
 		}
 		else {
-			placeTile(this.tile, this.x+8+14, this.y-14+14);
-			placeTile(this.tile, this.x-8+14, this.y+14+14);
-			placeTile(this.tile, this.x-14+14, this.y+14);
+			SpriteCatalog.draw(this.sprite, x+8, y-14, params);
+			SpriteCatalog.draw(this.sprite, x-8, y+14, params);
+			SpriteCatalog.draw(this.sprite, x-14, y, params);
 		}
 	}
 

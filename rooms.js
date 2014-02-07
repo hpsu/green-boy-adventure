@@ -259,7 +259,7 @@ var Tile = new Class({
 			}
 			if(this.postBombSprite instanceof Object) {
 				this.sprite = -1;
-				new this.postBombSprite(this.col*TILESIZE, (this.row+4)*TILESIZE);
+				new this.postBombSprite(this.col*SPRITESIZE, (this.row+4)*SPRITESIZE);
 			}
 			else {
 				this.sprite = this.postBombSprite;

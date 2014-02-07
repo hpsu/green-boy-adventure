@@ -18,12 +18,19 @@ var ctx = null
 		,paused: false
 		,spriteSheet: new Image()
 		,bossSpriteSheet: new Image()
-		,palettes: [
-			 [[128, 208,  16], [200,  76,  12], [252, 152,  56]] // green, orange, brown (link)
-			,[[  0,   0,   0], [216,  40,   0], [  0, 128, 136]] // black, red, blue
-			,[[216,  40,   0], [252, 252, 252], [252, 152,  56]] // red, white, orange
-			,[[  0,   0, 168], [252, 252, 252], [ 92, 148, 252]] // dark blue, white, light blue
-		]
+		,palettes: {
+			main: [
+				 [[128, 208,  16], [200,  76,  12], [252, 152,  56]] // green, orange, brown (link)
+				,[[  0,   0,   0], [216,  40,   0], [  0, 128, 136]] // black, red, blue
+				,[[216,  40,   0], [252, 252, 252], [252, 152,  56]] // red, white, orange
+				,[[  0,   0, 168], [252, 252, 252], [ 92, 148, 252]] // dark blue, white, light blue
+			]
+			,dungeon: [
+				[[0,232,216],[0, 128, 136],[24, 60, 92]]	// Dungeon 1
+				,[[92, 148, 252],[32, 56, 236],[0,0,168]]	// Dungeon 2
+				,[[88,248,152],[0, 144, 56],[0, 60, 20]]	// Dungeon 3
+			]
+		}
 	};
 
 window.collisionDebug = false;
@@ -204,33 +211,6 @@ var Mob = new Class({
 
 			} while(this.currentRoom.getTile(yTile, xTile).sprite !== null || this.collidesWith(env.player));
 			return true;
-		}
-	}
-	,changePalette: function(fromPalette, palettes) {
-		if(!palettes) palettes = env.palettes;
-		if(!fromPalette) fromPalette = 0;
-		
-		if(!palettes[this.palette]) { 
-			console.log('There is no palette',this.palette);
-			return;
-		}
-		if(this.palette != fromPalette || palettes != env.palettes) {
-			map = ctx.getImageData(this.x*SCALE, this.y*SCALE, this.width*SCALE, this.height*SCALE);
-			imdata = map.data;
-			for(var p = 0, len = imdata.length; p < len; p+=4) {
-				r = imdata[p]
-				g = imdata[p+1];
-				b = imdata[p+2];
-				Array.each([0,1,2], function(i){
-					j = i;
-					if(r == env.palettes[fromPalette][i][0] && g == env.palettes[fromPalette][i][1] && b == env.palettes[fromPalette][i][2]) {
-						imdata[p] = palettes[this.palette][j][0];
-						imdata[p+1] = palettes[this.palette][j][1];
-						imdata[p+2] = palettes[this.palette][j][2];
-					}
-				},this);
-			}
-			ctx.putImageData(map, this.x*SCALE, this.y*SCALE);
 		}
 	}
 	,collidesWith: function(that, tx, ty) {
@@ -1017,23 +997,26 @@ function drawPalettes() {
 		,right: '10px'
 		,background: 'rgba(255,255,255,0.5)'
 	},events: {click: function(){this.destroy();}}}).inject(document.body);
-	Array.each(env.palettes, function(palette,i) {
-		var pc = new Element('div', {
-			styles:{
-			 	padding:'3px'
-			 	,clear:'both'
-			}}).inject(cont);
-		new Element('span', {text: 'Palette '+i, styles: {height:'32px', lineHeight: '32px', display:'inline-block', overflow: 'hidden', paddingRight: '10px', fontWeight: 'bold'}}).inject(pc);
-		Array.each(palette, function(color) {
-			new Element('span', {
+	Object.each(env.palettes, function(type,key) {
+		new Element('h2', {text: key}).inject(cont);
+		Array.each(type, function(palette,i) {
+			var pc = new Element('div', {
 				styles:{
-					 height:'32px'
-					,width:'32px'
-					,border:'1px solid black'
-					,borderRadius: '3px'
-					,display:'inline-block'
-					,background:color.rgbToHex()
-				}}).inject(pc);
+				 	padding:'3px'
+				 	,clear:'both'
+				}}).inject(cont);
+			new Element('span', {text: 'Palette '+i, styles: {height:'32px', lineHeight: '32px', display:'inline-block', overflow: 'hidden', paddingRight: '10px', fontWeight: 'bold'}}).inject(pc);
+			Array.each(palette, function(color) {
+				new Element('span', {
+					styles:{
+						 height:'32px'
+						,width:'32px'
+						,border:'1px solid black'
+						,borderRadius: '3px'
+						,display:'inline-block'
+						,background:color.rgbToHex()
+					}}).inject(pc);
+			});
 		});
 	});
 }

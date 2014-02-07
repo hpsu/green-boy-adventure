@@ -94,7 +94,7 @@ var Projectile = new Class({
 		},this);
 
 
-		if(this.rotatePalette && ++this.palette > env.palettes.length-1)
+		if(this.rotatePalette && ++this.palette >= env.palettes['main'].length-1)
 			this.palette=0;
 	}
 });
@@ -501,7 +501,7 @@ var Leever = new Class({
 		}
 		if(this.acPaletteDelta > this.msPerPalette) {
 			if(this.isImmune){
-				if(++this.palette > 3) this.palette = 0;
+				if(++this.palette >= env.palettes['main'].length) this.palette = 0;
 			}
 			else this.palette = this.defaultPalette;
 		}

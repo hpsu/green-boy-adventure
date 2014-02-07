@@ -267,7 +267,7 @@ var SwordRipplePart = new Class({
 		}
 		this.x += Math.cos(this.angle * Math.PI/180) * this.moveRate;
 		this.y += Math.sin(this.angle * Math.PI/180) * this.moveRate;
-		if(++this.palette > env.palettes.length-1)
+		if(++this.palette > env.palettes['main'].length-1)
 			this.palette=0;
 
 		switch(this.angle) {
@@ -291,6 +291,7 @@ var SwordThrow = new Class({
 	,damage: 0.5
 	,msPerFrame: 10
 	,palette: 0
+	,defaultPalette: 0
 	,acImpactMove: 0
 	,movementRate:3
 	,destroy: function() {
@@ -326,7 +327,7 @@ var SwordThrow = new Class({
 			|| this.y > SPRITESIZE*14) {
 				this.destroy();
 			}
-			if(++this.palette > env.palettes.length-1)
+			if(++this.palette > env.palettes['main'].length-1)
 				this.palette=0;
 		}
 		

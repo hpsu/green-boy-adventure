@@ -21,7 +21,7 @@ var DeathEvent = new Class({
 	,initialize: function(){
 		this.x = env.player.x;
 		this.y = env.player.y;
-		this.palettes = env.palettes;
+		this.palettes = env.palettes['main'];
 		Array.each(rooms.getCurrentRoom().MOBs, function(mob) {
 			mob.isActive=false;
 		});
@@ -43,7 +43,7 @@ var DeathEvent = new Class({
 				}
 				else if(this.acDelta > 50) {
 					this.acDelta=0;
-					if(++this.palette > env.palettes.length-1)
+					if(++this.palette > env.palettes['main'].length-1)
 						this.palette=0;
 				}
 				break;
@@ -643,7 +643,7 @@ var EnemyDeath = new Class({
 				}
 			}
 			this.animFrame = this.frames[this.animCnt];
-			if(++this.palette >= env.palettes.length)
+			if(++this.palette >= env.palettes['main'].length)
 				this.palette=0;
 		}
 

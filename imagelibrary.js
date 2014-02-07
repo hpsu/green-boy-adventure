@@ -92,8 +92,8 @@ var Sprite = new Class({
 			if(window.spriteCatalogDebug) console.log('tinting to palette',palette);
 			var map = tCtx.getImageData(0, 0, this.width, this.height),
 				imdata = map.data
-				tintFrom = env.palettes[this.defaultPalette]
-				tintTo = env.palettes[palette];
+				tintFrom = env.palettes['main'][this.defaultPalette]
+				tintTo = env.palettes['main'][palette];
 			for(var p = 0, len = imdata.length; p < len; p+=4) {
 				r = imdata[p]
 				g = imdata[p+1];

@@ -162,6 +162,8 @@ var SpriteCatalog = {
 	,LinkItem270: {col: [10]}
 	,LinkGainItem: {col: [109]}
 	,OldMan: {col: [85]}
+	,OldWoman: {col: [103]}
+	,YoungMan: {col: [104]}
 	,Fire: {col: [84]}
 	,HeartContainer: {col: [107]}
 	,Compass: {col: [127]}

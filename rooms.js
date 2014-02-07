@@ -255,7 +255,7 @@ var Tile = new Class({
 		if(this.postBombSprite && this.bombItem == 'touch') {
 		console.log('touch fired');
 			if(this.sprite == 53) {
-				new Armos(this.col*TILESIZE, (this.row+4)*TILESIZE);
+				new Armos(this.col*SPRITESIZE, (this.row+4)*SPRITESIZE);
 			}
 			if(this.postBombSprite instanceof Object) {
 				this.sprite = -1;

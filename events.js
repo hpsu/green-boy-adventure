@@ -236,13 +236,13 @@ var PayMeAndIllTalkEvent = new Class({
 	,initialize: function(room) {
 		this.parent(room);
 		
-		room.txtcnt = new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "pay me and i'll talk.");
-		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 103);
+		room.txtcnt = new TextContainer(SPRITESIZE*3, (SPRITESIZE*6)+HALFSPRITE, room, "pay me and i'll talk.");
+		new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldWoman');
 
 		room.rupees = [
-			new mmgRupee((TILESIZE*5)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, this.prices[0])
-			,new mmgRupee((TILESIZE*7)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, this.prices[1])
-			,new mmgRupee((TILESIZE*9)+HALFTILE, (TILESIZE*10)-HALFTILE, room, false, this.prices[2])
+			new mmgRupee((SPRITESIZE*5)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, this.prices[0])
+			,new mmgRupee((SPRITESIZE*7)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, this.prices[1])
+			,new mmgRupee((SPRITESIZE*9)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, this.prices[2])
 		];
 		
 		
@@ -258,7 +258,7 @@ var PayMeAndIllTalkEvent = new Class({
 				});
 				that.addRupees(-this.cost);
 				room.txtcnt.destroy();
-				room.txtcnt = new TextContainer(TILESIZE*this.xoff, (TILESIZE*6)+HALFTILE, room, this.msg);
+				room.txtcnt = new TextContainer(SPRITESIZE*this.xoff, (SPRITESIZE*6)+HALFSPRITE, room, this.msg);
 			};
 			
 		}
@@ -284,8 +284,8 @@ var OldManGraveEvent = new Class({
 	,initialize: function(room) {
 		this.parent(room);
 		
-		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 103);
-		new TextContainer(TILESIZE*4, (TILESIZE*6)+HALFTILE, room, "meet the old man\n  at the grave.");
+		new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldWoman');
+		new TextContainer(SPRITESIZE*4, (SPRITESIZE*6)+HALFSPRITE, room, "meet the old man\n  at the grave.");
 	}
 });
 
@@ -294,8 +294,8 @@ var PotionShopEvent = new Class({
 	Extends: Event
 	,initialize: function(room) {
 		this.parent(room);
-		//new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 103);
-		//new TextContainer(TILESIZE*4, (TILESIZE*6)+HALFTILE, room, "meet the old man\n  at the grave.");
+		//new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 103);
+		//new TextContainer(SPRITESIZE*4, (SPRITESIZE*6)+HALFSPRITE, room, "meet the old man\n  at the grave.");
 	}
 });
 
@@ -380,10 +380,10 @@ var StoreEvent = new Class({
 			this.item2.destroy();
 			this.item3.destroy();
 		};
-		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 104);
-		room.txtNode = new TextContainer(TILESIZE*2+HALFTILE, (TILESIZE*6)+HALFTILE, room, text ? text : "buy somethin' will ya!");
+		room.guy = new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'YoungMan');
+		room.txtNode = new TextContainer(SPRITESIZE*2+HALFSPRITE, (SPRITESIZE*6)+HALFSPRITE, room, text ? text : "buy somethin' will ya!");
 		
-		room.rupee = new mmgRupee((TILESIZE*3), (TILESIZE*11)-4, room, true);
+		room.rupee = new mmgRupee((SPRITESIZE*3), (SPRITESIZE*11)-4, room, true);
 	}
 });
 
@@ -392,9 +392,9 @@ var CandleShieldKeyStoreEvent = new Class({
 	,initialize: function(room) {
 		this.parent(room);
 		
-		room.item1 = new puShield((TILESIZE*6)-4, (TILESIZE*10)-HALFTILE, room);
-		room.item2 = new puKey((TILESIZE*8)-4, (TILESIZE*10)-HALFTILE, room, 100);
-		room.item3 = new puCandle((TILESIZE*10)-4, (TILESIZE*10)-HALFTILE, room);
+		room.item1 = new puShield((SPRITESIZE*6)-4, (SPRITESIZE*10)-HALFSPRITE, room);
+		room.item2 = new puKey((SPRITESIZE*8)-4, (SPRITESIZE*10)-HALFSPRITE, room, 100);
+		room.item3 = new puCandle((SPRITESIZE*10)-4, (SPRITESIZE*10)-HALFSPRITE, room);
 	}
 });
 
@@ -403,9 +403,9 @@ var ShieldBombArrowEvent = new Class({
 	,initialize: function(room) {
 		this.parent(room);
 		
-		room.item1 = new puShield((TILESIZE*6)-4, (TILESIZE*10)-HALFTILE, room);
-		room.item2 = new puBomb((TILESIZE*8)-4, (TILESIZE*10)-HALFTILE, room, 0, 4, 20);
-		room.item3 = new puArrow((TILESIZE*10)-4, (TILESIZE*10)-HALFTILE, room);
+		room.item1 = new puShield((SPRITESIZE*6)-4, (SPRITESIZE*10)-HALFSPRITE, room);
+		room.item2 = new puBomb((SPRITESIZE*8)-4, (SPRITESIZE*10)-HALFSPRITE, room, 0, 4, 20);
+		room.item3 = new puArrow((SPRITESIZE*10)-4, (SPRITESIZE*10)-HALFSPRITE, room);
 		room.item1.price = 130;
 
 		room.tmpBombFunc = room.item2.pickup;
@@ -413,7 +413,6 @@ var ShieldBombArrowEvent = new Class({
 			if(room.tmpBombFunc.bind(this).pass(that)())
 				room.killSprites();
 		};
-
 	}
 });
 
@@ -422,10 +421,10 @@ var ShieldBoneHeartStore = new Class({
 	,initialize: function(room) {
 		this.parent(room,"    boy, this is\n  really expensive!");
 		
-		room.item1 = new puShield((TILESIZE*6)-4, (TILESIZE*10)-HALFTILE, room);
+		room.item1 = new puShield((SPRITESIZE*6)-4, (SPRITESIZE*10)-HALFSPRITE, room);
 		room.item1.price = 90;
-		room.item2 = new puBone((TILESIZE*8)-4, (TILESIZE*10)-HALFTILE, room);
-		room.item3 = new puHeart((TILESIZE*10)-4, (TILESIZE*10)-HALFTILE, room, null, 10);
+		room.item2 = new puBone((SPRITESIZE*8)-4, (SPRITESIZE*10)-HALFSPRITE, room);
+		room.item3 = new puHeart((SPRITESIZE*10)-4, (SPRITESIZE*10)-HALFSPRITE, room, null, 10);
 
 		room.tmpHeartFunc = room.item3.pickup;
 		room.item3.pickup = function(that) {
@@ -434,18 +433,15 @@ var ShieldBoneHeartStore = new Class({
 				new LinkGainItem(this.sprite);
 			}
 		};
-
 	}
 });
-
 
 var HeartContainerEvent515 = new Class({
 	Extends: Event
 	,initialize: function(room) {
 		if(!room.heartContainer)
-			room.heartContainer = new puHeartContainer(12*TILESIZE,9*TILESIZE,room);
+			room.heartContainer = new puHeartContainer(12*SPRITESIZE,9*SPRITESIZE,room);
 	}
-	
 });
 
 var LakeFairyEvent = new Class({
@@ -455,12 +451,8 @@ var LakeFairyEvent = new Class({
 			room.fairy = new LakeFairy(8*SPRITESIZE-(HALFSPRITE/2),8.25*SPRITESIZE,room);
 			new LakeFairyTrigger(8*SPRITESIZE-(HALFSPRITE/2),11*SPRITESIZE,room)
 		}
-			
 	}
-	
 });
-
-
 
 var SecretToEverybody = new Class({
 	Extends: Event
@@ -468,10 +460,10 @@ var SecretToEverybody = new Class({
 		this.parent(room);
 
 		if(room.eventDone) return;
-		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 92);
-		room.txtNode = new TextContainer(TILESIZE*4+HALFTILE, (TILESIZE*6)+HALFTILE, room, "it's a secret\nto everybody.");
+		room.guy = new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'Moblin', {direction:90});
+		room.txtNode = new TextContainer(SPRITESIZE*4+HALFSPRITE, (SPRITESIZE*6)+HALFSPRITE, room, "it's a secret\nto everybody.");
 		
-		room.rupees = [new mmgRupee((TILESIZE*8)-HALFTILE, (TILESIZE*10)-HALFTILE, room, false, 0)];
+		room.rupees = [new mmgRupee((SPRITESIZE*8)-HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, 0)];
 		room.rupees[0].worth=30;
 	
 		room.tmpRupeeFunc = room.rupees[0].pickup;
@@ -489,8 +481,8 @@ var DoorRepairEvent = new Class({
 		this.parent(room);
 		if(room.eventDone) return;
 
-		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
-		room.txtNode = new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "pay me for the door\n   repair charge.");
+		room.guy = new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldMan');
+		room.txtNode = new TextContainer(SPRITESIZE*3, (SPRITESIZE*6)+HALFSPRITE, room, "pay me for the door\n   repair charge.");
 		
 		env.player.addRupees(-20);
 		room.eventDone=true;
@@ -504,10 +496,10 @@ var WhiteSwordEvent = new Class({
 		this.parent(room);
 		if(room.eventDone) return;
 
-		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
-		room.txtNode = new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "master using it and\n you can have this.");
+		room.guy = new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldMan');
+		room.txtNode = new TextContainer(SPRITESIZE*3, (SPRITESIZE*6)+HALFSPRITE, room, "master using it and\n you can have this.");
 
-		room.whiteSword = new puWhiteSword(TILESIZE*7.5, TILESIZE*9.5, room);
+		room.whiteSword = new puWhiteSword(SPRITESIZE*7.5, SPRITESIZE*9.5, room);
 		room.whiteSword.pickup = function(that){
 			if(that.items.hearts < 5)
 				return;
@@ -529,10 +521,10 @@ var MagicalSwordEvent = new Class({
 		this.parent(room);
 		if(room.eventDone) return;
 
-		room.guy = new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
-		room.txtNode = new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "master using it and\n you can have this.");
+		room.guy = new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldMan');
+		room.txtNode = new TextContainer(SPRITESIZE*3, (SPRITESIZE*6)+HALFSPRITE, room, "master using it and\n you can have this.");
 
-		room.whiteSword = new puMagicalSword(TILESIZE*7.5, TILESIZE*9.5, room);
+		room.whiteSword = new puMagicalSword(SPRITESIZE*7.5, SPRITESIZE*9.5, room);
 		room.whiteSword.pickup = function(that){
 			if(that.items.hearts < 12)
 				return;
@@ -591,12 +583,17 @@ var Fire = new Class({
 
 var StaticSprite = new Class({
 	Extends: Mob
-	,initialize: function(x,y,room,sprite) {
+	,spriteParams: {}
+	,initialize: function(x,y,room,sprite, spriteParams) {
 		this.sprite = sprite;
 		this.parent(x,y,room);
+		if(typeof spriteParams != 'undefined' && typeof spriteParams['direction'] != 'undefined')
+			this.direction = spriteParams['direction'];
 	}
 	,draw: function() {
-		SpriteCatalog.draw(this.sprite, this.x, this.y);
+		var params ={};
+		if(this.direction) params['direction'] = this.direction;
+		SpriteCatalog.draw(this.sprite, this.x, this.y, params);
 	}
 });
 
@@ -654,7 +651,7 @@ function doStuffOnKilledMOBs(room, mobName, item, door){
 					mobCnt++;
 			});
 			if(mobCnt == 0) {
-				if(typeof item !== 'undefined') new item(8*TILESIZE,9*TILESIZE,room,0);
+				if(typeof item !== 'undefined') new item(8*SPRITESIZE,9*SPRITESIZE,room,0);
 				if(typeof door !== 'undefined') room.doors[door].state = 'Open';
 
 			}
@@ -667,35 +664,29 @@ var d1r0_0 = new Class({
 		Array.each([[4,7],[4,8],[4,9],[4,10],[4,11],[4,12],[4,13],[7,2],[7,4],[7,5],[7,6],[7,7],[7,8],[7,9],[7,10],[7,12],[7,13]], function(tile) {
 			room.tiles[tile[0]][tile[1]].isSolid=true;
 		});
-		new puBow(8*TILESIZE, 9*TILESIZE, room);
-		env.player.x = 3*TILESIZE;
-		env.player.y = 5*TILESIZE;
+		new puBow(8*SPRITESIZE, 9*SPRITESIZE, room);
+		env.player.x = 3*SPRITESIZE;
+		env.player.y = 5*SPRITESIZE;
 		env.player.direction = 90;
 		room.tiles[0][3].enter = function() {
 			switchRoom(2,6,dungeon1);
-			env.player.x=6*TILESIZE;
-			env.player.y=11*TILESIZE;
+			env.player.x=6*SPRITESIZE;
+			env.player.y=11*SPRITESIZE;
 			env.player.direction = 90;
 		};
 	}
 });
 
-var d2r0_7 = new Class({
-	initialize: function(room) {
-		new puTriforce(7.5*TILESIZE, 9*TILESIZE,room);
-	}
-});
-
 var d1r2_6 = new Class({
 	initialize: function(room) {
-		block = new movableBlock(6*TILESIZE, 9*TILESIZE, room);
+		block = new movableBlock(6*SPRITESIZE, 9*SPRITESIZE, room);
 		block.direction='*';
 		if(!room.isInitialized) {
-			new BladeTrap(2*TILESIZE,6*TILESIZE,room);
-			new BladeTrap(13*TILESIZE,6*TILESIZE,room);
+			new BladeTrap(2*SPRITESIZE,6*SPRITESIZE,room);
+			new BladeTrap(13*SPRITESIZE,6*SPRITESIZE,room);
 
-			new BladeTrap(2*TILESIZE,12*TILESIZE,room);
-			new BladeTrap(13*TILESIZE,12*TILESIZE,room);
+			new BladeTrap(2*SPRITESIZE,12*SPRITESIZE,room);
+			new BladeTrap(13*SPRITESIZE,12*SPRITESIZE,room);
 			room.isInitialized = true;
 		}
 
@@ -704,68 +695,7 @@ var d1r2_6 = new Class({
 			room.removeEvents('leave');
 			room.addEvent('leave',  room.onLeave);
 		});
-
 	}	
-});
-
-var d1r4_5 = new Class({
-	Extends: Event
-	,initialize: function(room) {
-		this.parent(room, true);
-		
-		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
-		new TextContainer(TILESIZE*3, (TILESIZE*6)+HALFTILE, room, "eastmost penninsula\n   is the secret.");
-	}
-});
-
-var d1r4_6 = new Class({
-	initialize: function(room) {
-		block = new movableBlock(7*TILESIZE, 9*TILESIZE, room);
-		block.direction = '*';
-		room.doors[180].state = 'Shut';
-		block.onMove = function() {
-			room.doors[180].state = 'Open';
-		}
-		room.addEvent('leave', function() {
-			block.destroy();
-			room.removeEvents('leave');
-			room.addEvent('leave',  room.onLeave);
-		});
-
-	}	
-});
-
-var d1r4_7 = new Class({
-	initialize: function(room) {
-		new puMap(12*TILESIZE, 9*TILESIZE+1,room);
-	}
-});
-
-var d1r4_8 = new Class({
-	initialize: function(room) {
-		// spawn key when all mobs are destroyed
-		Array.each(room.MOBs, function(mob){
-			mob.tmpFunc = mob.destroy;
-			mob.destroy = function() {
-				this.tmpFunc();
-				var mobCnt = 0;
-				Array.each(room.MOBs, function(mab) {
-					if(mab.name == 'Goriya')
-						mobCnt++;
-				});
-				if(mobCnt == 0) {
-					new puBoomerang(8*TILESIZE,7*TILESIZE,room,0);
-				}
-			};
-			
-		}, this);
-	}
-});
-
-var d1r4_9 = new Class({
-	initialize: function(room) {
-		new puKey(10*TILESIZE+4, 12*TILESIZE,room);
-	}
 });
 
 var d1r3_9 = new Class({
@@ -786,7 +716,67 @@ var d1r3_9 = new Class({
 
 var d1r3_10 = new Class({
 	initialize: function(room) {
-		new puTriforce(7.5*TILESIZE, 9*TILESIZE,room);
+		new puTriforce(7.5*SPRITESIZE, 9*SPRITESIZE,room);
+	}
+});
+
+var d1r4_5 = new Class({
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room, true);
+		
+		new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldMan');
+		new TextContainer(SPRITESIZE*3, (SPRITESIZE*6)+HALFSPRITE, room, "eastmost penninsula\n   is the secret.");
+	}
+});
+
+var d1r4_6 = new Class({
+	initialize: function(room) {
+		block = new movableBlock(7*SPRITESIZE, 9*SPRITESIZE, room);
+		block.direction = '*';
+		room.doors[180].state = 'Shut';
+		block.onMove = function() {
+			room.doors[180].state = 'Open';
+		}
+		room.addEvent('leave', function() {
+			block.destroy();
+			room.removeEvents('leave');
+			room.addEvent('leave',  room.onLeave);
+		});
+
+	}	
+});
+
+var d1r4_7 = new Class({
+	initialize: function(room) {
+		new puMap(12*SPRITESIZE, 9*SPRITESIZE+1,room);
+	}
+});
+
+var d1r4_8 = new Class({
+	initialize: function(room) {
+		// spawn key when all mobs are destroyed
+		Array.each(room.MOBs, function(mob){
+			mob.tmpFunc = mob.destroy;
+			mob.destroy = function() {
+				this.tmpFunc();
+				var mobCnt = 0;
+				Array.each(room.MOBs, function(mab) {
+					if(mab.name == 'Goriya')
+						mobCnt++;
+				});
+				if(mobCnt == 0) {
+					new puBoomerang(8*SPRITESIZE,7*SPRITESIZE,room,0);
+				}
+			};
+			
+		}, this);
+	}
+});
+
+var d1r4_9 = new Class({
+	initialize: function(room) {
+		new puKey(10*SPRITESIZE+4, 12*SPRITESIZE,room);
 	}
 });
 
@@ -835,7 +825,7 @@ var d1r5_7 = new Class({
 						staflosCnt++;
 				});
 				if(staflosCnt == 0) {
-					new puKey(8*TILESIZE,7*TILESIZE,room,0);
+					new puKey(8*SPRITESIZE,7*SPRITESIZE,room,0);
 				}
 			};
 			
@@ -844,7 +834,7 @@ var d1r5_7 = new Class({
 });
 var d1r5_8 = new Class({
 	initialize: function(room) {
-		new puCompass(12*TILESIZE, 9*TILESIZE,room);
+		new puCompass(12*SPRITESIZE, 9*SPRITESIZE,room);
 	}
 });
 
@@ -862,7 +852,7 @@ var d1r7_6 = new Class({
 						keeseCnt++;
 				});
 				if(keeseCnt == 0) {
-					new puKey(10*TILESIZE,12*TILESIZE,room,0);
+					new puKey(10*SPRITESIZE,12*SPRITESIZE,room,0);
 				}
 			};
 			
@@ -887,26 +877,31 @@ var d1r7_8 = new Class({
 	}
 });
 
+var d2r0_7 = new Class({
+	initialize: function(room) {
+		new puTriforce(7.5*SPRITESIZE, 9*SPRITESIZE,room);
+	}
+});
 
 var d2r1_9 = new Class({
 	Extends: Event
 	,initialize: function(room) {
 		this.parent(room, true);
 		
-		new StaticSprite((TILESIZE*7)+HALFTILE, TILESIZE*8, room, 85);
-		new TextContainer(TILESIZE*2.5, (TILESIZE*6)+HALFTILE, room, "dodongo dislikes smoke.");
+		new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldMan');
+		new TextContainer(SPRITESIZE*2.5, (SPRITESIZE*6)+HALFSPRITE, room, "dodongo dislikes smoke.");
 	}
 });
 
 var d2r3_9 = Class({
 	initialize: function(room) {
 		if(!room.isInitialized) {
-			new BladeTrap(2*TILESIZE,6*TILESIZE,room);
-			new BladeTrap(13*TILESIZE,6*TILESIZE,room);
+			new BladeTrap(2*SPRITESIZE,6*SPRITESIZE,room);
+			new BladeTrap(13*SPRITESIZE,6*SPRITESIZE,room);
 
-			new BladeTrap(2*TILESIZE,12*TILESIZE,room);
-			new BladeTrap(13*TILESIZE,12*TILESIZE,room);
-			var bomb = new puBomb(8*TILESIZE, 9*TILESIZE,room);
+			new BladeTrap(2*SPRITESIZE,12*SPRITESIZE,room);
+			new BladeTrap(13*SPRITESIZE,12*SPRITESIZE,room);
+			var bomb = new puBomb(8*SPRITESIZE, 9*SPRITESIZE,room);
 			bomb.worth = 4;
 			room.isInitialized = true;
 		}
@@ -922,22 +917,22 @@ var d2r4_9 = Class({
 	initialize: function(room) {
 		if(room.roomInitialized) return;
 		doStuffOnKilledMOBs(room, 'BlueGoriya', puBlueBoomerang);
-		new StoneStatue(2*TILESIZE, 6*TILESIZE, room);
-		new StoneStatue(13*TILESIZE, 6*TILESIZE, room);
+		new StoneStatue(2*SPRITESIZE, 6*SPRITESIZE, room);
+		new StoneStatue(13*SPRITESIZE, 6*SPRITESIZE, room);
 
-		new StoneStatue(2*TILESIZE, 12*TILESIZE, room);
-		new StoneStatue(13*TILESIZE, 12*TILESIZE, room);
+		new StoneStatue(2*SPRITESIZE, 12*SPRITESIZE, room);
+		new StoneStatue(13*SPRITESIZE, 12*SPRITESIZE, room);
 		room.roomInitialized=true;
 	}
 });
 var d2r5_9 = Class({
 	initialize: function(room) {
-		new puMap(8*TILESIZE, 9*TILESIZE,room);
+		new puMap(8*SPRITESIZE, 9*SPRITESIZE,room);
 	}
 });
 var d2r6_6 = Class({
 	initialize: function(room) {
-		new puKey(8*TILESIZE, 9*TILESIZE,room);
+		new puKey(8*SPRITESIZE, 9*SPRITESIZE,room);
 	}
 });
 var d2r6_7 = Class({
@@ -972,7 +967,7 @@ var d2r6_7 = Class({
 });
 var d2r6_9 = Class({
 	initialize: function(room) {
-		new puCompass(13*TILESIZE, 6*TILESIZE,room);
+		new puCompass(13*SPRITESIZE, 6*SPRITESIZE,room);
 	}
 });
 
@@ -990,7 +985,7 @@ var d2r7_8 = Class({
 						keeseCnt++;
 				});
 				if(keeseCnt == 0) {
-					new puKey(8*TILESIZE,9*TILESIZE,room,0);
+					new puKey(8*SPRITESIZE,9*SPRITESIZE,room,0);
 				}
 			};
 			

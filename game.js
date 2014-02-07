@@ -27,7 +27,7 @@ var ctx = null
 	};
 
 window.collisionDebug = false;
-window.spriteDebug = false;
+window.debugGrid = false;
 window.godMode = false;
 
 var TintCache = {
@@ -293,7 +293,7 @@ var OptionScreen = new Class({
 	,choice: 0
 	,options: [
 		['collisionDebug', 'debug collisions', 'boolean']
-		,['spriteDebug', 'debug sprites', 'boolean']
+		,['debugGrid', 'Show debug grid', 'boolean']
 		,['godMode', 'passthru solid tiles', 'boolean']
 	]
 	,initialize: function(){
@@ -761,12 +761,12 @@ function paintHeader() {
 	// Background
 	filledRectangle(0, YOFF, 16*SPRITESIZE, 4*SPRITESIZE, "#000");
 
-	if(window.spriteDebug) {
+	if(window.debugGrid) {
 		for(var io=0; io<2; io++) {
 			for(var i=0; i<16; i++) {
 				ctx.beginPath();
 				ctx.strokeStyle='#090';
-				ctx.rect((i*TILESIZE), yOff+(io*TILESIZE), TILESIZE, TILESIZE);
+				ctx.rect((i*TILESIZE), (yOff*SCALE)+(io*TILESIZE), TILESIZE, TILESIZE);
 				ctx.stroke();
 			}
 		}
@@ -866,7 +866,7 @@ function paintRoom(tintFrom, tintTo){
 			if(tile.sprite) {
 				placeTile(tile.sprite, x*SPRITESIZE, YOFF+y*SPRITESIZE, tintFrom ? tintFrom : tile.tintFrom, tintTo ? tintTo : tile.tintTo, null, tile.flip, ctxBg);
 			}
-			if(window.spriteDebug) {
+			if(window.debugGrid) {
 				ctxBg.beginPath();
 				ctxBg.strokeStyle="#f0f";
 				ctxBg.rect(x*TILESIZE, y*TILESIZE, TILESIZE, TILESIZE);

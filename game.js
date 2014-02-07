@@ -394,7 +394,6 @@ var PauseScreen = new Class({
 		writeText('triforce', this.x+(6*SPRITESIZE), YOFF+this.y+(10*SPRITESIZE),1);
 
 		//if(env.player.items.bombs > 0) {
-			//ctx.drawImage(env.spriteSheet, (69*TILESIZE)+(TILESIZE/4), 0, HALFTILE, TILESIZE, , HALFTILE, TILESIZE);
 			SpriteCatalog.draw('Bomb', Math.floor(this.x+(10*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(3*SPRITESIZE)));
 		//}
 		//if(env.player.items.candle == 1) {

@@ -126,8 +126,8 @@ var DeathEvent = new Class({
 		this.lastUpdateTime = Date.now();
 	}
 	,draw: function() {
-		$('background').setStyle('background', this.background);
 		this.parent();
+		$('background').setStyle('background', this.background);
 		switch(this.stage) {
 			case 4:
 				writeText("game over", 6*SPRITESIZE, 9*SPRITESIZE);
@@ -137,19 +137,8 @@ var DeathEvent = new Class({
 				writeText("continue", 5*SPRITESIZE, 5*SPRITESIZE);
 				writeText("save", 5*SPRITESIZE, (6*SPRITESIZE)+HALFSPRITE);
 				writeText("retry", 5*SPRITESIZE, 8*SPRITESIZE);
-
-
+				break;
 		}
-		/*if(frame) {
-			if(frame == 22) {
-				ctx.drawImage(env.spriteSheet, (22*SPRITESIZE), 0, (SPRITESIZE/2), (SPRITESIZE/2), 4*TILESIZE, (5*TILESIZE)+(this.choice*1.5*TILESIZE), HALFTILE, HALFTILE); // Heart
-			}
-			else {
-				//placeTile(frame, this.x,this.y);
-				return this.self();
-			}
-		}*/
-//		this.changePalette(null, this.palettes);
 	}
 });
 

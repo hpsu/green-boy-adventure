@@ -19,7 +19,6 @@ var RoomStorage = new Class({
 	,row: 0
 	,col: 0
 	,name: ''
-	,palette: null
 	,hasCompass: false
 	,hasMap: false
 	,initialize: function(defRow, defCol, rooms, props) {

@@ -946,6 +946,10 @@ var Door = new Class({
 	,direction: 0
 	,sprite: 298
 	,state: 'Open'
+	,paletteType: 'dungeon'
+	,defaultPalette: 0
+	,palette: 0
+
 	,initialize: function(x,y,room) {
 		var xPost = {0: 14*SPRITESIZE, 90: 7.5*SPRITESIZE, 180: 1*SPRITESIZE, 270: 7.5*SPRITESIZE}
 			,yPost = {0: 9*SPRITESIZE, 90: 13*SPRITESIZE, 180: 9*SPRITESIZE, 270: 5*SPRITESIZE};
@@ -968,6 +972,9 @@ var Door = new Class({
 		}
 	}
 	,draw: function() {
+		if(typeof rooms.palette != 'undefined') {
+			this.palette = rooms.palette;
+		}
 		this.sprite = 'Door'+this.state;
 		this.parent();
 	}

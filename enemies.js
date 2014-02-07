@@ -1065,11 +1065,12 @@ var Zol = new Class({
 	,lockRotation: true
 	,initialize: function(x,y,room) {
 		this.parent(x,y,room);
-		if(typeof rooms.palette != 'undefined') this.defaultPalette = rooms.palette;
 		this.palette = this.defaultPalette;
 	}
 	,move: function() {
 		var delta = Date.now() - this.lastUpdateTime;
+
+		if(typeof rooms.palette != 'undefined') this.defaultPalette = rooms.palette;
 
 		if(this.acDelta > this.msPerFrame) {
 			this.acDelta = 0;

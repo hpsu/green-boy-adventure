@@ -28,7 +28,6 @@ var Sprite = new Class({
 			}
 			if(params.paletteType) {
 				this.paletteType = params.paletteType;
-				console.log(this.paletteType);
 			}
 			if(typeof params.posy != 'undefined') {
 				this.positiony = params.posy;
@@ -167,19 +166,19 @@ var SpriteCatalog = {
 	,HeartContainer: {col: [107]}
 	,Compass: {col: [127]}
 	,Triforce: {col: [144]}
-	,MovableBlock: {col: [284]}
-	,DoorLocked0: {col: [294]}
-	,DoorLocked90: {col: [298]}
-	,DoorLocked180: {col: [303]}
-	,DoorLocked270: {col: [298]}
-	,DoorOpen0: {col: [241]}
-	,DoorOpen90: {col: [300]}
-	,DoorOpen180: {col: [240]}
-	,DoorOpen270: {col: [299]}
-	,DoorShut0: {col: [295]}
-	,DoorShut90: {col: [304]}
-	,DoorShut180: {col: [295]}
-	,DoorShut270: {col: [304]}
+	,MovableBlock: {col: [284], palette: 0}
+	,DoorLocked0: {col: [294], palette: 0}
+	,DoorLocked90: {col: [298], palette: 0}
+	,DoorLocked180: {col: [303], palette: 0}
+	,DoorLocked270: {col: [298], palette: 0}
+	,DoorOpen0: {col: [241], palette: 0}
+	,DoorOpen90: {col: [300], palette: 0}
+	,DoorOpen180: {col: [240], palette: 0}
+	,DoorOpen270: {col: [299], palette: 0}
+	,DoorShut0: {col: [295], palette: 0}
+	,DoorShut90: {col: [304], palette: 0}
+	,DoorShut180: {col: [295], palette: 0}
+	,DoorShut270: {col: [304], palette: 0}
 	,BombHole: {col: [306]}
 	,Peahat: {col: [88,89], palette:2}
 	,EnemySpawn: {col: [110,111,112]}

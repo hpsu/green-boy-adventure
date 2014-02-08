@@ -13,6 +13,65 @@ function switchRoom(row,col,container) {
 	paintRoom();
 	return cr;
 }
+
+function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
+	if(!tCtx) tCtx = ctx;
+	x = Math.round(x*SCALE);
+	y = Math.round(y*SCALE);
+	tmpX = x; tmpY = y;
+	if(tintTo && TintCache.get(tintTo, frame)) {
+		return tCtx.putImageData(TintCache.get(tintTo, frame), x, y);
+	}
+	if(rotate || flip) {
+		tmpY = TILESIZE/-2;
+		tmpX = TILESIZE/-2;
+		rotate = rotate*Math.PI;
+		tCtx.save(); 
+		tCtx.translate(x+(HALFTILE), y+(HALFTILE));
+		if(rotate)
+			tCtx.rotate(rotate);
+		if(flip)
+			tCtx.scale((flip.contains('x') ? -1 : 1), (flip.contains('y') ? -1 : 1));
+	}
+	tCtx.drawImage(env.spriteSheet
+		,(frame*SPRITESIZE)
+		,0
+		,SPRITESIZE, SPRITESIZE, Math.round(tmpX), Math.round(tmpY), TILESIZE, TILESIZE);
+
+
+	if(rotate || flip) {
+		tCtx.restore();
+	}
+
+	if(tintTo) {
+		map = tCtx.getImageData(x, y, TILESIZE, TILESIZE);
+		imdata = map.data;
+		for(var p = 0, len = imdata.length; p < len; p+=4) {
+			r = imdata[p]
+			g = imdata[p+1];
+			b = imdata[p+2];
+			
+			if(tintFrom[0] instanceof Array) {
+				for(var i=0;i<tintFrom.length;i++) {
+					if(r == tintFrom[i][0] && g == tintFrom[i][1] && b == tintFrom[i][2]) {
+						imdata[p] = tintTo[i][0];
+						imdata[p+1] = tintTo[i][1];
+						imdata[p+2] = tintTo[i][2];
+					}
+				}
+			}
+			else {
+				if(r == tintFrom[0] && g == tintFrom[1] && b == tintFrom[2]) {
+					imdata[p] = tintTo[0];
+					imdata[p+1] = tintTo[1];
+					imdata[p+2] = tintTo[2];
+				}
+			}
+		}
+		TintCache.set(tintTo, frame, map);
+		return tCtx.putImageData(map, x, y);
+	}
+}
  
 var RoomStorage = new Class({
 	 rooms: []
@@ -141,12 +200,12 @@ var Room = new Class({
 		env.player.currentRoom = this;
 		$('background').setStyle('background', this.background ? this.background : '#fcd8a8');
 		if(!this.initialized) {
-			if(this.enemyData) Array.each(this.enemyData, function(enm){new enm(null,null,this);},this);
+			if(this.enemyData) Array.each(this.enemyData, function(enm){new window[enm](null,null,this);},this);
 			this.initialized = true;
 		}
 
 		if (this.scriptedEvent) {
-			new this.scriptedEvent(this);
+			new window[this.scriptedEvent](this);
 		}
 
 	}
@@ -253,7 +312,7 @@ var Tile = new Class({
 	}
 	,touch: function() {
 		if(this.postBombSprite && this.bombItem == 'touch') {
-		console.log('touch fired');
+			this.fireEvent('touch');
 			if(this.sprite == 53) {
 				new Armos(this.col*SPRITESIZE, (this.row+4)*SPRITESIZE);
 			}
@@ -277,45 +336,45 @@ var Tile = new Class({
  *********************/
 
 var underworld = new RoomStorage(7,7,[
-	new CaveRoom({row: 0, col: 10,scriptedEvent: WhiteSwordEvent})
-	,new CaveRoom({row: 1, col: 0,scriptedEvent: MoneyMakingGameEvent})
-	,new CaveRoom({row: 1, col: 10,scriptedEvent: PayMeAndIllTalkEvent2})
+	new CaveRoom({row: 0, col: 10,scriptedEvent: 'WhiteSwordEvent'})
+	,new CaveRoom({row: 1, col: 0,scriptedEvent: 'MoneyMakingGameEvent'})
+	,new CaveRoom({row: 1, col: 10,scriptedEvent: 'PayMeAndIllTalkEvent2'})
 
-	,new CaveRoom({row: 2, col: 1,scriptedEvent: MagicalSwordEvent})
-	,new CaveRoom({row: 2, col: 5,scriptedEvent: ShieldBombArrowEvent})
+	,new CaveRoom({row: 2, col: 1,scriptedEvent: 'MagicalSwordEvent'})
+	,new CaveRoom({row: 2, col: 5,scriptedEvent: 'ShieldBombArrowEvent'})
 	
-	,new CaveRoom({row: 4, col: 4,scriptedEvent: ShieldBombArrowEvent})
-	,new CaveRoom({row: 4, col: 6,scriptedEvent: ShieldBoneHeartStore})
-	,new CaveRoom({row: 4, col: 7,scriptedEvent: TakeOneEvent})
-	,new CaveRoom({row: 4, col: 8,scriptedEvent: SecretToEverybody})
-	,new CaveRoom({row: 4, col: 10,scriptedEvent: ShieldBombArrowEvent})
-	,new CaveRoom({row: 4, col: 11,scriptedEvent: PotionShopEvent})
-	,new CaveRoom({row: 4, col: 13,scriptedEvent: ShieldBoneHeartStore})
-	,new CaveRoom({row: 4, col: 14,scriptedEvent: SecretToEverybody}) //@TODO: ten rupees
+	,new CaveRoom({row: 4, col: 4,scriptedEvent: 'ShieldBombArrowEvent'})
+	,new CaveRoom({row: 4, col: 6,scriptedEvent: 'ShieldBoneHeartStore'})
+	,new CaveRoom({row: 4, col: 7,scriptedEvent: 'TakeOneEvent'})
+	,new CaveRoom({row: 4, col: 8,scriptedEvent: 'SecretToEverybody'})
+	,new CaveRoom({row: 4, col: 10,scriptedEvent: 'ShieldBombArrowEvent'})
+	,new CaveRoom({row: 4, col: 11,scriptedEvent: 'PotionShopEvent'})
+	,new CaveRoom({row: 4, col: 13,scriptedEvent: 'ShieldBoneHeartStore'})
+	,new CaveRoom({row: 4, col: 14,scriptedEvent: 'SecretToEverybody'}) //@TODO: ten rupees
 
-	,new CaveRoom({row: 5, col: 1,scriptedEvent: SecretToEverybody}) //@TODO: ten rupees
-	,new CaveRoom({row: 5, col: 6,scriptedEvent: SecretToEverybody}) //@TODO: ten rupees
-	,new CaveRoom({row: 5, col: 14,scriptedEvent: CandleShieldKeyStoreEvent})
+	,new CaveRoom({row: 5, col: 1,scriptedEvent: 'SecretToEverybody'}) //@TODO: ten rupees
+	,new CaveRoom({row: 5, col: 6,scriptedEvent: 'SecretToEverybody'}) //@TODO: ten rupees
+	,new CaveRoom({row: 5, col: 14,scriptedEvent: 'CandleShieldKeyStoreEvent'})
 	
-	,new CaveRoom({row: 6, col: 2,scriptedEvent: SecretToEverybody}) //@TODO: hundred rupees
-	,new CaveRoom({row: 6, col: 3,scriptedEvent: DoorRepairEvent})
-	,new CaveRoom({row: 6, col: 4,scriptedEvent: PotionShopEvent})
-	,new CaveRoom({row: 6, col: 6,scriptedEvent: CandleShieldKeyStoreEvent})
-	,new CaveRoom({row: 6, col: 7,scriptedEvent: SecretToEverybody})
-	,new CaveRoom({row: 6, col: 8,scriptedEvent: DoorRepairEvent})
-	,new CaveRoom({row: 6, col: 10,scriptedEvent: DoorRepairEvent})
-	,new CaveRoom({row: 6, col: 11,scriptedEvent: SecretToEverybody}) //@TODO: hundred rupees
-	,new CaveRoom({row: 6, col: 15,scriptedEvent: ShieldBombArrowEvent})
+	,new CaveRoom({row: 6, col: 2,scriptedEvent: 'SecretToEverybody'}) //@TODO: hundred rupees
+	,new CaveRoom({row: 6, col: 3,scriptedEvent: 'DoorRepairEvent'})
+	,new CaveRoom({row: 6, col: 4,scriptedEvent: 'PotionShopEvent'})
+	,new CaveRoom({row: 6, col: 6,scriptedEvent: 'CandleShieldKeyStoreEvent'})
+	,new CaveRoom({row: 6, col: 7,scriptedEvent: 'SecretToEverybody'})
+	,new CaveRoom({row: 6, col: 8,scriptedEvent: 'DoorRepairEvent'})
+	,new CaveRoom({row: 6, col: 10,scriptedEvent: 'DoorRepairEvent'})
+	,new CaveRoom({row: 6, col: 11,scriptedEvent: 'SecretToEverybody'}) //@TODO: hundred rupees
+	,new CaveRoom({row: 6, col: 15,scriptedEvent: 'ShieldBombArrowEvent'})
 	
-	,new CaveRoom({row: 7, col: 0,scriptedEvent: PayMeAndIllTalkEvent})
-	,new CaveRoom({row: 7, col: 1,scriptedEvent: SecretToEverybody})
-	,new CaveRoom({row: 7, col: 5,scriptedEvent: OldManGraveEvent})
-	,new CaveRoom({row: 7, col: 6,scriptedEvent: MoneyMakingGameEvent})
-	,new CaveRoom({row: 7, col: 7,scriptedEvent: SwordEvent})
-	,new CaveRoom({row: 7, col: 8,scriptedEvent: PotionShopEvent})
-	,new CaveRoom({row: 7, col: 11,scriptedEvent: TakeOneEvent})
-	,new CaveRoom({row: 7, col: 12,scriptedEvent: MoneyMakingGameEvent})
-	,new CaveRoom({row: 7, col: 13,scriptedEvent: DoorRepairEvent})
+	,new CaveRoom({row: 7, col: 0,scriptedEvent: 'PayMeAndIllTalkEvent'})
+	,new CaveRoom({row: 7, col: 1,scriptedEvent: 'SecretToEverybody'})
+	,new CaveRoom({row: 7, col: 5,scriptedEvent: 'OldManGraveEvent'})
+	,new CaveRoom({row: 7, col: 6,scriptedEvent: 'MoneyMakingGameEvent'})
+	,new CaveRoom({row: 7, col: 7,scriptedEvent: 'SwordEvent'})
+	,new CaveRoom({row: 7, col: 8,scriptedEvent: 'PotionShopEvent'})
+	,new CaveRoom({row: 7, col: 11,scriptedEvent: 'TakeOneEvent'})
+	,new CaveRoom({row: 7, col: 12,scriptedEvent: 'MoneyMakingGameEvent'})
+	,new CaveRoom({row: 7, col: 13,scriptedEvent: 'DoorRepairEvent'})
 ]);
 
 var dungeon1 = new RoomStorage(7,7,[
@@ -332,9 +391,9 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199]
 		,[199,199,199,199,199,199,199,199,199,199,199,199,199,199,199,199]
 		]
-		,scriptedEvent: d1r0_0
+		,scriptedEvent: 'd1r0_0'
 		,background: '#000000'
-		,enemies: [Keese, Keese, Keese, Keese]
+		,enemies: ['Keese', 'Keese', 'Keese', 'Keese']
 	})
 	,new Room({row: 2, col: 6, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -348,8 +407,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		],enemies: [DoorEast]
-		,scriptedEvent: d1r2_6
+		],enemies: ['DoorEast']
+		,scriptedEvent: 'd1r2_6'
 		,eventTiles: [{row:5, col:8,event:function() {switchRoom(0,0,dungeon1);}}]
 		,tintData: [
 			{tiles:[[5,8]], tintFrom: [00, 168, 0], tintTo: [0, 232, 216]}
@@ -368,7 +427,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,260,261,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,277]
-		],enemies: [DoorSouth, LockedDoorWest]
+		],enemies: ['DoorSouth', 'LockedDoorWest']
 	})
 	,new Room({row: 3, col: 7, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -382,7 +441,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,302,302,302,302,302,227,227,302,302,302,302,302,253,225]
 		,[210,254,255,256,257,258,259,260,261,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,277]
-		],enemies: [LockedDoorNorth, DoorSouth, Staflos, Staflos, KeyStaflos]
+		],enemies: ['LockedDoorNorth', 'DoorSouth', 'Staflos', 'Staflos', 'KeyStaflos']
 	})
 	,new Room({row: 3, col: 9, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -396,8 +455,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,284,284,284,284,284,253,225]
 		,[210,254,255,256,257,258,259,260,261,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,277]
-		],enemies: [ShutDoorEast, DoorSouth]
-		,scriptedEvent: d1r3_9
+		],enemies: ['ShutDoorEast', 'DoorSouth']
+		,scriptedEvent: 'd1r3_9'
 	})
 	,new Room({row: 3, col: 10, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -411,8 +470,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		],enemies: [DoorWest]
-		,scriptedEvent: d1r3_10
+		],enemies: ['DoorWest']
+		,scriptedEvent: 'd1r3_10'
 		,triforceRoom: true
 	})
 	,new Room({row: 4, col: 5, tileset: 1, tiles: [
@@ -427,9 +486,9 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		],enemies: [DoorEast]
+		],enemies: ['DoorEast']
 		,background: '#000000'
-		,scriptedEvent: d1r4_5
+		,scriptedEvent: 'd1r4_5'
 
 	})
 	,new Room({row: 4, col: 6, tileset: 1, tiles: [
@@ -443,9 +502,9 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[248,249,227,227,227,227,227,227,227,227,227,227,227,227,250,251]
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,260,261,262,263,264,265,266,267,225]
-		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,277]
-		],enemies: [ShutDoorWest, DoorEast, DoorSouth, Gel, Gel, Gel]
-		,scriptedEvent: d1r4_6
+		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,'277']
+		],enemies: ['ShutDoorWest', 'DoorEast', 'DoorSouth', 'Gel', 'Gel', 'Gel']
+		,scriptedEvent: 'd1r4_6'
 	})
 	,new Room({row: 4, col: 7, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -459,8 +518,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		],enemies: [DoorWest, DoorNorth, LockedDoorEast, BombHoleSouth, Gel, Gel, Gel, Gel]
-		,scriptedEvent: d1r4_7
+		],enemies: ['DoorWest', 'DoorNorth', 'LockedDoorEast', 'BombHoleSouth', 'Gel', 'Gel', 'Gel', 'Gel']
+		,scriptedEvent: 'd1r4_7'
 	})
 	,new Room({row: 4, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -474,8 +533,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		],enemies: [DoorWest, DoorEast, Goriya, Goriya, Goriya]
-		,scriptedEvent: d1r4_8
+		],enemies: ['DoorWest', 'DoorEast', 'Goriya', 'Goriya', 'Goriya']
+		,scriptedEvent: 'd1r4_8'
 	})
 	,new Room({row: 4, col: 9, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -489,8 +548,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		],enemies: [DoorWest, LockedDoorNorth]
-		,scriptedEvent: d1r4_9
+		],enemies: ['DoorWest', 'LockedDoorNorth']
+		,scriptedEvent: 'd1r4_9'
 	})
 	,new Room({row: 5, col: 6, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -504,8 +563,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		],enemies: [LockedDoorNorth, ShutDoorEast, Keese, Keese, Keese, Keese, Keese, Keese]
-		,scriptedEvent: d1r5_6
+		],enemies: ['LockedDoorNorth', 'ShutDoorEast', 'Keese', 'Keese', 'Keese', 'Keese', 'Keese', 'Keese']
+		,scriptedEvent: 'd1r5_6'
 	})
 	,new Room({row: 5, col: 7, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -519,8 +578,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,260,261,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,277]
-		],enemies: [DoorWest, DoorEast, DoorSouth, BombHoleNorth, Staflos, Staflos, Staflos, Staflos, Staflos]
-		,scriptedEvent: d1r5_7
+		],enemies: ['DoorWest', 'DoorEast', 'DoorSouth', 'BombHoleNorth', 'Staflos', 'Staflos', 'Staflos', 'Staflos', 'Staflos']
+		,scriptedEvent: 'd1r5_7'
 	})
 	,new Room({row: 5, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -534,8 +593,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		],enemies: [DoorWest, BombHoleNorth, Keese, Keese, Keese, Keese, Keese, Keese, Keese, Keese]
-		,scriptedEvent: d1r5_8
+		],enemies: ['DoorWest', 'BombHoleNorth', 'Keese', 'Keese', 'Keese', 'Keese', 'Keese', 'Keese', 'Keese', 'Keese']
+		,scriptedEvent: 'd1r5_8'
 	})
 	,new Room({row: 6, col: 7, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -549,7 +608,7 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,260,261,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,277]
-		],enemies: [DoorSouth, DoorNorth, Staflos, Staflos, Staflos]
+		],enemies: ['DoorSouth', 'DoorNorth', 'Staflos', 'Staflos', 'Staflos']
 	})
 	,new Room({row: 7, col: 6, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -563,8 +622,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,252,227,227,227,227,227,227,227,227,227,227,227,227,253,225]
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
-		], enemies: [DoorEast, Keese, Keese, Keese]
-		,scriptedEvent: d1r7_6
+		], enemies: ['DoorEast', 'Keese', 'Keese', 'Keese']
+		,scriptedEvent: 'd1r7_6'
 	})
 	,new Room({row: 7, col: 7, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -579,8 +638,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,254,255,256,257,258,259,260,261,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,273,273,274,275,269,269,276,269,277]
 		]
-		,scriptedEvent: d1r7_7
-		,enemies: [LockedDoorNorth, DoorWest, DoorEast, DoorSouth]
+		,scriptedEvent: 'd1r7_7'
+		,enemies: ['LockedDoorNorth', 'DoorWest', 'DoorEast', 'DoorSouth']
 		,tintData: [
 			{tiles:[[3,3], [3,6], [3,9], [3,12], [5,3], [5,6], [5,9], [5,12], [7,3], [7,6], [7,9], [7,12]], tintFrom: [24, 60, 92], tintTo: [32, 56, 236]}
 		]
@@ -598,8 +657,8 @@ var dungeon1 = new RoomStorage(7,7,[
 		,[210,254,255,256,257,258,259,285,285,262,263,264,265,266,267,225]
 		,[268,269,270,269,269,271,272,269,269,274,275,269,269,276,269,277]
 		]
-		,enemies: [DoorWest, Staflos, Staflos, Staflos, Staflos]
-		,scriptedEvent: d1r7_8
+		,enemies: ['DoorWest', 'Staflos', 'Staflos', 'Staflos', 'Staflos']
+		,scriptedEvent: 'd1r7_8'
 	})
 ], {name:'level-1', palette: 0});
 
@@ -620,8 +679,8 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorEast]
-		,scriptedEvent: d2r0_7
+		,enemies: ['DoorEast']
+		,scriptedEvent: 'd2r0_7'
 	})
 	,new Room({row: 0, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -639,7 +698,7 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[252,152,56],[216,40,0],[252,188,176],[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92,148,252],[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorSouth, DoorWest]
+		,enemies: ['DoorSouth', 'DoorWest']
 	})
 	,new Room({row: 1, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -657,7 +716,7 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorSouth, BombHoleEast, DoorNorth]
+		,enemies: ['DoorSouth', 'BombHoleEast', 'DoorNorth']
 	})
 	,new Room({row: 1, col: 9, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -675,9 +734,9 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorSouth, BombHoleWest]
+		,enemies: ['DoorSouth', 'BombHoleWest']
 		,background: '#000000'
-		,scriptedEvent: d2r1_9
+		,scriptedEvent: 'd2r1_9'
 	})
 	,new Room({row: 2, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -695,7 +754,7 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorSouth, DoorEast, DoorNorth]
+		,enemies: ['DoorSouth', 'DoorEast', 'DoorNorth']
 	})
 	,new Room({row: 2, col: 9, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -713,7 +772,7 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorWest, DoorNorth, BombHoleSouth, Gel, Gel, Gel, Gel, Gel]
+		,enemies: ['DoorWest', 'DoorNorth', 'BombHoleSouth', 'Gel', 'Gel', 'Gel', 'Gel', 'Gel']
 	})
 	,new Room({row: 3, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -731,7 +790,7 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorSouth, DoorEast, DoorNorth]
+		,enemies: ['DoorSouth', 'DoorEast', 'DoorNorth']
 	})
 	,new Room({row: 3, col: 9, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -749,8 +808,8 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorWest, BombHoleNorth, BombHoleSouth, Keese, Keese, Keese, Keese]
-		,scriptedEvent: d2r3_9
+		,enemies: ['DoorWest', 'BombHoleNorth', 'BombHoleSouth', 'Keese', 'Keese', 'Keese', 'Keese']
+		,scriptedEvent: 'd2r3_9'
 	})
 	,new Room({row: 4, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -768,8 +827,8 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [ShutDoorSouth, DoorEast, DoorNorth, Rope, Rope, Rope, Rope, Rope]
-		,scriptedEvent: d2r4_8
+		,enemies: ['ShutDoorSouth', 'DoorEast', 'DoorNorth', 'Rope', 'Rope', 'Rope', 'Rope', 'Rope']
+		,scriptedEvent: 'd2r4_8'
 	})
 	,new Room({row: 4, col: 9, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -787,8 +846,8 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorWest, BombHoleNorth, BombHoleSouth, BlueGoriya, BlueGoriya, BlueGoriya]
-		,scriptedEvent: d2r4_9
+		,enemies: ['DoorWest', 'BombHoleNorth', 'BombHoleSouth', 'BlueGoriya', 'BlueGoriya', 'BlueGoriya']
+		,scriptedEvent: 'd2r4_9'
 	})
 	,new Room({row: 5, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -806,7 +865,7 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorNorth, LockedDoorEast, DoorSouth, Goriya, Goriya, Goriya, Goriya, Goriya]
+		,'enemies': ['DoorNorth', 'LockedDoorEast', 'DoorSouth', 'Goriya', 'Goriya', 'Goriya', 'Goriya', 'Goriya']
 	})
 	,new Room({row: 5, col: 9, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -824,8 +883,8 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorWest, BombHoleNorth, BombHoleSouth, Gel, Gel, Gel, Gel, Gel]
-		,scriptedEvent: d2r5_9
+		,enemies: ['DoorWest', 'BombHoleNorth', 'BombHoleSouth', 'Gel', 'Gel', 'Gel', 'Gel', 'Gel']
+		,scriptedEvent: 'd2r5_9'
 	})
 	,new Room({row: 6, col: 6, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -843,8 +902,8 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorEast, Rope, Rope, Rope, Rope, Rope, Rope]
-		,scriptedEvent: d2r6_6
+		,enemies: ['DoorEast', 'Rope', 'Rope', 'Rope', 'Rope', 'Rope', 'Rope']
+		,scriptedEvent: 'd2r6_6'
 	})
 	,new Room({row: 6, col: 7, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -862,8 +921,8 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [ShutDoorWest, DoorEast, DoorSouth, Rope, Rope, Rope, Rope, Rope]
-		,scriptedEvent: d2r6_7
+		,enemies: ['ShutDoorWest', 'DoorEast', 'DoorSouth', 'Rope', 'Rope', 'Rope', 'Rope', 'Rope']
+		,scriptedEvent: 'd2r6_7'
 	})
 	,new Room({row: 6, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -881,7 +940,7 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorWest, DoorNorth, LockedDoorEast, DoorSouth, Rope, Rope, Rope]
+		,enemies: ['DoorWest', 'DoorNorth', 'LockedDoorEast', 'DoorSouth', 'Rope', 'Rope', 'Rope']
 	})
 	,new Room({row: 6, col: 9, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,201,201,206,207,201,201,208,201,209]
@@ -899,8 +958,8 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorWest, BombHoleNorth, Gel, Gel, Gel, Gel, Gel, Gel]
-		,scriptedEvent: d2r6_9
+		,enemies: ['DoorWest', 'BombHoleNorth', 'Gel', 'Gel', 'Gel', 'Gel', 'Gel', 'Gel']
+		,scriptedEvent: 'd2r6_9'
 	})
 	,new Room({row: 7, col: 7, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -919,7 +978,7 @@ var dungeon2 = new RoomStorage(7,7,[
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 			,{tiles:[[3,3], [3,6], [3,9], [3,12], [5,3], [5,6], [5,9], [5,12], [7,3], [7,6], [7,9], [7,12]], tintFrom: [[24, 60, 92],[0,232,216]], tintTo: [[216,40,0],[92,148,252]]}
 		]
-		,enemies: [DoorNorth, DoorEast, DoorSouth]
+		,'enemies': ['DoorNorth', 'DoorEast', 'DoorSouth']
 	})
 	,new Room({row: 7, col: 8, tileset: 1, tiles: [
 		 [200,201,202,201,201,203,204,205,205,206,207,201,201,208,201,209]
@@ -937,8 +996,8 @@ var dungeon2 = new RoomStorage(7,7,[
 		,tintData: [
 			{wholeRoom: true, tintFrom: [[0, 128, 136],[24, 60, 92],[0,232,216],[32,56,236]], tintTo: [[32, 56, 236],[0,0,168],[92, 148, 252],[216,40,0]]}
 		]
-		,enemies: [DoorWest, DoorNorth, Rope, Rope, Rope, Rope, Rope]
-		,scriptedEvent: d2r7_8
+		,enemies: ['DoorWest', 'DoorNorth', 'Rope', 'Rope', 'Rope', 'Rope', 'Rope']
+		,scriptedEvent: 'd2r7_8'
 	})
 ], {name:'level-2', palette: 1});
 
@@ -1072,7 +1131,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,16,16,16,16,71,16,16,16,16,16,16,16,16]
 		,[16,16,16,16,16,16,16,71,16,16,16,16,16,16,16,16]
 		]
-		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [92,148,252]}]
 	})
 	,new Room({row: 0, col:1, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
@@ -1560,7 +1619,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,19,19]
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		],enemies:[Ghini],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474'
+		],enemies:['Ghini'],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474'
 	})
 	,new Room({row: 2, col: 1, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,44,44]
@@ -1574,7 +1633,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
 		,[19,19,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
-		],enemies:[Ghini],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474'
+		],enemies:['Ghini'],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474'
 		,eventTiles: [{row:5, col:9, event: function() {switchRoom(2,1,underworld);}}]
 		,bombableTiles:[ {row:5,col:9,tile:52,item: 'fire'} ]
 	})
@@ -1597,7 +1656,7 @@ var overworld = new RoomStorage(7,7,[
 			[4,3],[4,4],[4,5],[4,6],[4,9],[4,10],[4,11],[4,12],
 			[6,3],[6,4],[6,5],[6,10],[6,11],[6,12]], tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}]
 		,bgRect: [2, 2, 12, 7, '#747474']
-		,enemies:[Lynel]
+		,enemies:['Lynel']
 		,eventTiles: [{row:4, col:7, event: function() {switchRoom(7,7,dungeon6);}},{row:4, col:8, event: function() {switchRoom(7,7,dungeon6);}}]
 	})
 	,new Room({row: 2, col: 3, tiles: [
@@ -1614,7 +1673,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,16,16,16,71,16,16,16,16,16,16,71,16,16]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,enemies:[Lynel, Lynel, Lynel, Lynel]
+		,enemies:['Lynel', 'Lynel', 'Lynel', 'Lynel']
 	})
 	,new Room({row: 2, col: 4, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,71,16,16,16,16,16]
@@ -1630,12 +1689,13 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		,scriptedEvent: 'BraceletEvent'
 		,bombableTiles: [
 			 {row:4, col:2, tile:-1, item:'touch'}
 			,{row:4, col:5, tile:-1, item:'touch'}
 			,{row:4, col:8, tile:-1, item:'touch'}
 			,{row:4, col:11, tile:-1, item:'touch'}
-			,{row:4, col:14, tile:puBracelet, item:'touch'} // @TODO: puBracelet
+			,{row:4, col:14, tile:-1, item:'touch'} // @TODO: puBracelet
 			,{row:6, col:2, tile:-1, item:'touch'}
 			,{row:6, col:5, tile:-1, item:'touch'}
 			,{row:6, col:8, tile:-1, item:'touch'}
@@ -1846,7 +1906,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,15,16]
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		],enemies:[Ghini],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474'
+		],enemies:['Ghini'],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474'
 	})
 	,new Room({row: 3, col: 1, tiles: [
 		 [16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
@@ -1860,7 +1920,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
 		,[19,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
-		],enemies:[Ghini],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474'
+		],enemies:['Ghini'],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474'
 	})
 	,new Room({row: 3, col: 2, tiles: [
 		 [16,16,16,16,16,16,16,71,16,16,16,16,16,16,16,16]
@@ -1874,7 +1934,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16,16]
 		,[16,16,16,19,19,19,19,19,19,19,19,19,19,16,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		],enemies:[Peahat, Peahat, Lynel, Lynel, BlueLynel, BlueLynel]
+		],enemies:['Peahat', 'Peahat', 'Lynel', 'Lynel', 'BlueLynel', 'BlueLynel']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	,new Room({row: 3, col: 3, tiles: [
@@ -2087,7 +2147,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,19,19,19,19,19,19,19,19,19,19,19,19,71,19]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,71,16]
-		],enemies:[Ghini],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474',hollowTiles: [[9,14], [10,14]]
+		],enemies:['Ghini'],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474',hollowTiles: [[9,14], [10,14]]
 	})
 	,new Room({row: 4, col: 1, tiles: [
 		 [16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
@@ -2101,7 +2161,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
 		,[19,19,19,19,19,19,19,19,19,19,19,19,19,19,44,44]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,44,44]
-		],enemies:[Ghini],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474'
+		],enemies:['Ghini'],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474'
 	})
 	,new Room({row: 4, col: 2, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
@@ -2115,7 +2175,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,15,16]
 		,[16,16,19,19,19,19,19,-1,-1,19,19,19,19,19,16,16]
 		,[16,16,16,16,16,16,16,-1,-1,16,16,16,16,16,16,16]
-		],enemies:[Moblin],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		],enemies:['Moblin'],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	,new Room({row: 4, col: 3, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
@@ -2130,7 +2190,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,19,19,19,19,19,-1,-1,19,19,19,19,19,16,16]
 		,[16,16,16,16,16,16,16,-1,-1,16,16,16,16,16,16,16]
 		],tintData: [{rows: [0,1,2,7,8,9,10], tiles: [[3,0], [4,0], [5,0], [6,0], [3,15], [4,15], [5,15], [6,15]], tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,scriptedEvent: LakeFairyEvent
+		,scriptedEvent: 'LakeFairyEvent'
 	})
 	,new Room({row: 4, col: 4, tiles: [
 		 [16,16,16,16,16,16,16,16,-1,40,41,41,41,41,41,41]
@@ -2144,7 +2204,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,20,-1,-1,-1,-1,-1,-1,-1,40,41,41,41,41,41,41]
 		,[16,16,19,19,19,19,19,-1,-1,40,41,41,41,41,41,41]
 		,[16,16,16,16,16,16,16,-1,-1,40,41,41,41,41,41,41]
-		],enemies:[Octorok, Octorok, Octorok, Octorok, RiverZora],tintData: [{rows: [0,1,9,10], tiles: [[2,0], [2,1], [3,0], [4,0], [5,0], [6,0], [7,0], [8,0], [8,1], [2,14], [2,15], [3,14], [3,15], [4,14], [4,15], [5,14], [5,15], [6,14], [6,15], [7,14], [7,15], [8,14], [8,15]], tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		],enemies:['Octorok', 'Octorok', 'Octorok', 'Octorok', 'RiverZora'],tintData: [{rows: [0,1,9,10], tiles: [[2,0], [2,1], [3,0], [4,0], [5,0], [6,0], [7,0], [8,0], [8,1], [2,14], [2,15], [3,14], [3,15], [4,14], [4,15], [5,14], [5,15], [6,14], [6,15], [7,14], [7,15], [8,14], [8,15]], tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 		,eventTiles: [{row:1, col:4, event: function() {switchRoom(4,4,underworld);}}]
 	})
 	,new Room({row: 4, col: 5, tiles: [
@@ -2159,7 +2219,7 @@ var overworld = new RoomStorage(7,7,[
 		,[41,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,41]
 		,[41,16,19,19,19,19,19,19,71,19,19,19,19,19,16,41]
 		,[41,16,16,16,16,16,16,16,71,16,16,16,16,16,16,41]
-		],enemies:[Peahat],tintData: [{rows: [0,1,2,5,6,7,8,9,10], tiles: [[3,0],[3,1],[4,0],[4,1],[3,14],[3,15],[4,14],[4,15]], tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}], hollowTiles:[[9,8],[10,8]]
+		],enemies:['Peahat'],tintData: [{rows: [0,1,2,5,6,7,8,9,10], tiles: [[3,0],[3,1],[4,0],[4,1],[3,14],[3,15],[4,14],[4,15]], tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}], hollowTiles:[[9,8],[10,8]]
 	})
 	,new Room({row: 4, col: 6, tiles: [
 		 [41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
@@ -2173,7 +2233,7 @@ var overworld = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,42,-1,-1,44,44,44,44,44,44,44]
 		,[41,41,41,41,41,41,42,-1,-1,44,44,44,44,44,44,44]
 		,[41,41,41,41,41,41,42,-1,-1,44,44,44,44,44,44,44]
-		],enemies:[RiverZora],hollowTiles:[[5,7]]
+		],enemies:['RiverZora'],hollowTiles:[[5,7]]
 		,eventTiles: [{row:7, col:9, event: function() {switchRoom(4,6,underworld);}}]
 		,bombableTiles: [{row:7, col:9, tile:52, item:'fire'}]
 	})
@@ -2189,7 +2249,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-		],enemies:[RiverZora]
+		],enemies:['RiverZora']
 		,eventTiles: [{row:7, col:11, event: function() {switchRoom(4,7,underworld);}}]
 		,bombableTiles: [{row:7, col:11, tile:52, item:'fire'}]
 	})
@@ -2205,7 +2265,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,44,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44,44]
 		,[44,44,44,44,44,44,44,-1,-1,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,-1,-1,44,44,44,44,44,44,44]
-		],enemies:[RiverZora, Leever, Leever]
+		],enemies:['RiverZora', 'Leever', 'Leever']
 		,eventTiles: [{row:2, col:13, event: function() {switchRoom(4,8,underworld);}}]
 		,bombableTiles: [{row:2, col:13, tile:52, item:'fire'}]
 	})
@@ -2221,7 +2281,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,-1,-1,-1,44,44,-1,-1,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,-1,-1,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,-1,-1,44,44,44,44,44,44,44]
-		],enemies:[Octorok, Octorok, Octorok, Octorok, Octorok, BlueOctorok]
+		],enemies:['Octorok', 'Octorok', 'Octorok', 'Octorok', 'Octorok', 'BlueOctorok']
 	})
 	,new Room({row: 4, col: 10, tiles: [
 		 [16,16,16,16,16,16,16,-1,-1,16,16,16,16,16,16,16]
@@ -2235,7 +2295,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,15,16,16]
 		,[16,16,16,20,15,19,19,19,19,19,19,19,19,16,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		],enemies:[BlueTektite,BlueTektite,BlueTektite,BlueTektite,BlueTektite,BlueTektite]
+		],enemies:['BlueTektite','BlueTektite','BlueTektite','BlueTektite','BlueTektite','BlueTektite']
 		,eventTiles: [{row:1, col:11, event: function() {switchRoom(4,10,underworld);}}]
 	})
 	,new Room({row: 4, col: 11, tiles: [
@@ -2250,7 +2310,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44,-1,-1,44,44]
 		,[44,-1,44,-1,-1,-1,44,-1,44,-1,44,44,-1,-1,44,44]
 		,[44,-1,44,-1,-1,-1,44,-1,44,-1,44,44,-1,-1,44,44]
-		],enemies:[Moblin,Moblin,Moblin,Moblin,Moblin,Moblin]
+		],enemies:['Moblin','Moblin','Moblin','Moblin','Moblin','Moblin']
 		,eventTiles: [{row:2, col:11, event: function() {switchRoom(4,11,underworld);}}]
 		,bombableTiles: [{row:2, col:11, tile:52, item:'fire'}]
 	})
@@ -2266,7 +2326,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16,16]
 		,[16,16,20,15,20,15,19,19,19,19,19,20,15,16,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		],enemies:[Octorok, Octorok, Octorok, BlueOctorok, BlueOctorok]
+		],enemies:['Octorok', 'Octorok', 'Octorok', 'BlueOctorok', 'BlueOctorok']
 		,hollowTiles: [[0,7],[1,7],[2,7],[3,7],[4,7]]
 	})
 	,new Room({row: 4, col: 13, tiles: [
@@ -2281,7 +2341,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44]
 		,[44,44,44,-1,44,44,44,44,44,44,44,44,-1,44,44,44]
 		,[44,44,44,-1,44,44,44,44,44,44,44,44,-1,44,44,44]
-		],enemies:[BlueMoblin, BlueMoblin, BlueMoblin, BlueMoblin]
+		],enemies:['BlueMoblin', 'BlueMoblin', 'BlueMoblin', 'BlueMoblin']
 		,eventTiles: [{row:6, col:13, event: function() {switchRoom(4,13,underworld);}}]
 		,bombableTiles: [{row:6, col:13, tile:52, item:'fire'}]
 	})
@@ -2297,7 +2357,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-		],enemies:[BlueMoblin, BlueMoblin, BlueMoblin, BlueMoblin]
+		],enemies:['BlueMoblin', 'BlueMoblin', 'BlueMoblin', 'BlueMoblin']
 		,eventTiles: [{row:4, col:10, event: function() {switchRoom(4,14,underworld);}}]
 		,bombableTiles: [{row:4, col:10, tile:52, item:'touch'},{row:4, col:5, tile:-1, item:'touch'}]
 	})
@@ -2313,7 +2373,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,20,-1,-1,-1,-1,-1,-1,40,41,41,41,41,41,41]
 		,[16,16,16,19,20,-1,-1,-1,-1,40,41,41,41,41,41,41]
 		,[16,16,16,16,16,-1,-1,-1,-1,40,41,41,41,41,41,41]
-		],enemies: [BlueOctorok,BlueOctorok,Octorok,Octorok,Octorok,RiverZora]
+		],enemies: ['BlueOctorok','BlueOctorok','Octorok','Octorok','Octorok','RiverZora']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	/************ Row 5 ************/
@@ -2329,7 +2389,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16]
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
-		],enemies:[Lynel, Lynel, Lynel, Lynel, Lynel],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474',hollowTiles: [[0,14], [1,14], [2,14], [3,14], [4,14]]
+		],enemies:['Lynel', 'Lynel', 'Lynel', 'Lynel', 'Lynel'],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [252, 252, 252]}], background: '#747474',hollowTiles: [[0,14], [1,14], [2,14], [3,14], [4,14]]
 	})
 	,new Room({row: 5, col: 1, tiles: [
 		 [44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
@@ -2343,7 +2403,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,-1,-1,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,-1,-1,44,44,44,44]
-		],enemies:[BlueMoblin,BlueMoblin,BlueMoblin,BlueMoblin,BlueMoblin],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		],enemies:['BlueMoblin','BlueMoblin','BlueMoblin','BlueMoblin','BlueMoblin'],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 		,eventTiles: [{row:6, col:9, event: function() {switchRoom(5,1,underworld);}}]
 		,bombableTiles:[ {row:6,col:9,tile:52,item: 'fire'} ]
 
@@ -2360,7 +2420,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[44,44,44,44,44,-1,-1,44,44,-1,-1,-1,-1,-1,44,44]
 		,[44,44,44,44,44,-1,-1,44,44,-1,-1,-1,-1,-1,44,44]
-		],enemies:[Moblin, Moblin, BlueMoblin, BlueMoblin],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		],enemies:['Moblin', 'Moblin', 'BlueMoblin', 'BlueMoblin'],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	,new Room({row: 5, col: 3, tiles: [
 		 [44,44,44,44,44,44,44,-1,-1,44,44,44,44,44,44,44]
@@ -2374,7 +2434,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
 		,[44,44,44,44,-1,-1,44,-1,-1,-1,44,-1,44,-1,44,44]
 		,[44,44,44,44,-1,-1,44,-1,-1,-1,44,-1,44,-1,44,44]
-		],enemies:[BlueMoblin, BlueMoblin, BlueMoblin, Moblin, Moblin],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+		],enemies:['BlueMoblin', 'BlueMoblin', 'BlueMoblin', 'Moblin', 'Moblin'],tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	,new Room({row: 5, col: 4, tiles: [
 		 [44,44,44,44,44,44,44,-1,-1,40,41,41,41,41,41,41]
@@ -2388,7 +2448,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
 		,[44,44,44,-1,-1,44,44,44,44,-1,-1,44,44,-1,16,16]
 		,[44,44,44,-1,-1,44,44,44,44,-1,-1,44,44,-1,16,16]
-		],enemies: [RiverZora,Octorok,Octorok,Octorok,Octorok]
+		],enemies: ['RiverZora','Octorok','Octorok','Octorok','Octorok']
 	})
 	,new Room({row: 5, col: 5, tiles: [
 		 [41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
@@ -2402,7 +2462,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,-1,-1,-1,41,41,-1,-1,-1,-1,-1,-1,-1,16,16]
 		,[16,16,-1,-1,-1,41,41,-1,-1,-1,19,-1,19,-1,16,16]
 		,[16,16,-1,-1,-1,41,41,-1,-1,-1,16,-1,16,-1,16,16]
-		],enemies: [RiverZora,Octorok],hollowTiles: [[5,4], [5,7]]
+		],enemies: ['RiverZora','Octorok'],hollowTiles: [[5,4], [5,7]]
 	})
 	,new Room({row: 5, col: 6, tiles: [
 		 [41,41,41,41,41,41,42,-1,-1,44,44,44,44,44,44,44]
@@ -2416,7 +2476,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,16,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[16,16,16,44,44,44,44,44,44,44,44,44,44,44,44,44]
-		],enemies: [RiverZora, Octorok, Octorok, Octorok, Octorok]
+		],enemies: ['RiverZora', 'Octorok', 'Octorok', 'Octorok', 'Octorok']
 		,eventTiles: [{row:6, col:10, event: function() {switchRoom(5,6,underworld);}}]
 		,bombableTiles:[ {row:6,col:10,tile:52,item: 'fire'} ]
 
@@ -2433,7 +2493,7 @@ var overworld = new RoomStorage(7,7,[
 		,[]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-		],enemies: [Octorok, Octorok, Octorok, Octorok]
+		],enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok']
 	})
 	,new Room({row: 5, col: 8, tiles: [
 		 [44,44,44,44,44,44,44,-1,-1,44,44,44,44,44,44,44]
@@ -2447,7 +2507,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44]
 		,[44,44,44,-1,44,-1,44,-1,-1,44,-1,44,-1,44,-1,44]
 		,[44,44,44,-1,44,-1,44,-1,-1,44,-1,44,-1,44,-1,44]
-		],enemies: [Octorok, Octorok, Octorok, Octorok]
+		],enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok']
 	})
 	,new Room({row: 5, col: 9, tiles: [
 		 [44,44,44,44,44,44,44,-1,-1,44,44,44,44,44,44,44]
@@ -2461,7 +2521,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,44,44,44,44,44,-1,-1,40,41,41,41,41,41,41]
 		,[44,44,44,44,44,44,44,-1,-1,40,41,41,41,41,41,41]
 		,[44,44,44,44,44,44,44,-1,-1,40,41,41,41,41,41,41]
-		],enemies: [Peahat, Peahat, Peahat, Peahat, RiverZora]
+		],enemies: ['Peahat', 'Peahat', 'Peahat', 'Peahat', 'RiverZora']
 	})
 	,new Room({row: 5, col: 10, tiles: [
 		 [44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
@@ -2475,7 +2535,7 @@ var overworld = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,42,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[41,41,41,41,41,41,42,-1,-1,-1,-1,44,44,44,-1,44]
 		,[41,41,41,41,41,41,42,-1,-1,-1,-1,44,44,44,-1,44]
-		],enemies: [Octorok, Octorok, Octorok, Octorok, RiverZora]
+		],enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok', 'RiverZora']
 	})
 	,new Room({row: 5, col: 11, tiles: [
 		 [44,-1,44,-1,-1,-1,44,-1,44,-1,44,44,-1,-1,44,44]
@@ -2489,7 +2549,7 @@ var overworld = new RoomStorage(7,7,[
 		,[]
 		,[44,-1,44,-1,-1,-1,44,-1,44,-1,44,44,-1,44,44,44]
 		,[44,-1,44,-1,-1,-1,44,-1,44,-1,44,44,-1,44,44,44]
-		],enemies: [BlueMoblin,BlueMoblin,Moblin,Moblin]
+		],enemies: ['BlueMoblin','BlueMoblin','Moblin','Moblin']
 	})
 	,new Room({row: 5, col: 12, tiles: [
 		 [44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
@@ -2503,7 +2563,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,-1,44,44,44,44,44,44,44,-1,44,44,44]
 		,[44,44,44,44,-1,44,44,44,44,44,44,44,-1,44,44,44]
 		,[44,44,44,44,-1,44,44,44,44,44,44,44,-1,44,44,44]
-		],enemies: [BlueMoblin,BlueMoblin,BlueMoblin,BlueMoblin]
+		],enemies: ['BlueMoblin','BlueMoblin','BlueMoblin','BlueMoblin']
 	})
 	,new Room({row: 5, col: 13, tiles: [
 		 [44,44,44,-1,44,44,44,44,44,44,44,44,-1,44,44,44]
@@ -2517,7 +2577,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,44,-1,44,44,44,44,44,44,44,44,-1,44,44,44]
 		,[44,44,44,-1,44,44,44,44,44,44,44,44,-1,44,44,44]
 		,[44,44,44,-1,44,44,44,44,44,44,44,44,-1,44,44,44]
-		],enemies: [BlueMoblin,BlueMoblin,BlueMoblin,BlueMoblin]
+		],enemies: ['BlueMoblin','BlueMoblin','BlueMoblin','BlueMoblin']
 	})
 	,new Room({row: 5, col: 14, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
@@ -2531,7 +2591,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,20,-1,-1,-1,-1,-1,-1,15,16,16,20,-1,-1,15,16]
 		,[16,16,19,19,19,20,15,19,16,16,16,16,19,19,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		],enemies: [BlueMoblin,BlueMoblin,BlueMoblin,BlueMoblin,BlueMoblin]
+		],enemies: ['BlueMoblin','BlueMoblin','BlueMoblin','BlueMoblin','BlueMoblin']
 		,eventTiles: [{row:1, col:7, event: function() {switchRoom(5,14,underworld);}}]
 	})
 	,new Room({row: 5, col: 15, tiles: [
@@ -2546,9 +2606,9 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,20,-1,-1,-1,-1,-1,-1,40,41,41,41,41,41,41]
 		,[16,16,16,19,20,-1,-1,-1,-1,40,41,41,41,41,41,41]
 		,[16,16,16,16,16,-1,-1,-1,-1,40,41,41,41,41,41,41]
-		],enemies: [RiverZora, BlueOctorok, BlueOctorok, Octorok, Octorok, Octorok]
+		],enemies: ['RiverZora', 'BlueOctorok', 'BlueOctorok', 'Octorok', 'Octorok', 'Octorok']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,scriptedEvent: HeartContainerEvent515
+		,scriptedEvent: 'HeartContainerEvent515'
 	})
 	/************ Row 6 ************/
 	,new Room({row: 6, col: 0, tiles: [
@@ -2563,7 +2623,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-		],enemies: [Peahat, Peahat, BlueLynel, BlueLynel, Lynel, Lynel]
+		],enemies: ['Peahat', 'Peahat', 'BlueLynel', 'BlueLynel', 'Lynel', 'Lynel']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	,new Room({row: 6, col: 1, tiles: [
@@ -2578,7 +2638,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,44,44,44,44,44,44,44,44,-1,-1,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,-1,-1,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,-1,-1,44,44,44,44]
-		],enemies: [BlueMoblin, BlueMoblin, BlueMoblin, BlueMoblin, BlueMoblin]
+		],enemies: ['BlueMoblin', 'BlueMoblin', 'BlueMoblin', 'BlueMoblin', 'BlueMoblin']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	,new Room({row: 6, col: 2, tiles: [
@@ -2593,7 +2653,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,44,44,44,44,-1,-1,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,-1,-1,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,-1,-1,44,44,44,44,44,44,44,44]
-		],enemies: [BlueMoblin, BlueMoblin, BlueMoblin, BlueMoblin, BlueMoblin]
+		],enemies: ['BlueMoblin', 'BlueMoblin', 'BlueMoblin', 'BlueMoblin', 'BlueMoblin']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 		,eventTiles: [{row:2, col:8, event: function() {switchRoom(6,2,underworld);}}]
 		,bombableTiles:[ {row:2,col:8,tile:52,item: 'fire'} ]
@@ -2610,7 +2670,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
 		,[44,44,44,44,44,44,44,-1,-1,-1,44,-1,44,-1,44,44]
 		,[44,44,44,44,44,44,44,-1,-1,-1,44,-1,44,-1,44,44]
-		],enemies:[Moblin, Moblin, Moblin, BlueMoblin, BlueOctorok, BlueOctorok]
+		],enemies:['Moblin', 'Moblin', 'Moblin', 'BlueMoblin', 'BlueOctorok', 'BlueOctorok']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 		,eventTiles: [{row:6, col:6, event: function() {switchRoom(6,3,underworld);}}]
 		,bombableTiles:[ {row:6,col:6,tile:52,item: 'fire'} ]
@@ -2627,7 +2687,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,16,19,19,19,19,19,19,19,19,19,19,19,19,19]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-	],enemies:[BlueOctorok, BlueOctorok, Octorok, Octorok, Octorok]
+	],enemies:['BlueOctorok', 'BlueOctorok', 'Octorok', 'Octorok', 'Octorok']
 	,eventTiles: [{row:1, col:7, event: function() {switchRoom(6,4,underworld);}}]
 	})
 	,new Room({row: 6, col: 5, tiles: [
@@ -2645,7 +2705,7 @@ var overworld = new RoomStorage(7,7,[
 		]
 		,tintData: [{rows: [2,3,4,5,6,7,8], tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 		,hollowTiles: [[5,5], [5,6]]
-		, enemies: [Octorok, Octorok, Octorok, Octorok, RiverZora]
+		, enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok', 'RiverZora']
 	})
 	,new Room({row: 6, col: 6, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
@@ -2667,7 +2727,7 @@ var overworld = new RoomStorage(7,7,[
 				,[6,8], [6,9], [6,10]
 				,[7,3], [7,4], [7,5], [7,6]
 				], tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}
-		], enemies: [Octorok, Octorok, Octorok, Octorok]
+		], enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok']
 		,eventTiles: [{row:1, col:7, event: function() {switchRoom(6,6,underworld);}}]
 	})
 	,new Room({row: 6, col: 7, tiles: [
@@ -2683,7 +2743,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,19,19,19,19,19,-1,-1,16,16,19,19,19,16,16]
 		,[16,16,16,16,16,16,16,-1,-1,16,16,16,16,16,16,16]
 		
-	], enemies: [Octorok, Octorok, Octorok, Octorok]
+	], enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok']
 	,bombableTiles:[ {row:1,col:7,tile:43,item: 'bomb'} ]
 	,eventTiles: [{row:1, col:7, event: function() {switchRoom(6,7,underworld);}}]
 	})
@@ -2699,7 +2759,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44]
 		,[16,16,44,-1,44,-1,44,-1,-1,44,-1,44,-1,44,-1,44]
 		,[16,16,44,-1,44,-1,44,-1,-1,44,-1,44,-1,44,-1,44]
-		], enemies: [Octorok, Octorok, Octorok, Octorok]
+		], enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok']
 		,bombableTiles: [{row:6, col:2, tile:52,item: 'fire'}]
 		,eventTiles: [{row:6, col:2, event: function() {switchRoom(6,8,underworld);}}]
 	})
@@ -2715,7 +2775,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-	], enemies: [Octorok, Octorok, Octorok, Octorok, RiverZora]})
+	], enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok', 'RiverZora']})
 	,new Room({row: 6, col: 10, tiles: [
 		 [41,41,41,41,41,41,42,-1,-1,-1,-1,44,44,44,-1,44]
 		,[41,41,41,41,41,41,42,-1,-1,-1,-1,44,44,44,-1,44]
@@ -2728,7 +2788,7 @@ var overworld = new RoomStorage(7,7,[
 		,[]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-		], enemies: [Octorok, Octorok, Octorok, Octorok, RiverZora]
+		], enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok', 'RiverZora']
 		,eventTiles: [{row:6, col:12, event: function() {switchRoom(6,10,underworld);}}]
 		,bombableTiles: [{row:6, col:12, tile:52,item: 'fire'}]
 	})
@@ -2744,7 +2804,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,-1,-1,-1,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,-1,-1,-1,44,44]
-		],enemies: [BlueMoblin, Moblin, Moblin, Moblin, BlueOctorok, BlueOctorok]
+		],enemies: ['BlueMoblin', 'Moblin', 'Moblin', 'Moblin', 'BlueOctorok', 'BlueOctorok']
 		,eventTiles: [{row:6, col:8, event: function() {switchRoom(6,11,underworld);}}]
 		,bombableTiles: [{row:6, col:8, tile:52,item: 'fire'}]
 	})
@@ -2760,7 +2820,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,44,44,44,44,44,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-		],enemies: [Moblin, Moblin, Moblin]
+		],enemies: ['Moblin', 'Moblin', 'Moblin']
 	})
 	,new Room({row: 6, col: 13, tiles: [
 		 [44,44,44,-1,44,44,44,44,44,44,44,44,-1,44,44,44]
@@ -2774,7 +2834,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-		],enemies: [Moblin, Moblin, Moblin, Moblin]
+		],enemies: ['Moblin', 'Moblin', 'Moblin', 'Moblin']
 	})
 	,new Room({row: 6, col: 14, tiles: [
 		 [44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
@@ -2788,7 +2848,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-		],enemies: [BlueOctorok, BlueOctorok, Moblin, Moblin, Moblin, BlueMoblin]
+		],enemies: ['BlueOctorok', 'BlueOctorok', 'Moblin', 'Moblin', 'Moblin', 'BlueMoblin']
 	})
 	,new Room({row: 6, col: 15, tiles: [
 		 [16,16,16,16,16,-1,-1,-1,-1,40,41,41,41,41,41,41]
@@ -2804,7 +2864,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,16,16,-1,-1,-1,-1,40,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,enemies: [Octorok, Octorok, Octorok, Octorok, RiverZora, BlueOctorok]
+		,enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok', 'RiverZora', 'BlueOctorok']
 		,eventTiles: [{row:1, col:3, event: function() {switchRoom(6,15,underworld);}}]
 	})
 	/************ Row 7 ************/
@@ -2820,7 +2880,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,16,16,19,19,19,19,19,19,19,19,19,19,19,19]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		],enemies: [Peahat, Peahat, Peahat, Peahat]
+		],enemies: ['Peahat', 'Peahat', 'Peahat', 'Peahat']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 		,eventTiles: [{row:1, col:11, event: function() {switchRoom(7,0,underworld);}}]
 	})
@@ -2836,7 +2896,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,15,16,16]
 		,[19,19,19,19,19,19,19,19,19,19,19,19,19,16,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		],enemies: [BlueMoblin,BlueMoblin,BlueMoblin,BlueMoblin,BlueMoblin]
+		],enemies: ['BlueMoblin','BlueMoblin','BlueMoblin','BlueMoblin','BlueMoblin']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 		,bombableTiles: [{row:1, col:5, tile:43,item: 'bomb'}]
 		,eventTiles: [{row:1, col:5, event: function() {switchRoom(7,1,underworld);}}]
@@ -2853,7 +2913,7 @@ var overworld = new RoomStorage(7,7,[
 		,[44,44,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-		],enemies: [Moblin, BlueMoblin, BlueMoblin, BlueMoblin]
+		],enemies: ['Moblin', 'BlueMoblin', 'BlueMoblin', 'BlueMoblin']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	,new Room({row: 7, col: 3, tiles: [
@@ -2868,7 +2928,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[44,44,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-		],enemies: [BlueMoblin, BlueMoblin, BlueMoblin]
+		],enemies: ['BlueMoblin', 'BlueMoblin', 'BlueMoblin']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	,new Room({row: 7, col: 4, tiles: [ 
@@ -2883,7 +2943,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,20,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,15,16]
 		,[16,16,19,19,19,19,19,19,19,19,19,19,19,19,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-	],enemies: [Tektite], tintData: [{tiles: [[3,7],[3,8],[3,9],[4,4],[4,6],[4,7],[4,8],[4,9],[4,10],[4,12],[6,4],[6,6],[6,10],[6,12]], tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
+	],enemies: ['Tektite'], tintData: [{tiles: [[3,7],[3,8],[3,9],[4,4],[4,6],[4,7],[4,8],[4,9],[4,10],[4,12],[6,4],[6,6],[6,10],[6,12]], tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	,bombableTiles: [
 		{row:4, col:4, tile:-1,item: 'touch'},{row:4, col:6, tile:-1,item: 'touch'},{row:4, col:10, tile:-1,item: 'touch'},{row:4, col:12, tile:-1,item: 'touch'}
 		,{row:6, col:4, tile:-1,item: 'touch'},{row:6, col:6, tile:-1,item: 'touch'},{row:6, col:10, tile:-1,item: 'touch'},{row:6, col:12, tile:-1,item: 'touch'}
@@ -2902,7 +2962,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,20,-1,-1,-1,41,41,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,19,19,20,41,41,15,19,19,19,19,19,19,19,19]
 		,[16,16,16,16,16,41,41,16,16,16,16,16,16,16,16,16]
-	], enemies: [RiverZora, Leever, BlueLeever, BlueLeever, Peahat, Peahat, Peahat]
+	], enemies: ['RiverZora', 'Leever', 'BlueLeever', 'BlueLeever', 'Peahat', 'Peahat', 'Peahat']
 	, eventTiles: [{row:1, col:2, event: function() {switchRoom(7,5,underworld);}}]
 	})
 	,new Room({row: 7, col: 6, tiles: [
@@ -2917,7 +2977,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,16,16]
 		,[19,19,19,19,19,19,19,19,19,19,19,19,19,19,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-	], enemies: [Tektite, Tektite, Tektite, Tektite]
+	], enemies: ['Tektite', 'Tektite', 'Tektite', 'Tektite']
 	,eventTiles: [{row:1, col:6, event: function() {switchRoom(7,6,underworld);}}]
 	,bombableTiles:[ {row:1,col:6,tile:43,item: 'bomb'} ]
 
@@ -2949,7 +3009,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 		,[16,16,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
 		,[16,16,44,44,44,44,44,44,44,44,44,44,44,44,44,44]
-	], enemies: [Octorok, Octorok, Octorok, Octorok]
+	], enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok']
 	,eventTiles: [{row:6, col:4, event: function() {switchRoom(7,8,underworld);}}]
 	,bombableTiles:[ {row:6,col:4,tile:52,item: 'fire'} ]
 	})
@@ -2965,7 +3025,7 @@ var overworld = new RoomStorage(7,7,[
 		,[-1,-1,-1,-1,15,20,-1,-1,-1,-1,-1,-1,15,16,16,16]
 		,[15,19,19,19,16,16,20,15,19,19,19,19,16,16,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		], enemies: [BlueTektite, BlueTektite, BlueTektite, BlueTektite, BlueTektite]
+		], enemies: ['BlueTektite', 'BlueTektite', 'BlueTektite', 'BlueTektite', 'BlueTektite']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	,new Room({row: 7, col: 10, tiles: [
@@ -2980,7 +3040,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,16,20,15,20,-1,-1,15,16,16,16,16,16,16]
 		,[16,16,16,16,16,16,16,20,15,16,16,16,16,16,16,16]
 		,[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
-		], enemies: [BlueTektite, BlueTektite, BlueTektite, BlueTektite]
+		], enemies: ['BlueTektite', 'BlueTektite', 'BlueTektite', 'BlueTektite']
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	,new Room({row: 7, col: 11, tiles: [
@@ -2997,7 +3057,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,16,16,16,16,40,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,enemies: [Leever, Leever, RiverZora]
+		,enemies: ['Leever', 'Leever', 'RiverZora']
 		,eventTiles: [{row:1, col:9, event: function() {switchRoom(7,11,underworld);}}]
 		,bombableTiles:[ {row:1,col:9,tile:43,item: 'bomb'} ]
 
@@ -3016,7 +3076,7 @@ var overworld = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,enemies: [Leever, Leever, RiverZora]
+		,enemies: ['Leever', 'Leever', 'RiverZora']
 		,eventTiles: [{row:1, col:6, event: function() {switchRoom(7,12,underworld);}}]
 		,bombableTiles:[ {row:1,col:6,tile:43,item: 'bomb'} ]
 	})
@@ -3034,7 +3094,7 @@ var overworld = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,enemies: [BlueOctorok, BlueOctorok, BlueOctorok, BlueOctorok, RiverZora]
+		,enemies: ['BlueOctorok', 'BlueOctorok', 'BlueOctorok', 'BlueOctorok', 'RiverZora']
 		,eventTiles: [{row:1, col:6, event: function() {switchRoom(7,12,underworld);}}]
 		,bombableTiles:[ {row:1,col:6,tile:43,item: 'bomb'} ]
 	})
@@ -3052,7 +3112,7 @@ var overworld = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
-		,enemies: [Octorok, Octorok, Octorok, Octorok, RiverZora]
+		,enemies: ['Octorok', 'Octorok', 'Octorok', 'Octorok', 'RiverZora']
 	})
 	,new Room({row: 7, col: 15, tiles: [
 		 [16,16,16,16,16,-1,-1,-1,-1,40,41,41,41,41,41,41]
@@ -3068,7 +3128,7 @@ var overworld = new RoomStorage(7,7,[
 		,[41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41]
 		]
 		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}],hollowTiles: [[5,8]],
-		enemies: [RiverZora, BlueOctorok]
+		enemies: ['RiverZora', 'BlueOctorok']
 	})
 ]);
 

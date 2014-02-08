@@ -860,65 +860,6 @@ function paintRoom(tintFrom, tintTo){
 	});
 }
 
-function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
-	if(!tCtx) tCtx = ctx;
-	x = Math.round(x*SCALE);
-	y = Math.round(y*SCALE);
-	tmpX = x; tmpY = y;
-	if(tintTo && TintCache.get(tintTo, frame)) {
-		return tCtx.putImageData(TintCache.get(tintTo, frame), x, y);
-	}
-	if(rotate || flip) {
-		tmpY = TILESIZE/-2;
-		tmpX = TILESIZE/-2;
-		rotate = rotate*Math.PI;
-		tCtx.save(); 
-		tCtx.translate(x+(HALFTILE), y+(HALFTILE));
-		if(rotate)
-			tCtx.rotate(rotate);
-		if(flip)
-			tCtx.scale((flip.contains('x') ? -1 : 1), (flip.contains('y') ? -1 : 1));
-	}
-	tCtx.drawImage(env.spriteSheet
-		,(frame*SPRITESIZE)
-		,0
-		,SPRITESIZE, SPRITESIZE, Math.round(tmpX), Math.round(tmpY), TILESIZE, TILESIZE);
-
-
-	if(rotate || flip) {
-		tCtx.restore();
-	}
-
-	if(tintTo) {
-		map = tCtx.getImageData(x, y, TILESIZE, TILESIZE);
-		imdata = map.data;
-		for(var p = 0, len = imdata.length; p < len; p+=4) {
-			r = imdata[p]
-			g = imdata[p+1];
-			b = imdata[p+2];
-			
-			if(tintFrom[0] instanceof Array) {
-				for(var i=0;i<tintFrom.length;i++) {
-					if(r == tintFrom[i][0] && g == tintFrom[i][1] && b == tintFrom[i][2]) {
-						imdata[p] = tintTo[i][0];
-						imdata[p+1] = tintTo[i][1];
-						imdata[p+2] = tintTo[i][2];
-					}
-				}
-			}
-			else {
-				if(r == tintFrom[0] && g == tintFrom[1] && b == tintFrom[2]) {
-					imdata[p] = tintTo[0];
-					imdata[p+1] = tintTo[1];
-					imdata[p+2] = tintTo[2];
-				}
-			}
-		}
-		TintCache.set(tintTo, frame, map);
-		return tCtx.putImageData(map, x, y);
-	}
-}
-
 function filledRectangle(x, y, w, h, c, tCtx, stroked) {
 	if(!tCtx) tCtx = ctx;
 	tCtx.beginPath();

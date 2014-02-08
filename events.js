@@ -638,6 +638,16 @@ var EnemyDeath = new Class({
 	}
 });
 
+var BraceletEvent = Class({
+	initialize: function(room) {
+		filledRectangle(4*SPRITESIZE,10*SPRITESIZE,SPRITESIZE,SPRITESIZE, '#f0f', ctxBg);
+		room.tiles[4][14].addEvent('touch', function(){
+			console.log('I am touch');
+		});
+		console.log('braceletevent',room);
+	}
+});
+
 function doStuffOnKilledMOBs(room, mobName, item, door){
 	// spawn key when all mobs are destroyed
 	Array.each(room.MOBs, function(mob){

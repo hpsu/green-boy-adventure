@@ -54,8 +54,8 @@ var Sprite = new Class({
 		if (c < 0) { c = -c; }
 		
 		return {
-			w: (h * s + w * c)
-			,h: (h * c + w * s)
+			w: Math.round(h * s + w * c)
+			,h: Math.round(h * c + w * s)
 			,rads: rads
 		};
 	}
@@ -332,17 +332,22 @@ var SpriteCatalog = {
 	,Dodongo180: {col: [2,2], row: [0,1], flipMap: ['x', 'x'], width: 32, height: 16, spriteSheet: env.bossSpriteSheet}
 	,Dodongo270: {col: [6], flipMap: [null,'x'], width: 16, height: 16, spriteSheet: env.bossSpriteSheet}
 
-	,getWidth: function(key) {
+	,getDimensions: function(key, direction) {
 		if(!this[key]) {
 			console.warn('No such sprite in catalog!');
 			return false;
 		}
-		if(this[key].width)
-			return this[key].width;
-		else if(this[key].size)
-			return this[key].size;
+		var animFrame = 0;
+		if(!SpriteCache[key+animFrame]) SpriteCache[key+animFrame] = new Sprite(this[key]['col'][animFrame], this[key]);
 
-		return SPRITESIZE;
+		return SpriteCache[key+animFrame].getRotatedDimensions(SpriteCache[key+animFrame].width, SpriteCache[key+animFrame].height, typeof direction == 'undefined' ? SpriteCache[key+animFrame].direction : direction);
+	}
+	,getWidth: function(key, params) {
+		return 0;
+
+
+
+		return SpriteCache[key+animFrame].getWidth(params);
 	}
 	,getHeight: function(key) {
 		if(!this[key]) {

@@ -171,6 +171,7 @@ var Mob = new Class({
 	,lastUpdateTime: 0
 	,msPerFrame: 100
 	,spawning: true
+	,acFadeDelta: 0
 	,width: SPRITESIZE
 	,initialize: function(x,y,room){
 		if(room)
@@ -179,8 +180,10 @@ var Mob = new Class({
 			this.currentRoom = rooms.getCurrentRoom();
 
 		this.currentRoom.MOBs.unshift(this);
-		
 		this.moveToRandomNonSolidTile(x,y);
+	}
+    	,fade: function(){
+		this.fading = true;
 	}
 	,moveToRandomNonSolidTile: function(x, y) {
 		if(x && y) {
@@ -256,6 +259,7 @@ var Mob = new Class({
 	,draw: function() {
 		if(!this.sprite) return;
 		var params = {};
+		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
 		if(typeof this.palette != 'undefined') params['palette'] = this.palette;
 		if(typeof this.animFrame != 'undefined') params['animFrame'] = this.animFrame;
 		if(typeof this.direction != 'undefined' && !this.lockRotation) params['direction'] = this.direction;
@@ -263,7 +267,19 @@ var Mob = new Class({
 		if(typeof this.rotation != 'undefined') params['direction'] += this.rotation;
 		if(typeof this.paletteType != 'undefined') params['paletteType'] = this.paletteType; 
 		if(window.collisionDebug) filledRectangle(this.x,this.y,this.width,this.height,'rgba(255,0,0,0.5)');
-		SpriteCatalog.draw(this.sprite, this.x, this.y, params);
+		if(this.isFading && this.acFadeDelta > 30) {
+			this.acFadeDelta = 0;
+			return false;
+		}
+		else {
+			SpriteCatalog.draw(this.sprite, this.x, this.y, params);
+		}
+		this.acFadeDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
+	,fade: function() {
+		this.isFading = true;
+		(function(){this.destroy();}).bind(this).delay(1500);
 	}
 });
 

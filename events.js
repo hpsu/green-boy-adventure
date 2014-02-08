@@ -328,14 +328,18 @@ var LinkGainItem = new Class({
 	,acDelta: 0
 	,initialize: function(itemsprite, params){
 		this.sprite = itemsprite;
-		env.player.isActive=false;
-		this.x = env.player.x + (env.player.width-SpriteCatalog.getWidth(this.sprite))/2;
-		this.y = env.player.y-SPRITESIZE + (env.player.height-SpriteCatalog.getHeight(this.sprite))/2;
-		this.parent(this.x,this.y,rooms.getCurrentRoom());
 		if(params) {
 			if(typeof(params['palette']) != 'undefined') this.palette=params['palette'];
 			if(typeof(params['direction']) != 'direction') this.direction=params['direction'];
 		}
+		env.player.isActive=false;
+		var dim = SpriteCatalog.getDimensions(this.sprite, this.direction);
+		this.x = env.player.x;
+		this.y = env.player.y - dim.h;
+		this.height=dim.h;
+		this.width=dim.w;
+
+		this.parent(this.x,this.y,rooms.getCurrentRoom());
 	}
 	,destroy: function() {
 		env.player.isActive=true;
@@ -396,15 +400,15 @@ var StoreEvent = new Class({
 		this.parent(room);
 		
 		room.killSprites = function(){
-			this.guy.destroy();
+			this.guy.fade();
 			this.txtNode.destroy();
 			this.rupee.destroy();
-			this.item1.destroy();
-			this.item2.destroy();
-			this.item3.destroy();
+			this.item1.fade();
+			this.item2.fade();
+			this.item3.fade();
 		};
 		room.guy = new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'YoungMan');
-		room.txtNode = new TextContainer(SPRITESIZE*2+HALFSPRITE, (SPRITESIZE*6)+HALFSPRITE, room, text ? text : "buy somethin' will ya!");
+		room.txtNode = new TextContainer(SPRITESIZE*2+HALFSPRITE, (SPRITESIZE*6)+HALFSPRITE, room, text ? text : "buy somethin' will ya!", true);
 		
 		room.rupee = new mmgRupee((SPRITESIZE*3)+(HALFSPRITE/2), (SPRITESIZE*11)-4, room, true);
 
@@ -429,14 +433,17 @@ var ShieldBombArrowEvent = new Class({
 		
 		room.item1 = new puShield((SPRITESIZE*6)-4, (SPRITESIZE*10)-HALFSPRITE, room);
 		room.item2 = new puBomb((SPRITESIZE*8)-4, (SPRITESIZE*10)-HALFSPRITE, room, 0, 4, 20);
-		room.item3 = new puArrow((SPRITESIZE*10)-4, (SPRITESIZE*10)-HALFSPRITE, room);
+		room.item3 = new puArrow((SPRITESIZE*10)-2, (SPRITESIZE*10)-HALFSPRITE, room);
 		room.item1.price = 130;
 
-		room.tmpBombFunc = room.item2.pickup;
-		room.item2.pickup = function(that) {
-			if(room.tmpBombFunc.bind(this).pass(that)())
-				room.killSprites();
-		};
+		for(var i=1; i<=3; i++) {
+console.log(i);
+			room['item'+i].tmpPickup = room['item'+i].pickup;
+			room['item'+i].pickup = function(that) {
+				if(this.tmpPickup.bind(this).pass(that)())
+					room.killSprites();
+			};
+		}
 	}
 });
 
@@ -618,11 +625,6 @@ var StaticSprite = new Class({
 		this.parent(x,y,room);
 		if(typeof spriteParams != 'undefined' && typeof spriteParams['direction'] != 'undefined')
 			this.direction = spriteParams['direction'];
-	}
-	,draw: function() {
-		var params ={};
-		if(this.direction) params['direction'] = this.direction;
-		SpriteCatalog.draw(this.sprite, this.x, this.y, params);
 	}
 });
 

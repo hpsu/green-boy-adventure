@@ -428,15 +428,17 @@ var puShield = new Class({
 	,pickup: function(that) {
 		if(this.price) {
 			if(that.getRupees() < this.price) return false;
-			that.addRupees(-this.price);
+			new RupeeCountEvent(that, -this.price);
 		}
 		that.items.shield = 2;
 		new LinkGainItem(this.sprite);
-		this.currentRoom.killSprites();
+		this.destroy();
+		return true;
 	}
 	,draw: function() {
 		this.parent();
-		writeText((String(this.price).length < 3 ? ' ' : '') + String(this.price), this.x-SPRITESIZE+4, this.y+1.5*SPRITESIZE);
+		if(!this.isFading)
+			writeText((String(this.price).length < 3 ? ' ' : '') + String(this.price), this.x-SPRITESIZE+4, this.y+1.5*SPRITESIZE);
 
 	}
 });
@@ -876,7 +878,7 @@ var puBomb = new Class({
 	,pickup: function(that) {
 		if(this.price) {
 			if(that.getRupees() < this.price) return false;
-			that.addRupees(-this.price);
+			new RupeeCountEvent(that, -this.price);
 		}
 		that.addBombs(this.worth);
 		this.destroy();
@@ -884,7 +886,7 @@ var puBomb = new Class({
 	}
 	,draw: function() {
 		this.parent();
-		if(this.price) {
+		if(this.price && !this.isFading) {
 			writeText(' '+String(this.price), this.x-(HALFSPRITE*1.5), this.y+SPRITESIZE+HALFSPRITE);
 		}
 	}
@@ -895,7 +897,7 @@ var puArrow = new Class({
 	,name: 'Arrow'
 	,sprite: 'Arrow'
 	,palette: 0
-	,width: 8
+	,width: 5
 	,height: 16
 	,worth: 1
 	,direction: 270
@@ -913,15 +915,18 @@ var puArrow = new Class({
 	}
 	,pickup: function(that) {
 		if(this.price) {
-			if(that.getRupees() < this.price) return;
-			that.addRupees(-this.price);
+			if(that.getRupees() < this.price) return false;
+			new RupeeCountEvent(that, -this.price);
+			new LinkGainItem('Arrow', {direction: 270, palette: this.palette});
 		}
 		that.items.arrow=1;
 		this.destroy();
+		return true;
 	}
 	,draw: function() {
 		this.parent();
-		writeText(' '+String(this.price), this.x-HALFSPRITE, this.y+SPRITESIZE+HALFSPRITE);
+		if(!this.isFading)
+			writeText(' '+String(this.price), this.x-(HALFSPRITE)-6, this.y+SPRITESIZE+HALFSPRITE);
 	}
 });
 

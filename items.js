@@ -782,7 +782,8 @@ var mmgRupee = new Class({
 		Array.each(this.currentRoom.rupees, function(o) {
 			o.reveal();
 		});
-		that.addRupees(this.worth);
+		
+		new RupeeCountEvent(that, this.worth);
 	}
 	,draw: function() {
 		this.parent();

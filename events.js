@@ -199,9 +199,9 @@ var MoneyMakingGameEvent = new Class({
 		new TextContainer(SPRITESIZE*3.5, (SPRITESIZE*6)+HALFSPRITE, room, "let's play money\nmaking game.", true);
 		new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldMan');
 		room.rupees = [];
-		room.rupees[0] = new mmgRupee((SPRITESIZE*5)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, 10);
-		room.rupees[1] = new mmgRupee((SPRITESIZE*7)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, 10);
-		room.rupees[2] = new mmgRupee((SPRITESIZE*9)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, 10);
+		room.rupees[0] = new mmgRupee((SPRITESIZE*5)+(HALFSPRITE*1.5), (SPRITESIZE*10)-HALFSPRITE, room, false, 10);
+		room.rupees[1] = new mmgRupee((SPRITESIZE*7)+(HALFSPRITE*1.5), (SPRITESIZE*10)-HALFSPRITE, room, false, 10);
+		room.rupees[2] = new mmgRupee((SPRITESIZE*9)+(HALFSPRITE*1.5), (SPRITESIZE*10)-HALFSPRITE, room, false, 10);
 		room.winningRupee = Number.random(0,2);
 		room.priceRupee = Number.random(0,2);
 		

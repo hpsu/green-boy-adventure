@@ -756,6 +756,7 @@ var mmgRupee = new Class({
 	,cost: 10
 	,text: '-10'
 	,static: false
+	,width: HALFSPRITE
 	,expiry: null
 	,initialize: function(x,y,room,static,cost){
 		if(typeof cost != undefined) this.cost = cost;
@@ -789,7 +790,7 @@ var mmgRupee = new Class({
 			writeText(this.text, this.x+SPRITESIZE, this.y+(HALFSPRITE/2));
 		}
 		else {
-			writeText(this.text, this.x-HALFSPRITE, this.y+SPRITESIZE+HALFSPRITE);
+			writeText(this.text, this.x-HALFSPRITE-(HALFSPRITE/2)+(this.text.length < 3 ? HALFSPRITE : 0), this.y+SPRITESIZE+HALFSPRITE);
 		}
 	}
 });

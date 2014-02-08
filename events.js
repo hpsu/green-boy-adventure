@@ -186,7 +186,7 @@ var SwordEvent = new Class({
 		if(env.player.items.sword == 0) {
 			new StaticSprite((SPRITESIZE*7.5), SPRITESIZE*8, room, 'OldMan');
 			new puSword((SPRITESIZE*7.5), (SPRITESIZE*9.5), room);
-			new TextContainer(SPRITESIZE*3, (SPRITESIZE*6.5), room, "it's dangerous to go\n  alone! take this.");
+			new TextContainer(SPRITESIZE*3, (SPRITESIZE*6.5), room, "it's dangerous to go\n  alone! take this.", true);
 		}
 	}
 });
@@ -196,7 +196,7 @@ var MoneyMakingGameEvent = new Class({
 	,initialize: function(room) {
 		this.parent(room);
 		
-		new TextContainer(SPRITESIZE*3.5, (SPRITESIZE*6)+HALFSPRITE, room, "let's play money\nmaking game.");
+		new TextContainer(SPRITESIZE*3.5, (SPRITESIZE*6)+HALFSPRITE, room, "let's play money\nmaking game.", true);
 		new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldMan');
 		room.rupees = [];
 		room.rupees[0] = new mmgRupee((SPRITESIZE*5)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, 10);
@@ -236,14 +236,16 @@ var PayMeAndIllTalkEvent = new Class({
 	,initialize: function(room) {
 		this.parent(room);
 		
-		room.txtcnt = new TextContainer(SPRITESIZE*3, (SPRITESIZE*6)+HALFSPRITE, room, "pay me and i'll talk.");
+		room.txtcnt = new TextContainer(SPRITESIZE*3, (SPRITESIZE*6)+HALFSPRITE, room, "pay me and i'll talk.", true);
 		new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldWoman');
 
 		room.rupees = [
-			new mmgRupee((SPRITESIZE*5)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, this.prices[0])
-			,new mmgRupee((SPRITESIZE*7)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, this.prices[1])
-			,new mmgRupee((SPRITESIZE*9)+HALFSPRITE, (SPRITESIZE*10)-HALFSPRITE, room, false, this.prices[2])
+			new mmgRupee((SPRITESIZE*5)+(HALFSPRITE*1.5), (SPRITESIZE*10)-HALFSPRITE, room, false, this.prices[0])
+			,new mmgRupee((SPRITESIZE*7)+(HALFSPRITE*1.5), (SPRITESIZE*10)-HALFSPRITE, room, false, this.prices[1])
+			,new mmgRupee((SPRITESIZE*9)+(HALFSPRITE*1.5), (SPRITESIZE*10)-HALFSPRITE, room, false, this.prices[2])
 		];
+
+		room.staticRupee = new mmgRupee((SPRITESIZE*3), (SPRITESIZE*11)-4, room, true);
 		
 		
 		for(var i=0; i<3; i++) {
@@ -256,14 +258,37 @@ var PayMeAndIllTalkEvent = new Class({
 				Array.each(this.currentRoom.rupees, function(o) {
 					o.reveal();
 				});
-				that.addRupees(-this.cost);
+				room.staticRupee.destroy();
+				new RupeeCountEvent(that, -this.cost);//that.addRupees(-this.cost);
 				room.txtcnt.destroy();
-				room.txtcnt = new TextContainer(SPRITESIZE*this.xoff, (SPRITESIZE*6)+HALFSPRITE, room, this.msg);
+				room.txtcnt = new TextContainer(SPRITESIZE*this.xoff, (SPRITESIZE*6)+HALFSPRITE, room, this.msg, false);
 			};
 			
 		}
 	}
-	
+});
+
+var RupeeCountEvent = new Class({
+	Extends: Mob
+	,sprite: null
+	,msPerFrame: 30
+	,initialize: function(player, amount) {
+		this.player = player;
+		this.amount = amount;
+		this.modifier = amount / Math.abs(amount);
+		this.parent();
+	}
+	,move: function() {
+		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+		if(this.acDelta > this.msPerFrame) {
+			this.acDelta = 0;
+			this.player.addRupees(this.modifier);
+			this.amount -= this.modifier;
+			if(this.amount == 0) this.destroy();
+		}
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+	}
 });
 
 var PayMeAndIllTalkEvent2 = new Class({
@@ -542,13 +567,16 @@ var MagicalSwordEvent = new Class({
 var TextContainer = new Class({
 	Extends: Mob
 	,msPerFrame: 80
-	,initialize: function(x, y, room, text) {
+	,initialize: function(x, y, room, text, halt) {
 		this.parent(x,y,room)
 		this.x = x;
 		this.y = y;
 		this.animFrame=0;
 		this.text = text;
-		env.player.immobilized = true;
+		if(typeof halt != 'undefined' && halt) {
+			this.immobilize = true;
+			env.player.immobilized = true;
+		}
 	}
 	,draw: function() {
 		var delta = Date.now() - this.lastUpdateTime;
@@ -557,7 +585,9 @@ var TextContainer = new Class({
 			if(["\n"," "].contains(this.text[this.animFrame])) this.animFrame++;
 			if(++this.animFrame > this.text.length) {
 				this.animFrame = this.text.length;
-				env.player.immobilized = false;
+				if(this.immobilize) {
+					env.player.immobilized = false;
+				}
 			}
 		}
 		writeText(this.text.substr(0,this.animFrame), this.x, this.y);

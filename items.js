@@ -788,7 +788,7 @@ var mmgRupee = new Class({
 	,draw: function() {
 		this.parent();
 		if(this.static) {
-			writeText(this.text, this.x+SPRITESIZE, this.y+(HALFSPRITE/2));
+			writeText(this.text, this.x+(HALFSPRITE*1.5), this.y+(HALFSPRITE/2));
 		}
 		else {
 			writeText(this.text, this.x-HALFSPRITE-(HALFSPRITE/2)+(this.text.length < 3 ? HALFSPRITE : 0), this.y+SPRITESIZE+HALFSPRITE);
@@ -885,7 +885,7 @@ var puBomb = new Class({
 	,draw: function() {
 		this.parent();
 		if(this.price) {
-			writeText(' '+String(this.price), this.x-HALFSPRITE, this.y+SPRITESIZE+HALFSPRITE);
+			writeText(' '+String(this.price), this.x-(HALFSPRITE*1.5), this.y+SPRITESIZE+HALFSPRITE);
 		}
 	}
 });

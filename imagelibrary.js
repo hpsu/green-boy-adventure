@@ -299,7 +299,7 @@ var SpriteCatalog = {
 	,Key: {col: [106*2], width: 8, height: 16}
 	,Bone: {col: [108*2+1], width: 8, height: 16}
 	,Fairy: {col: [60*2,60*2+1], width: 8, height: 16}
-	,Arrow: {col: [94]}
+	,Arrow: {col: [94], palette: 2}
 	,Bow: {col: [146*2], width: 8, height: 16}
 
 	// Odd sizes

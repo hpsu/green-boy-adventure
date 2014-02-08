@@ -397,6 +397,9 @@ var PauseScreen = new Class({
 		//if(env.player.items.bombs > 0) {
 			SpriteCatalog.draw('Bomb', Math.floor(this.x+(10*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(3*SPRITESIZE)));
 		//}
+			// Can be bought without bow but can not be selected
+			SpriteCatalog.draw('Arrow', Math.floor(this.x+(11*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(3*SPRITESIZE)), {palette: 0, direction: 270});
+
 		//if(env.player.items.candle == 1) {
 			SpriteCatalog.draw('Candle', Math.floor(this.x+(13*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(3*SPRITESIZE)));
 		//}
@@ -412,8 +415,8 @@ var PauseScreen = new Class({
 		//}
 		
 
-
-/*			for(var io=0; io<10; io++) {
+		if(window.debugGrid) {
+			for(var io=0; io<10; io++) {
 				for(var i=0; i<16; i++) {
 					ctx.beginPath();
 					ctx.strokeStyle='#f0f';
@@ -421,7 +424,8 @@ var PauseScreen = new Class({
 					ctx.stroke();
 				}
 			}
-*/
+		}
+
 		ctx.beginPath();
 		ctx.strokeStyle="#fcbcb0";
 		ctx.moveTo(5*TILESIZE, (YOFF+this.y+(9.5*SPRITESIZE))*SCALE);

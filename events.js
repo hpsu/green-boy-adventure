@@ -245,8 +245,7 @@ var PayMeAndIllTalkEvent = new Class({
 			,new mmgRupee((SPRITESIZE*9)+(HALFSPRITE*1.5), (SPRITESIZE*10)-HALFSPRITE, room, false, this.prices[2])
 		];
 
-		room.staticRupee = new mmgRupee((SPRITESIZE*3), (SPRITESIZE*11)-4, room, true);
-		
+		room.staticRupee = new mmgRupee((SPRITESIZE*3)+(HALFSPRITE/2), (SPRITESIZE*11)-4, room, true);
 		
 		for(var i=0; i<3; i++) {
 			room.rupees[i].worth = 0;
@@ -263,7 +262,6 @@ var PayMeAndIllTalkEvent = new Class({
 				room.txtcnt.destroy();
 				room.txtcnt = new TextContainer(SPRITESIZE*this.xoff, (SPRITESIZE*6)+HALFSPRITE, room, this.msg, false);
 			};
-			
 		}
 	}
 });
@@ -408,7 +406,8 @@ var StoreEvent = new Class({
 		room.guy = new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'YoungMan');
 		room.txtNode = new TextContainer(SPRITESIZE*2+HALFSPRITE, (SPRITESIZE*6)+HALFSPRITE, room, text ? text : "buy somethin' will ya!");
 		
-		room.rupee = new mmgRupee((SPRITESIZE*3), (SPRITESIZE*11)-4, room, true);
+		room.rupee = new mmgRupee((SPRITESIZE*3)+(HALFSPRITE/2), (SPRITESIZE*11)-4, room, true);
+
 	}
 });
 

@@ -410,15 +410,20 @@ var PauseScreen = new Class({
 		drawBorder(this.x+(7.5*SPRITESIZE), YOFF+this.y+(2.5*SPRITESIZE), 13, 6);
 		writeText('triforce', this.x+(6*SPRITESIZE), YOFF+this.y+(10*SPRITESIZE),1);
 
+			SpriteCatalog.draw('Boomerang', Math.floor(this.x+(8.25*SPRITESIZE)), Math.floor(YOFF+this.y+(3.25*SPRITESIZE)));
 		//if(env.player.items.bombs > 0) {
 			SpriteCatalog.draw('Bomb', Math.floor(this.x+(10*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(3*SPRITESIZE)));
 		//}
 			// Can be bought without bow but can not be selected
-			SpriteCatalog.draw('Arrow', Math.floor(this.x+(11*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(3*SPRITESIZE)), {palette: 0, direction: 270});
+			SpriteCatalog.draw('Arrow', Math.floor(this.x+(11*SPRITESIZE)+2), Math.floor(YOFF+this.y+(3*SPRITESIZE)), {palette: 0, direction: 270});
+			SpriteCatalog.draw('Bow', Math.floor(this.x+(11*SPRITESIZE)+(SPRITESIZE/2)), Math.floor(YOFF+this.y+(3*SPRITESIZE)), {palette: 0});
 
 		//if(env.player.items.candle == 1) {
 			SpriteCatalog.draw('Candle', Math.floor(this.x+(13*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(3*SPRITESIZE)));
 		//}
+
+			SpriteCatalog.draw('Bone', Math.floor(this.x+(10*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(4*SPRITESIZE)));
+
 		//if(env.player.items.potions > 0) {
 			SpriteCatalog.draw('Potion', Math.floor(this.x+(11.5*SPRITESIZE)-(SPRITESIZE/4)), Math.floor(YOFF+this.y+(4*SPRITESIZE)));
 		//}

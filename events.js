@@ -184,8 +184,13 @@ var SwordEvent = new Class({
 		this.parent(room);
 		
 		if(env.player.items.sword == 0) {
-			new StaticSprite((SPRITESIZE*7.5), SPRITESIZE*8, room, 'OldMan');
-			new puSword((SPRITESIZE*7.5), (SPRITESIZE*9.5), room);
+			room.guy = new StaticSprite((SPRITESIZE*7.5), SPRITESIZE*8, room, 'OldMan');
+			room.sword = new puSword((SPRITESIZE*7.5), (SPRITESIZE*9.5), room);
+			room.pickupfunc = room.sword.pickup;
+			room.sword.pickup=function(that){
+				if(room.pickupfunc.bind(this).pass(that)()) room.guy.fade();
+			};
+
 			new TextContainer(SPRITESIZE*3, (SPRITESIZE*6.5), room, "it's dangerous to go\n  alone! take this.", true);
 		}
 	}
@@ -324,7 +329,7 @@ var PotionShopEvent = new Class({
 
 var LinkGainItem = new Class({
 	Extends: Mob
-	,shownMs: 2000
+	,shownMs: 1500
 	,acDelta: 0
 	,initialize: function(itemsprite, params){
 		this.sprite = itemsprite;
@@ -437,7 +442,6 @@ var ShieldBombArrowEvent = new Class({
 		room.item1.price = 130;
 
 		for(var i=1; i<=3; i++) {
-console.log(i);
 			room['item'+i].tmpPickup = room['item'+i].pickup;
 			room['item'+i].pickup = function(that) {
 				if(this.tmpPickup.bind(this).pass(that)())

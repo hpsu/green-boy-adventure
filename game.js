@@ -279,7 +279,7 @@ var Mob = new Class({
 	}
 	,fade: function() {
 		this.isFading = true;
-		(function(){this.destroy();}).bind(this).delay(1500);
+		(function(){this.destroy();}).bind(this).delay(1000);
 	}
 });
 
@@ -582,11 +582,13 @@ var Link = new Class({
 						if(that.canPassThru(this, tx, ty)) 	pass = true;
 					}
 					else {
-						that.pickup(this);
+						if(that.pickup) that.pickup(this);
 					}
 				}
 				else { // Not friendly
-					hasPtObj = true; pass = false;
+					if(that.isSolid) {
+						hasPtObj = true; pass = false;
+					}
 				}
 			}
 		},this);
@@ -648,9 +650,6 @@ var Link = new Class({
 		if(this.usingItem) {
 			//@TODO: Link should animate when subtracting the sword (walking frames from right to left)
 			this.acDelta = 0;
-			if(this.health == this.items.hearts && this.swordThrow) {
-				this.swordThrow.draw();
-			}
 			this.animFrame = 0;
 		}		
 		else if(this.acDelta > this.msPerFrame) {

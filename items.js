@@ -408,6 +408,7 @@ var puSword = new Class({
 		that.items.sword = this.type;
 		new LinkGainItem(this.sprite, {direction: this.direction});
 		this.destroy();
+		return true;
 	}
 });
 

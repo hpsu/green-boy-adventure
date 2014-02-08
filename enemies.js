@@ -11,23 +11,28 @@ var Enemy = new Class({
 		new EnemyDeath(this.x, this.y);
 		this.destroy();
 	}
+	,spawn: function() {
+		this.sprite = 'EnemySpawn';
+		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+		if(this.acDelta > (this.animFrame == 0 ? 800 : 100)) {
+			if(++this.animFrame >= 3) {
+				this.spawning = false; 
+				return false;
+			}
+			this.acDelta = 0;
+
+		}
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+		return true;
+	}
 	,move: function() {
 		if(this.spawning) {
-			this.sprite = 'EnemySpawn';
-			var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
-			if(this.acDelta > (this.animFrame == 0 ? 800 : 100)) {
-				if(++this.animFrame >= 3) {
-					this.spawning = false; 
-				}
-				this.acDelta = 0;
-
-			}
-			this.acDelta+=delta;
-			this.lastUpdateTime = Date.now();
-			return true;
+			return this.spawn();
+		} else {
+			this.sprite = this.mobSprite;
+			return false;
 		}
-		this.sprite = this.mobSprite;
-		return false;
 	}
 });
 
@@ -979,19 +984,52 @@ var Ghini = new Class({
  */
 var Armos = new Class({
 	Extends: RandomMob
-	,initialize: function(x,y,room) {
-		if(Number.random(0,3) == 3) {
-			this.movementRate = 1.5;
-
-		}
-		this.parent(x,y,room);
-	}
+	,isSolid: true
+	,spawnCallback: null
+	,tile: null
+	,palette: 2
+	,acFrameDelta: 0
 	,sprite: 'Armos'
 	,defaultPalette: 2
 	,maxAnimFrames: 2
 	,projectile: null
 	,damage: 1
 	,health: 1.5
+	,initialize: function(x,y,room,tile, spawnCallback) {
+		if(Number.random(0,3) == 3) {
+			this.movementRate = 1.5;
+		}
+		if(tile) this.tile = tile;
+		if(spawnCallback) this.spawnCallback = spawnCallback;
+		this.parent(x,y,room);
+	}
+	,spawn: function() {
+		this.isSolid = true;
+		var delta = (this.lastUpdateTime > 0 ? Date.now() - this.lastUpdateTime : 0);
+		if(this.acDelta > 40) {
+			this.acDelta = 0;
+			this.sprite = this.sprite == 'Armos' ? null : 'Armos';
+		}
+		if(this.acFrameDelta > (this.animFrame == 0 ? 800 : 100)) {
+			if(++this.animFrame >= 3) {
+				this.spawning = false; 
+				this.isSolid = false;
+				this.sprite = 'Armos';
+				if(this.tile) {
+					this.tile.sprite = -1;
+					paintRoom();
+				}
+				if(this.spawnCallback) this.spawnCallback();
+			}
+			this.acFrameDelta = 0;
+
+		}
+		this.acFrameDelta+=delta;
+		this.acDelta+=delta;
+		this.lastUpdateTime = Date.now();
+		return true;
+
+	}
 });
 
 /**

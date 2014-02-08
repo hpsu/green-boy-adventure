@@ -670,11 +670,13 @@ var EnemyDeath = new Class({
 
 var BraceletEvent = Class({
 	initialize: function(room) {
-		filledRectangle(4*SPRITESIZE,10*SPRITESIZE,SPRITESIZE,SPRITESIZE, '#f0f', ctxBg);
+		if(this.isInitialized) return false;
 		room.tiles[4][14].addEvent('touch', function(){
-			console.log('I am touch');
+			this.armos.spawnCallback = function() {
+				new puBracelet(14*SPRITESIZE, 8*SPRITESIZE, room);
+			}
 		});
-		console.log('braceletevent',room);
+		this.isInitialized = true;
 	}
 });
 

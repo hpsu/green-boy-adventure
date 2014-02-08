@@ -29,6 +29,7 @@ var ctx = null
 				[[0,232,216],[0, 128, 136],[24, 60, 92]]	// Dungeon 1
 				,[[92, 148, 252],[32, 56, 236],[0,0,168]]	// Dungeon 2
 				,[[88,248,152],[0, 144, 56],[0, 60, 20]]	// Dungeon 3
+			    ,[[240,188,60],[136, 112, 0],[64, 44, 0]]	// Dungeon 6
 			]
 		}
 	};
@@ -554,9 +555,19 @@ var Link = new Class({
 		var pass 		= false
 			hasPtObj 	= false;
 		Array.each(rooms.getCurrentRoom().MOBs, function(that){
-			if(that != this && this.collidesWith(that, tx, ty) && that.isFriendly && that.canPassThru) {
-				hasPtObj = true;
-				if(that.canPassThru(this, tx, ty)) 	pass = true;
+			if(that != this && this.collidesWith(that, tx, ty)) {
+				if(that.isFriendly) {
+					if(that.canPassThru) {
+						hasPtObj = true;
+						if(that.canPassThru(this, tx, ty)) 	pass = true;
+					}
+					else {
+						that.pickup(this);
+					}
+				}
+				else { // Not friendly
+					hasPtObj = true; pass = false;
+				}
 			}
 		},this);
 
@@ -608,13 +619,6 @@ var Link = new Class({
 		this.y = ty;
 
 		this.currentRoom.getTile(yTile,xTile).fireEvent('enter');
-
-		Array.each(rooms.getCurrentRoom().MOBs, function(that){
-			if(that != this && that.isFriendly && this.collidesWith(that)) {
-				if(that.pickup)
-					that.pickup(this);
-			}
-		},this);
 	}
 	,move: function() {
 		this.impacted = false;

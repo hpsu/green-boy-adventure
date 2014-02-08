@@ -312,9 +312,11 @@ var Tile = new Class({
 	}
 	,touch: function() {
 		if(this.postBombSprite && this.bombItem == 'touch') {
-			this.fireEvent('touch');
 			if(this.sprite == 53) {
-				new Armos(this.col*SPRITESIZE, (this.row+4)*SPRITESIZE);
+				this.armos = new Armos(this.col*SPRITESIZE, (this.row+4)*SPRITESIZE, false, this);
+				this.isSolid = false;
+				this.fireEvent('touch');
+				return true;
 			}
 			if(this.postBombSprite instanceof Object) {
 				this.sprite = -1;
@@ -326,6 +328,7 @@ var Tile = new Class({
 			this.isSolid = false;
 			
 			paintRoom();
+			this.fireEvent('touch');
 		}
 	}
 });

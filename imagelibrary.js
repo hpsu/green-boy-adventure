@@ -46,14 +46,29 @@ var Sprite = new Class({
 
 		return Array.slice(arguments).join('.');
 	}
+	,getRotatedDimensions: function(w,h,direction) {
+		var rads=direction*Math.PI/180;
+		var c = Math.cos(rads);
+		var s = Math.sin(rads);
+		if (s < 0) { s = -s; }
+		if (c < 0) { c = -c; }
+		
+		return {
+			w: (h * s + w * c)
+			,h: (h * c + w * s)
+			,rads: rads
+		};
+	}
 	,draw: function(tCtx, x, y, direction, flip, palette) {
 		var h = this.hash(direction,flip,palette);
 		if(!this.buffer[h]) this.create(direction, flip, palette);
 
-		if(window.spriteCatalogDebug)
-			filledRectangle(x, y, this.width, this.height, 'rgba(255,0,255,0.2)', tCtx);
+		dim = this.getRotatedDimensions(this.width, this.height, typeof direction == 'undefined' ? this.direction : direction);
 
-		tCtx.drawImage(this.buffer[h], 0, 0, this.width, this.height, x*SCALE, y*SCALE, Math.round(this.width*SCALE), Math.round(this.height*SCALE));
+		if(window.spriteCatalogDebug)
+			filledRectangle(x, y, dim.w, dim.h, 'rgba(255,0,255,0.2)', tCtx);
+
+		tCtx.drawImage(this.buffer[h], 0, 0, dim.w, dim.h, x*SCALE, y*SCALE, Math.round(dim.w*SCALE), Math.round(dim.h*SCALE));
 	}
 	,create: function(direction, flip, palette){
 		var h = this.hash(direction,flip,palette);
@@ -65,13 +80,17 @@ var Sprite = new Class({
 		var tmpX = 0, tmpY = 0;
 		var tCtx = this.buffer[h].getContext('2d');
 		if(direction > 0 || flip) {
+			dim = this.getRotatedDimensions(this.width, this.height, typeof direction == 'undefined' ? this.direction : direction);
+
+			this.buffer[h].width = dim.w;
+			this.buffer[h].height = dim.h;
+
 			tmpY = this.height/-2;
 			tmpX = this.width/-2;
-			rotate = (direction/180)*Math.PI;
-			tCtx.translate((this.width/2), (this.height/2));
+			tCtx.translate((dim.w/2), (dim.h/2));
 			if(direction > 0) {
 				if(window.spriteCatalogDebug) console.log('rotating to',direction);
-				tCtx.rotate(rotate);
+				tCtx.rotate(dim.rads);
 			}
 			if(flip) {
 				if(window.spriteCatalogDebug) console.log('flipping',flip);
@@ -94,7 +113,7 @@ var Sprite = new Class({
 		//palette
 		if(typeof palette != 'undefined' && palette != this.defaultPalette) {
 			if(window.spriteCatalogDebug) console.log('tinting to palette',palette);
-			var map = tCtx.getImageData(0, 0, this.width, this.height),
+			var map = tCtx.getImageData(0, 0, (direction > 0 ? dim.w : this.width), (direction > 0 ? dim.h :this.height)),
 				imdata = map.data
 				tintFrom = env.palettes[this.paletteType][this.defaultPalette]
 				tintTo = env.palettes[this.paletteType][palette];
@@ -299,7 +318,7 @@ var SpriteCatalog = {
 	,Key: {col: [106*2], width: 8, height: 16}
 	,Bone: {col: [108*2+1], width: 8, height: 16}
 	,Fairy: {col: [60*2,60*2+1], width: 8, height: 16}
-	,Arrow: {col: [94], palette: 2}
+	,Arrow: {col: [94], width: 16, height: 5, palette: 2}
 	,Bow: {col: [146*2], width: 8, height: 16}
 
 	// Odd sizes

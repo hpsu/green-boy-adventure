@@ -172,7 +172,16 @@ var ArrowProjectile = new Class({
 	Extends: Projectile
 	,damage: 0.5
 	,sprite: 'Arrow'
+	,width: 16
+	,height: 5
 	,tileBlock: false
+	,initialize: function(ancestor) {
+		if(ancestor.direction % 180) {
+			this.width = 5;
+			this.height = 16;
+		}
+		this.parent(ancestor);
+	}
 	,destroy: function() {
 		new ArrowWake(this.x, this.y);
 		this.parent();

@@ -342,25 +342,6 @@ var SpriteCatalog = {
 
 		return SpriteCache[key+animFrame].getRotatedDimensions(SpriteCache[key+animFrame].width, SpriteCache[key+animFrame].height, typeof direction == 'undefined' ? SpriteCache[key+animFrame].direction : direction);
 	}
-	,getWidth: function(key, params) {
-		return 0;
-
-
-
-		return SpriteCache[key+animFrame].getWidth(params);
-	}
-	,getHeight: function(key) {
-		if(!this[key]) {
-			console.warn('No such sprite in catalog!');
-			return false;
-		}
-		if(this[key].height)
-			return this[key].height;
-		else if(this[key].size)
-			return this[key].size;
-
-		return SPRITESIZE;
-	}
 	,draw: function(key, x, y, params) {
 		if(!params) params = {};
 

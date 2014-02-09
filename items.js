@@ -83,17 +83,17 @@ var Bomb = new Class({
 		this.direction = this.ancestor.direction;
 		switch(this.direction) {
 			case 0:
-				this.x += this.ancestor.width + SPRITESIZE;
+				this.x += this.ancestor.width + (HALFSPRITE/4);
 				break;
 			case 180:
-				this.x -= this.width + SPRITESIZE;
+				this.x -= this.width + (HALFSPRITE/4);
 				break;
 			case 270:
-				this.y -= this.height + SPRITESIZE;
+				this.y -= this.height + (HALFSPRITE/4);
 				this.x += this.width/2;
 				break;
 			case 90:
-				this.y += this.ancestor.height + SPRITESIZE;
+				this.y += this.ancestor.height + (HALFSPRITE/4);
 				this.x += this.width/2;
 				break;
 		}

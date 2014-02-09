@@ -35,9 +35,47 @@ window.addEvent('load', function(){
 		,mouseout: function() {this.palette=3;}
 	});
 
+	/*new clickableText(null, HALFSPRITE*27.75, 0.5*HALFTILE, null, HALFTILE, {
+		direction: 270
+		,click: prevPage
+		,textColor: 3
+		,text: 'load'
+	});*/
+	new clickableText(null, HALFSPRITE*27.75, 2*HALFTILE, null, HALFTILE, {
+		direction: 270
+		,click: saveRoom
+		,textColor: 3
+		,text: 'save'
+	});
+
 	setCanvasSize();
 	repaint();
 });
+
+function saveRoom() {
+	var room = rooms.getCurrentRoom();
+	var tiles = room.tiles;
+	var str = "new Room({row: "+room.row+", col: "+room.col+", tiles: [\n"
+	for(var row = 0; row < tiles.length; row++) {
+		str += "\t";
+		if(row > 0) {
+			str += ',';
+		}
+		else {
+			str += ' ';	
+		}
+		str += '[';
+
+		for(var col = 0; col < tiles[row].length; col++) {
+			if(col > 0)
+				str += ',';
+			str += tiles[row][col].sprite != null ? tiles[row][col].sprite : '-1'; 
+		}
+		str += "]\n"
+	}
+	str += "]});\n"
+	console.log(str);
+}
 
 function nextPage() {
 	if(env.spritePage < env.spritePageCount) {
@@ -99,13 +137,12 @@ function paintTile(e) {
 	}
 }
 
-var clickableTile = new Class({
+var clickable = new Class({
 	 x: 0
 	,y: 0
 	,w: 0
 	,h: 0
 	,direction: 0
-	,sprite: 0
 	,initialize: function(s,x,y,w,h,params) {
 		this.sprite = s;
 		this.x = x;
@@ -158,14 +195,6 @@ var clickableTile = new Class({
 		return (ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1);
 	}
 	,draw: function(e) {
-		if(isNaN(this.sprite)) {
-			var params = {ctx: ctxBg};
-			if(this.direction) params['direction'] = this.direction;
-			if(this.palette) params['palette'] = this.palette;
-			SpriteCatalog.draw(this.sprite, this.x, this.y, params);
-		}
-		else
-			placeTile(this.sprite, this.x, this.y, null, null, null, null, ctxBg);
 		if(this.mouseInBox(e)) {
 			this.mouseover();
 			if(e.type == 'mousedown') {
@@ -175,6 +204,50 @@ var clickableTile = new Class({
 		else {
 			this.mouseout();
 		}
+	}
+});
+
+var clickableTile = new Class({
+	Extends: clickable
+	,draw: function(e) {
+		if(isNaN(this.sprite)) {
+			var params = {ctx: ctxBg};
+			if(this.direction) params['direction'] = this.direction;
+			if(this.palette) params['palette'] = this.palette;
+			SpriteCatalog.draw(this.sprite, this.x, this.y, params);
+		}
+		else
+			placeTile(this.sprite, this.x, this.y, null, null, null, null, ctxBg);
+		this.parent(e);
+	}
+});
+
+
+var clickableText = new Class({
+	Extends: clickable
+	,text: ''
+	,textColor: 3
+	,initialize: function(s,x,y,w,h,params) {
+		if(typeof params != 'undefined') {
+			if(typeof params['text'] != 'undefined') {
+				this.text = params['text'];
+			}
+			if(typeof params['textColor'] != 'undefined') {
+				this.textColor = params['textColor'];
+			}
+		}
+		this.parent(s,x,y,w,h,params);
+		this.w = this.text.length*HALFSPRITE;
+	}
+	,mouseover: function() {
+		this.textColor = 0;
+	}
+	,mouseout: function() {
+		this.textColor = 2;
+	}
+	,draw: function(e) {
+		writeText(this.text, this.x, this.y, this.textColor, ctxBg);
+		this.parent(e);
 	}
 });
 

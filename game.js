@@ -384,12 +384,15 @@ var PauseScreen = new Class({
 		switch(this.state) {
 			case 'opening':
 				if(YOFF < this.height) {
-					YOFF+=1.5;
-				} else this.state='open';
+					YOFF+=1*SCALE;
+				} else {
+					YOFF = this.height;
+					this.state='open';
+				}
 			break;
 			case 'closing':
 				if(YOFF > 0) {
-					YOFF-=1.5;
+					YOFF-=1*SCALE;
 				} else {
 					this.state='closed';
 					env.paused = false;

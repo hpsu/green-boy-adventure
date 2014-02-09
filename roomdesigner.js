@@ -9,23 +9,59 @@ window.addEvent('load', function(){
 
 	ctxBg = $('background').getContext('2d');
 	ctx = $('screen').getContext('2d');
+	
 	$('screen').addEvents({
 		'mousemove': paintTile
 		,'mousedown': paintTile
+		,'contextmenu': function(e) { if(!e.shift) e.preventDefault(); }
+	});
+	env.clickables = [];
+	
+	// Next page button
+	new clickableTile('Triforce', HALFSPRITE*18.5, 1, 10, 10, {
+		direction: 90
+		,click: nextPage
+		,palette: 3
+		,mouseover: function() {this.palette=2;}
+		,mouseout: function() {this.palette=3;}
 	});
 
-	$('screen').addEvent('contextmenu', function(e) {
-		if(!e.shift)
-		e.preventDefault();
+	// Previous page button
+	new clickableTile('Triforce', HALFSPRITE*0.5, 1, 10, 10, {
+		direction: 270
+		,click: prevPage
+		,palette: 3
+		,mouseover: function() {this.palette=2;}
+		,mouseout: function() {this.palette=3;}
 	});
 
 	setCanvasSize();
 	repaint();
 });
 
+function nextPage() {
+	if(env.spritePage < env.spritePageCount) {
+		env.spritePage++;
+		repaint();
+	}
+}
+function prevPage() {
+	if(env.spritePage > 0) {
+		env.spritePage--;
+		repaint();
+	}
+}
+
+function drawClickables(e) {
+	for(var i=0; i<env.clickables.length;i++) {
+		env.clickables[i].draw(e);
+	}
+}
+
 function paintTile(e) {
 	var pos = getMouseTile(e);
 	ctx.clearRect(0,0,WIDTH,HEIGHT);
+
 	if(pos.yTile >= 4) {
 		if(e.event.which) {
 			var room = rooms.getCurrentRoom();
@@ -43,6 +79,7 @@ function paintTile(e) {
 		placeTile(env.currentSprite, pos.xTile*SPRITESIZE,pos.yTile*SPRITESIZE);
 	}
 	else {
+		drawClickables(e);
 		ctx.globalAlpha = 1;
 		xOff = SPRITESIZE*0.75;
 		yOff = SPRITESIZE*1.125;
@@ -59,26 +96,87 @@ function paintTile(e) {
 
 			filledRectangle(x, y, SPRITESIZE, SPRITESIZE, "rgba(255,255,240,0.8)");
 		}
-		else if(pos.x >= 0.5*HALFTILE && pos.x <= (0.5*HALFTILE)+(10*SCALE) && pos.y >= 1*SCALE && pos.y <= 11*SCALE) {
-			filledRectangle(0.5*HALFSPRITE, 1, 10, 10, "rgba(255,255,240,0.5)", ctx);
-			if(e.type=='mousedown') {
-				if(env.spritePage > 0) {
-					env.spritePage--;
-					repaint();
-				}
-			}
-		}
-		else if(pos.x >= 18.5*HALFTILE && pos.x <= (18.5*HALFTILE)+(10*SCALE) && pos.y >= 1*SCALE && pos.y <= 11*SCALE) {
-			filledRectangle(18.5*HALFSPRITE, 1, 10, 10, "rgba(255,255,240,0.5)", ctx);
-			if(e.type=='mousedown') {
-				if(env.spritePage < env.spritePageCount) {
-					env.spritePage++;
-					repaint();
-				}
-			}
-		}
 	}
 }
+
+var clickableTile = new Class({
+	 x: 0
+	,y: 0
+	,w: 0
+	,h: 0
+	,direction: 0
+	,sprite: 0
+	,initialize: function(s,x,y,w,h,params) {
+		this.sprite = s;
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+		if(typeof params != 'undefined') {
+			if(typeof params['direction'] != 'undefined') {
+				this.direction = params['direction'];
+			}
+			if(typeof params['click'] != 'undefined') {
+				this.click = params['click'];
+			}
+			if(typeof params['palette'] != 'undefined') {
+				this.palette = params['palette'];
+			}
+			if(typeof params['mouseover'] != 'undefined') {
+				this.mouseover = params['mouseover'];
+			}
+			if(typeof params['mouseout'] != 'undefined') {
+				this.mouseout = params['mouseout'];
+			}
+		}
+		env.clickables.push(this);
+		this.draw();
+	}
+	,click: function() {
+		console.log('Someone clicked me!');
+	}
+	,mouseover: function() {
+		filledRectangle(this.x, this.y, this.w, this.h, "rgba(255,0,240,0.5)", ctx);
+	}
+	,mouseout: function() {
+
+	}
+	,mouseInBox: function(e) {
+		if(!e) return false;
+		var pos = getMouseTile(e);
+		pos.x /= SCALE;
+		pos.y /= SCALE;
+		var  ax1 = this.x
+			,ax2 = this.x+this.w
+			,ay1 = this.y
+			,ay2 = this.y+this.h
+			,bx1 = pos.x
+			,bx2 = pos.x+1
+			,by1 = pos.y
+			,by2 = pos.y+1;
+
+		return (ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1);
+	}
+	,draw: function(e) {
+		if(isNaN(this.sprite)) {
+			var params = {ctx: ctxBg};
+			if(this.direction) params['direction'] = this.direction;
+			if(this.palette) params['palette'] = this.palette;
+			SpriteCatalog.draw(this.sprite, this.x, this.y, params);
+		}
+		else
+			placeTile(this.sprite, this.x, this.y, null, null, null, null, ctxBg);
+		if(this.mouseInBox(e)) {
+			this.mouseover();
+			if(e.type == 'mousedown') {
+				this.click();
+			}
+		}
+		else {
+			this.mouseout();
+		}
+	}
+});
 
 window.addEvent('resize', function () {
 	setCanvasSize();
@@ -88,6 +186,7 @@ window.addEvent('resize', function () {
 function repaint() {
 	paintRoom();
 	drawREHeader();
+	drawClickables();
 }
 
 function getMouseTile(e) {
@@ -110,8 +209,6 @@ function drawREHeader() {
 
 	// Pickable tiles
 	writeText("  page "+String("00" + Number(env.spritePage+1)).slice(-2)+' of '+env.spritePageCount, HALFSPRITE*1.5, 2, 2, ctxBg);
-	SpriteCatalog.draw('Triforce', 0.5*HALFSPRITE, 1, {ctx: ctxBg, direction: 270});
-	SpriteCatalog.draw('Triforce', 18.5*HALFSPRITE, 1, {ctx: ctxBg, direction: 90});
 	
 	filledRectangle(0.5*SPRITESIZE-3, 1*SPRITESIZE-3, (SPRITESIZE*1.5)*6+6, SPRITESIZE*2.5+6, env.background, ctxBg);
 	drawBorder(0, HALFSPRITE, 20,7, ctxBg);

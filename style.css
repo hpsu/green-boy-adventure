@@ -1,0 +1,23 @@
+#gamecontainer {
+	position: relative;
+	margin: 0 auto; 
+	padding: 0;
+	text-align: center;
+}
+#screen { 
+	position: relative;
+	top: 0;
+	background: transparent;
+}
+#background { 
+	position: absolute;
+	background-color:#fcd8a8; 
+}
+body {
+	background: #151515;
+	margin: 0;
+}
+button {
+	position: absolute;
+	top: 0;
+}

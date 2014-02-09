@@ -5,6 +5,7 @@ window.addEvent('load', function(){
 	env.spritePage = 0;
 	env.spriteCount = env.spriteSheet.width/SPRITESIZE;
 	env.spritePageCount = Math.ceil(env.spriteCount/env.spritesPerPage);
+	env.background = '#fcd8a8';
 
 	ctxBg = $('background').getContext('2d');
 	ctx = $('screen').getContext('2d');
@@ -58,8 +59,8 @@ function paintTile(e) {
 
 			filledRectangle(x, y, SPRITESIZE, SPRITESIZE, "rgba(255,255,240,0.8)");
 		}
-		else if(pos.x >= 0.5*HALFTILE && pos.x <= (0.5*HALFTILE)+(10*SCALE) && pos.y >= 2*SCALE && pos.y <= 12*SCALE) {
-			filledRectangle(0.5*HALFSPRITE, 2, 10, 10, "rgba(255,255,240,0.5)", ctx);
+		else if(pos.x >= 0.5*HALFTILE && pos.x <= (0.5*HALFTILE)+(10*SCALE) && pos.y >= 1*SCALE && pos.y <= 11*SCALE) {
+			filledRectangle(0.5*HALFSPRITE, 1, 10, 10, "rgba(255,255,240,0.5)", ctx);
 			if(e.type=='mousedown') {
 				if(env.spritePage > 0) {
 					env.spritePage--;
@@ -67,8 +68,8 @@ function paintTile(e) {
 				}
 			}
 		}
-		else if(pos.x >= 18.5*HALFTILE && pos.x <= (18.5*HALFTILE)+(10*SCALE) && pos.y >= 2*SCALE && pos.y <= 12*SCALE) {
-			filledRectangle(18.5*HALFSPRITE, 2, 10, 10, "rgba(255,255,240,0.5)", ctx);
+		else if(pos.x >= 18.5*HALFTILE && pos.x <= (18.5*HALFTILE)+(10*SCALE) && pos.y >= 1*SCALE && pos.y <= 11*SCALE) {
+			filledRectangle(18.5*HALFSPRITE, 1, 10, 10, "rgba(255,255,240,0.5)", ctx);
 			if(e.type=='mousedown') {
 				if(env.spritePage < env.spritePageCount) {
 					env.spritePage++;
@@ -109,8 +110,10 @@ function drawREHeader() {
 
 	// Pickable tiles
 	writeText("  page "+String("00" + Number(env.spritePage+1)).slice(-2)+' of '+env.spritePageCount, HALFSPRITE*1.5, 2, 2, ctxBg);
-	SpriteCatalog.draw('Triforce', 0.5*HALFSPRITE, 2, {ctx: ctxBg, direction: 270});
-	SpriteCatalog.draw('Triforce', 18.5*HALFSPRITE, 2, {ctx: ctxBg, direction: 90});
+	SpriteCatalog.draw('Triforce', 0.5*HALFSPRITE, 1, {ctx: ctxBg, direction: 270});
+	SpriteCatalog.draw('Triforce', 18.5*HALFSPRITE, 1, {ctx: ctxBg, direction: 90});
+	
+	filledRectangle(0.5*SPRITESIZE-3, 1*SPRITESIZE-3, (SPRITESIZE*1.5)*6+6, SPRITESIZE*2.5+6, env.background, ctxBg);
 	drawBorder(0, HALFSPRITE, 20,7, ctxBg);
 	var y = SPRITESIZE*1.125;
 	var j = 0;
@@ -123,8 +126,7 @@ function drawREHeader() {
 	}
 	
 	// Current tile
-	writeText("current\n tile:", SPRITESIZE*12.5, 10, 1, ctxBg);
-	drawBorder(SPRITESIZE*13, SPRITESIZE*1.5, 4,4, ctxBg);
-	filledRectangle(13.5*SPRITESIZE-3, 2*SPRITESIZE-3, SPRITESIZE+6, SPRITESIZE+6, "#fcd8a8", ctxBg);
-	placeTile(env.currentSprite, SPRITESIZE*13.5, SPRITESIZE*2,  null, null, null, null, ctxBg);
+	drawBorder(SPRITESIZE*14, SPRITESIZE*2, 4,4, ctxBg);
+	filledRectangle(14.5*SPRITESIZE-3, 2.5*SPRITESIZE-3, SPRITESIZE+6, SPRITESIZE+6, env.background, ctxBg);
+	placeTile(env.currentSprite, SPRITESIZE*14.5, SPRITESIZE*2.5,  null, null, null, null, ctxBg);
 }

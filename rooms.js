@@ -14,6 +14,35 @@ function switchRoom(row,col,container) {
 	return cr;
 }
 
+function paintRoom(tintFrom, tintTo){
+	var room = rooms.getCurrentRoom();
+	ctxBg.clearRect(0,0,WIDTH,HEIGHT);
+
+	if(room.bgRect) {
+		filledRectangle(room.bgRect[0]*SPRITESIZE, (room.bgRect[1]*SPRITESIZE)+4*SPRITESIZE, room.bgRect[2]*SPRITESIZE, room.bgRect[3]*SPRITESIZE,room.bgRect[4],ctxBg);
+	}
+
+	y = 4, x = 0;
+	var tileset = room.tileset;
+	
+	Array.each(room.getTiles(), function(row) {
+		x = 0;
+		Array.each(row, function(tile) {
+			if(tile.sprite) {
+				placeTile(tile.sprite, x*SPRITESIZE, YOFF+y*SPRITESIZE, tintFrom ? tintFrom : tile.tintFrom, tintTo ? tintTo : tile.tintTo, null, tile.flip, ctxBg);
+			}
+			if(window.debugGrid) {
+				ctxBg.beginPath();
+				ctxBg.strokeStyle="#f0f";
+				ctxBg.rect(x*TILESIZE, y*TILESIZE, TILESIZE, TILESIZE);
+				ctxBg.stroke();
+			}
+			x++;
+		});
+		y++;
+	});
+}
+
 function placeTile(frame, x, y, tintFrom, tintTo, rotate, flip, tCtx) {
 	if(!tCtx) tCtx = ctx;
 	x = Math.round(x*SCALE);

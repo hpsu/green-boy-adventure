@@ -186,7 +186,7 @@ var SpriteCatalog = {
 	,Fire: {col: [84]}
 	,HeartContainer: {col: [107]}
 	,Compass: {col: [127]}
-	,Triforce: {col: [144]}
+	,Triforce: {col: [144/10*16], width: 10, height: 10}
 	,MovableBlock: {col: [284], palette: 0}
 	,DoorLocked0: {col: [294], palette: 0}
 	,DoorLocked90: {col: [298], palette: 0}

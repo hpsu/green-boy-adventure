@@ -35,6 +35,12 @@ window.addEvent('load', function(){
 		,mouseout: function() {this.palette=3;}
 	});
 
+	new clickableTile(null, 12.5*SPRITESIZE-3, 2.5*SPRITESIZE-3, SPRITESIZE+6, SPRITESIZE+6, {
+		click: function() {
+			alert('changeBackground');
+		}
+	});
+
 	/*new clickableText(null, HALFSPRITE*27.75, 0.5*HALFTILE, null, HALFTILE, {
 		direction: 270
 		,click: prevPage
@@ -103,6 +109,7 @@ function paintTile(e) {
 	if(pos.yTile >= 4) {
 		if(e.event.which) {
 			var room = rooms.getCurrentRoom();
+			if(pos.xTile < 0 || pos.yTile-4 < 0 || pos.xTile > 15 || pos.yTile-4 > 10) return;
 			var tile = room.tiles[pos.yTile-4][pos.xTile];
 			if(e.rightClick) {
 				tile.sprite = -1;
@@ -299,4 +306,12 @@ function drawREHeader() {
 	drawBorder(SPRITESIZE*14, SPRITESIZE*2, 4,4, ctxBg);
 	filledRectangle(14.5*SPRITESIZE-3, 2.5*SPRITESIZE-3, SPRITESIZE+6, SPRITESIZE+6, env.background, ctxBg);
 	placeTile(env.currentSprite, SPRITESIZE*14.5, SPRITESIZE*2.5,  null, null, null, null, ctxBg);
+
+	// Background color
+	drawBorder(SPRITESIZE*12, SPRITESIZE*2, 4,4, ctxBg);
+	filledRectangle(12.5*SPRITESIZE-3, 2.5*SPRITESIZE-3, SPRITESIZE+6, SPRITESIZE+6, env.background, ctxBg);
+
+	// Current palette
+	drawBorder(SPRITESIZE*10, SPRITESIZE*2, 4,4, ctxBg);
+
 }

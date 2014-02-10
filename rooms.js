@@ -1163,7 +1163,7 @@ var overworld = new RoomStorage(7,7,[
 		,[16,16,16,16,16,16,16,71,16,16,16,16,16,16,16,16]
 		,[16,16,16,16,16,16,16,71,16,16,16,16,16,16,16,16]
 		]
-		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [92,148,252]}]
+		,tintData: [{wholeRoom: true, tintFrom: [0, 168, 0], tintTo: [200, 76, 12]}]
 	})
 	,new Room({row: 0, col:1, tiles: [
 		 [16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]
@@ -3165,3 +3165,5 @@ var overworld = new RoomStorage(7,7,[
 ]);
 
 rooms = overworld;
+
+roomcontainers = [overworld, underworld, dungeon1, dungeon2, dungeon3];

@@ -1,20 +1,3 @@
-//@TODO: Separate canvas contexts for background + header with lower update rate
-
-var TintCache = {
-	cache: {}
-	,get: function(color, tile) {
-		if(Array.isArray(color)) color = color.rgbToHex();
-		if(this.cache[color] && this.cache[color][tile])
-			return this.cache[color][tile];
-		return false;
-	}
-	,set: function(color, tile, data) {
-		if(Array.isArray(color)) color = color.rgbToHex();
-		if(!this.cache[color]) this.cache[color] = {};
-		this.cache[color][tile] = data;
-	}
-};
-
 window.addEvent('resize', function () {
 	setCanvasSize();
 	paintRoom();

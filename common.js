@@ -23,6 +23,12 @@ var ctx = null
 				,[[216,  40,   0], [252, 152,  56], [252, 252, 252]] // red, white, orange
 				,[[  0,   0, 168], [ 92, 148, 252], [252, 252, 252]] // dark blue, white, light blue
 			]
+			,overworld: [
+				 [[  0, 168,   0]]
+				,[[200,  76,  12]]
+				,[[252, 252, 252]]
+				,[[124,   8,   0]]
+			]
 			,dungeon: [
 				[[0,232,216],[0, 128, 136],[24, 60, 92]]	// Dungeon 1
 				,[[92, 148, 252],[32, 56, 236],[0,0,168]]	// Dungeon 2
@@ -31,6 +37,21 @@ var ctx = null
 			]
 		}
 	};
+
+var TintCache = {
+	cache: {}
+	,get: function(color, tile) {
+		if(Array.isArray(color)) color = color.rgbToHex();
+		if(this.cache[color] && this.cache[color][tile])
+			return this.cache[color][tile];
+		return false;
+	}
+	,set: function(color, tile, data) {
+		if(Array.isArray(color)) color = color.rgbToHex();
+		if(!this.cache[color]) this.cache[color] = {};
+		this.cache[color][tile] = data;
+	}
+};
 
 window.collisionDebug = false;
 window.debugGrid = false;

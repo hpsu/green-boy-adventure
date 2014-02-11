@@ -1039,3 +1039,32 @@ var d2r7_8 = Class({
 		}, this);
 	}
 });
+
+var d3r0_0 = new Class({
+	initialize: function(room) {
+		Array.each([[4,7],[4,8],[4,9],[4,10],[4,11],[4,12],[4,13],[7,2],[7,4],[7,5],[7,6],[7,7],[7,8],[7,9],[7,10],[7,12],[7,13]], function(tile) {
+			room.tiles[tile[0]][tile[1]].isSolid=true;
+		});
+		new puRaft(8*SPRITESIZE, 9*SPRITESIZE, room);
+		env.player.x = 3*SPRITESIZE;
+		env.player.y = 5*SPRITESIZE;
+		env.player.direction = 90;
+		room.tiles[0][3].enter = function() {
+			switchRoom(6,4,dungeon3);
+			env.player.x=6*SPRITESIZE;
+			env.player.y=9*SPRITESIZE;
+			env.player.direction = 90;
+		};
+	}
+});
+
+var d3r2_6 = new Class({
+	// @TODO: Questionmark doesn't show?
+	Extends: Event
+	,initialize: function(room) {
+		this.parent(room, true);
+		
+		new StaticSprite((SPRITESIZE*7)+HALFSPRITE, SPRITESIZE*8, room, 'OldMan');
+		new TextContainer(SPRITESIZE*2.5, (SPRITESIZE*6)+HALFSPRITE, room, "did you get the sword\nfrom the old man on\ntop of the waterfall?");
+	}
+});

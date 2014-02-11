@@ -938,6 +938,13 @@ var puBow = new Class({
 	,width: HALFSPRITE
 });
 
+var puRaft = new Class({
+	Extends: Mob
+	,name: 'Raft'
+	,sprite: 'Raft'
+	,width: SPRITESIZE
+});
+
 var movableBlock = new Class({
 	Extends: Mob
 	,sprite: 'MovableBlock'

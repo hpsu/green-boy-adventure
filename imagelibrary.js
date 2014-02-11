@@ -245,6 +245,7 @@ var SpriteCatalog = {
 	,Rope180: {col: [147,148], flipMap: ['x','x'], palette: 2}
 	,Rope270: {col: [147,148], flipMap: ['x','x'], palette: 2}
 	,Death: {col: [120,121], palette: 0}
+	,Raft: {col: [122], palette:0}
 
 	// 8x8
 	,ArrowWake: {col: [95*2], size: 8}
